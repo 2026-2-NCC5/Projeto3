@@ -34,7 +34,7 @@
 
 ### 📚 Professor orientador
 
-- [Rafael Diogo Rossetti](https://www.linkedin.com/in/rafael-rossetti/)
+- [Rafael Diogo Rossetti](https://www.linkedin.com/in/rafael-diogo-rossetti/)
 
 ### 📔 Orientadores complementares
 
