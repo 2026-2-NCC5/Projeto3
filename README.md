@@ -156,15 +156,13 @@ Aplicação  ->  API  ->  Base de conhecimento versionada
                      tudo executado em infraestrutura de nuvem
 ```
 
-> **Decisão em aberto:** o enunciado define aplicação mobile. O grupo avalia uma alternativa web, ainda pendente de aprovação dos professores e do ASA. Atualizar esta seção assim que a decisão for validada.
-
 ---
 
 ## 🧰 Tecnologias
 
 | Camada | Ferramentas |
 |---|---|
-| Aplicação | *a definir conforme a decisão de escopo* |
+| Aplicação | web |
 | Backend e API | Python com FastAPI ou Flask |
 | Agente e RAG | Embeddings, busca vetorial, LangChain ou LlamaIndex, modelo de linguagem autorizado |
 | Base de conhecimento | Ingestão e versionamento de documentos oficiais |
@@ -186,7 +184,7 @@ Aplicação  ->  API  ->  Base de conhecimento versionada
  └── 📁 Entrega_2        # documentação da Entrega 2
 📁 src
  ├── 📁 backend          # API, banco, autenticação, integração TOTVS e auditoria
- ├── 📁 mobile           # aplicação (ver decisão em aberto acima)
+ ├── 📁 web              # aplicação
  └── 📁 notebooks        # ingestão, embeddings, Álgebra Linear e avaliação
 📄 .gitignore
 📄 README.md
