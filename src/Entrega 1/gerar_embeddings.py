@@ -13,6 +13,9 @@ Instalação:
                                                            atualizar a coluna embedding)
 """
 
+import truststore
+truststore.inject_into_ssl()  # usa o repositório de certificados do próprio Windows
+
 import os
 import re
 import hashlib

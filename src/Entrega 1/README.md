@@ -1,69 +1,57 @@
-# ASA - Agente para o Estudante — Protótipo Avançado
+# ASA - Agente para o Estudante — Protótipo (v2, config zero no Vercel)
 
-Frontend + API (FastAPI) + Supabase (pgvector), tudo deployado junto no Vercel.
+## Por que mudou
+A versão anterior usava FastAPI + vercel.json manual, que quebrava com
+`FUNCTION_INVOCATION_FAILED` sem explicação — conflito entre o formato antigo
+de configuração do Vercel (`builds`/`routes`) e a forma atual dele detectar
+apps Python. Esta versão usa o padrão mais simples e estável: **um arquivo
+Python por rota, dentro de `/api`**, sem framework e sem vercel.json.
 
 ## Estrutura
 ```
-index.html          -> chat widget embutido no portal (frontend)
-api/index.py         -> API do agente (backend, roda no Vercel)
-vercel.json          -> configuração de rotas do Vercel
-requirements.txt     -> dependências Python da API
+index.html          -> frontend (chat estilo Claude/ChatGPT)
+api/perguntar.py     -> vira automaticamente a rota POST /api/perguntar
+requirements.txt     -> só o pacote supabase
 gerar_embeddings.py  -> script LOCAL para vetorizar os documentos (rodar 1x)
-.env.example          -> modelo de variáveis de ambiente
+connect_supabase.py  -> script LOCAL de testes gerais
+.env.example          -> modelo de variáveis de ambiente (uso local)
 ```
 
 ## Passo a passo
 
 ### 1. Banco de dados
-1. Crie um projeto em supabase.com
-2. Rode `schema.sql` no SQL Editor (arquivo enviado anteriormente)
-3. Rode `seed.sql` no SQL Editor
+Se ainda não fez: rode `schema.sql` e depois `seed.sql` no SQL Editor do Supabase.
 
-### 2. Gerar os embeddings dos documentos
-1. `pip install supabase python-dotenv`
-2. Copie `.env.example` para `.env` e preencha com a `SUPABASE_URL` e a chave
-   `service_role` (Project Settings > API Keys)
-3. Rode: `python gerar_embeddings.py`
-4. Isso preenche a coluna `embedding` de cada chunk no Supabase
+### 2. Gerar os embeddings
+1. `pip install supabase python-dotenv truststore`
+2. Copie `.env.example` para `.env`, preencha `SUPABASE_URL` e a chave
+   `service_role`
+3. `python gerar_embeddings.py`
 
 ### 3. Deploy no Vercel
-1. Suba esta pasta inteira para um repositório no GitHub
-2. Em vercel.com, importe o repositório
-3. Em **Project Settings > Environment Variables**, adicione:
+1. Apague o projeto anterior no Vercel (ou crie um novo) para evitar cache
+   de configuração antiga
+2. Suba esta pasta pro GitHub (substituindo os arquivos antigos: remova
+   `vercel.json` e `api/index.py` do repositório se existirem)
+3. Importe o repositório no Vercel — **não precisa mexer em nenhuma
+   configuração de build**, ele detecta sozinho
+4. Em Project Settings > Environment Variables, adicione:
    - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_KEY` (a mesma chave `service_role` do passo anterior)
-4. Clique em Deploy
+   - `SUPABASE_SERVICE_KEY`
+5. Deploy
 
 ### 4. Testar
-Abra a URL gerada pelo Vercel, clique no ícone de chat no canto inferior
-direito e pergunte algo como "Posso suspender meu curso esse semestre?".
-A resposta vem da API, que busca no Supabase via `pgvector`.
-
-## Como funciona o fluxo completo
+No console do navegador (F12), na página já deployada:
+```javascript
+fetch('/api/perguntar', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({pergunta:'teste'})}).then(r=>r.json()).then(console.log)
 ```
-Aluno digita pergunta no chat (index.html)
-        │
-        ▼
-POST /api/perguntar  (api/index.py, rodando no Vercel)
-        │
-        ▼
-Vetoriza a pergunta (hashing + normalização L2)
-        │
-        ▼
-Chama a função buscar_chunks_similares() no Supabase (pgvector, cosseno)
-        │
-        ▼
-Retorna os documentos mais similares + resposta + score de confiança
-        │
-        ▼
-Frontend exibe resposta, fonte e painel "Ver evidências"
-```
+Deve retornar um JSON com `resposta`, `confianca`, `abstencao` e `evidencias`.
+Se `resposta` começar com `[DEBUG]`, a mensagem já diz exatamente qual é o problema.
 
-## Observações importantes para o pitch
-- A chave `service_role` do Supabase **só existe no backend** (variável de
-  ambiente do Vercel) — nunca é exposta ao navegador. Isso é o padrão
-  correto de segurança.
-- Se quiser evoluir ainda mais: trocar o "hashing trick" por embeddings de
-  um modelo de linguagem real (ex: `sentence-transformers`) rodando fora do
-  Vercel (ele tem limite de tamanho de função), como em um Cloud Run/EC2 —
-  aí sim usando o "Projeto Interdisciplinar" completo com nuvem própria.
+## Removendo o modo debug (antes da entrega final)
+Em `api/perguntar.py`, o bloco `try/except` dentro de `processar_pergunta`
+devolve o erro técnico na própria resposta (`[DEBUG] ...`). Isso é ótimo pra
+testar agora, mas antes de entregar o projeto, troque essas mensagens de
+debug por algo mais amigável ao estudante, tipo "Ocorreu um erro, tente
+novamente" — e, se quiser manter rastreabilidade (RF10), registre o erro real
+num log em vez de expor pro usuário final.
