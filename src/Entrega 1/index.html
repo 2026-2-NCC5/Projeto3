@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistente FECAP</title>
+<style>
+  :root{
+    --verde-950:#0A2E22;
+    --verde-900:#0B3D2E;
+    --verde-800:#0F4A38;
+    --verde-700:#0F5C3F;
+    --verde-600:#157A4F;
+    --verde-500:#1E8A5B;
+    --verde-100:#E7F4EC;
+    --cinza-50:#FAFBFA;
+    --cinza-100:#F4F6F5;
+    --cinza-200:#EAEDEA;
+    --cinza-300:#D6DDD9;
+    --cinza-500:#8B948E;
+    --cinza-600:#5B655F;
+    --branco:#FFFFFF;
+    --texto:#1B221E;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Segoe UI", Roboto, Arial, sans-serif;
+    color:var(--texto);
+    overflow:hidden;
+  }
+
+  .app{
+    display:flex;
+    height:100vh;
+  }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar{
+    width:270px;
+    flex-shrink:0;
+    background:var(--verde-950);
+    color:var(--branco);
+    display:flex;
+    flex-direction:column;
+    padding:16px 12px;
+  }
+  .sidebar-brand{
+    display:flex; align-items:center; gap:10px;
+    padding:6px 8px 18px;
+    font-weight:700; font-size:15px;
+    letter-spacing:0.2px;
+  }
+  .sidebar-brand .mark{
+    width:26px;height:26px;border-radius:7px;
+    background:var(--verde-500);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;
+  }
+  .new-chat-btn{
+    display:flex; align-items:center; gap:8px;
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.25);
+    color:var(--branco);
+    padding:9px 12px;
+    border-radius:8px;
+    font-size:13.5px;
+    cursor:pointer;
+    margin-bottom:18px;
+    transition:background .15s ease;
+  }
+  .new-chat-btn:hover{background:rgba(255,255,255,0.08);}
+
+  .sidebar-section-label{
+    font-size:11px;
+    color:rgba(255,255,255,0.45);
+    padding:10px 8px 6px;
+    text-transform:none;
+  }
+  .conv-list{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .conv-item{
+    padding:9px 10px;
+    border-radius:7px;
+    font-size:13.5px;
+    color:rgba(255,255,255,0.85);
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transition:background .12s ease;
+  }
+  .conv-item:hover{background:rgba(255,255,255,0.07);}
+  .conv-item.active{background:var(--verde-700); color:var(--branco); font-weight:600;}
+
+  .sidebar-footer{
+    border-top:1px solid rgba(255,255,255,0.12);
+    padding-top:12px;
+    margin-top:8px;
+    display:flex; align-items:center; gap:10px;
+    font-size:13px;
+  }
+  .sidebar-footer .avatar{
+    width:28px;height:28px;border-radius:50%;
+    background:var(--verde-500);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0;
+  }
+  .sidebar-footer .who{color:rgba(255,255,255,0.55); font-size:11px;}
+
+  /* ============ MAIN ============ */
+  .main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    background:var(--branco);
+    min-width:0;
+  }
+
+  .topbar{
+    height:54px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px;
+    border-bottom:1px solid var(--cinza-200);
+    font-size:14px;
+    font-weight:600;
+    flex-shrink:0;
+  }
+  .topbar .badge{
+    font-size:11px; font-weight:600;
+    color:var(--verde-700);
+    background:var(--verde-100);
+    padding:3px 9px;
+    border-radius:20px;
+  }
+
+  .chat-scroll{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    justify-content:center;
+  }
+  .chat-inner{
+    width:100%;
+    max-width:720px;
+    padding:28px 24px 12px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  /* welcome / empty state */
+  .welcome{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:18px;
+    padding:40px 24px;
+  }
+  .welcome .mark-lg{
+    width:52px;height:52px;border-radius:14px;
+    background:var(--verde-700);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+  }
+  .welcome h1{font-size:21px; font-weight:600; color:var(--texto);}
+  .welcome p{font-size:14px; color:var(--cinza-600); max-width:380px; line-height:1.5;}
+  .welcome-suggestions{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:520px;
+  }
+  .welcome-suggestions button{
+    font-size:13px; padding:9px 14px; border-radius:10px;
+    border:1px solid var(--cinza-300); background:var(--branco); color:var(--texto);
+    cursor:pointer; transition:border-color .15s ease, background .15s ease;
+  }
+  .welcome-suggestions button:hover{border-color:var(--verde-500); background:var(--verde-100);}
+
+  /* messages */
+  .msg-row{display:flex; gap:12px; align-items:flex-start;}
+  .msg-row.user{flex-direction:row-reverse;}
+  .msg-avatar{
+    width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px; flex-shrink:0; margin-top:2px;
+  }
+  .msg-row.bot .msg-avatar{background:var(--verde-700); color:var(--branco);}
+  .msg-row.user .msg-avatar{background:var(--cinza-200); color:var(--texto);}
+
+  .msg-content{max-width:80%; font-size:14.5px; line-height:1.55;}
+  .msg-row.user .msg-content{
+    background:var(--verde-700); color:var(--branco);
+    padding:10px 14px; border-radius:14px; border-top-right-radius:3px;
+  }
+  .msg-row.bot .msg-content{color:var(--texto); padding-top:3px;}
+
+  .source-tag{
+    margin-top:8px; font-size:11.5px; color:var(--verde-700);
+    display:flex; align-items:center; gap:5px;
+  }
+  .source-tag .dot{width:5px;height:5px;background:var(--verde-500);border-radius:50%;}
+
+  .evidence-toggle{
+    font-size:11.5px; color:var(--cinza-600); cursor:pointer; text-decoration:underline;
+    margin-top:6px; display:inline-block;
+  }
+  .evidence-panel{
+    margin-top:6px; background:var(--cinza-100); border:1px solid var(--cinza-300);
+    border-radius:8px; padding:10px 12px; font-size:12px; display:none; max-width:420px;
+  }
+  .evidence-panel.open{display:block;}
+  .evidence-item{margin-bottom:8px;}
+  .evidence-item:last-child{margin-bottom:0;}
+  .evidence-item .doc-title{font-weight:600;}
+  .score-bar-bg{background:var(--cinza-300); border-radius:4px; height:5px; margin-top:3px; overflow:hidden;}
+  .score-bar-fill{background:var(--verde-500); height:100%;}
+
+  .handoff-btn{
+    margin-top:10px; font-size:12.5px; padding:7px 12px; border-radius:8px;
+    border:1px solid var(--verde-500); color:var(--verde-700); background:var(--branco);
+    cursor:pointer;
+  }
+  .handoff-btn:hover{background:var(--verde-100);}
+
+  .typing-dots{display:flex; gap:4px; padding:8px 0;}
+  .typing-dots span{width:6px;height:6px;background:var(--cinza-500);border-radius:50%;animation:blink 1.2s infinite;}
+  .typing-dots span:nth-child(2){animation-delay:.2s;}
+  .typing-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  /* composer */
+  .composer-wrap{
+    display:flex; justify-content:center;
+    padding:14px 24px 20px;
+    flex-shrink:0;
+  }
+  .composer{
+    width:100%; max-width:720px;
+    display:flex; align-items:center; gap:10px;
+    border:1px solid var(--cinza-300);
+    border-radius:16px;
+    padding:11px 12px 11px 18px;
+    background:var(--cinza-50);
+  }
+  .composer:focus-within{border-color:var(--verde-500);}
+  .composer input{
+    flex:1; border:none; outline:none; background:transparent;
+    font-size:14px; font-family:inherit;
+  }
+  .composer button{
+    width:34px;height:34px;border-radius:10px;border:none;
+    background:var(--verde-700); color:var(--branco); cursor:pointer; font-size:15px;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .composer button:hover{background:var(--verde-500);}
+  .composer-hint{
+    text-align:center; font-size:11px; color:var(--cinza-500); padding-bottom:8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="mark">🌿</div>
+      Assistente FECAP
+    </div>
+
+    <button class="new-chat-btn" onclick="novaConversa()">
+      ＋ Nova conversa
+    </button>
+
+    <div class="sidebar-section-label">Conversas</div>
+    <div class="conv-list" id="conv-list"></div>
+
+    <div class="sidebar-footer">
+      <div class="avatar">JS</div>
+      <div>
+        João Silva
+        <div class="who">RA 20260001</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <span id="chat-title">Assistente FECAP</span>
+      <span class="badge">Base oficial ASA</span>
+    </div>
+
+    <div class="chat-scroll" id="chat-scroll">
+      <div class="chat-inner" id="chat-inner"></div>
+    </div>
+
+    <div class="composer-wrap">
+      <div class="composer">
+        <input type="text" id="chat-input" placeholder="Pergunte sobre rematrícula, financeiro, documentos..." onkeypress="if(event.key==='Enter')sendMessage()">
+        <button onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+    <div class="composer-hint">O assistente responde com base em documentos oficiais da FECAP/ASA.</div>
+  </main>
+
+</div>
+
+<script>
+/* =========================================================================
+   Estado da aplicação: várias conversas, cada uma com seu histórico.
+   Guardado apenas em memória (sem localStorage) — dura a sessão da demo.
+   ========================================================================= */
+
+const API_URL = "/api/perguntar";
+
+let conversations = [
+  {
+    id: 1,
+    title: "Pendência de rematrícula",
+    messages: [
+      { sender: "user", text: "Tenho pendência para rematrícula?" },
+      { sender: "bot", text: "Você não possui pendências financeiras, mas ainda falta enviar o comprovante de endereço atualizado — isso é obrigatório para concluir a rematrícula 2026.2.",
+        confianca: 0.87, evidencias: [
+          { titulo: "Manual do Aluno — Seção 4.2 (Rematrícula)", fonte: "Manual do Aluno", similaridade: 0.87 }
+        ]}
+    ]
+  },
+  {
+    id: 2,
+    title: "Trancamento de matrícula",
+    messages: [
+      { sender: "user", text: "Posso suspender meu curso esse semestre?" },
+      { sender: "bot", text: "O trancamento de matrícula precisa ser solicitado com pelo menos 15 dias de antecedência do início do semestre e pode impactar bolsas ou financiamentos ativos.",
+        confianca: 0.81, evidencias: [
+          { titulo: "Regulamento Acadêmico — Art. 27", fonte: "Regulamento Acadêmico", similaridade: 0.81 }
+        ]}
+    ]
+  }
+];
+
+let nextId = 3;
+let msgCounter = 0;
+let activeId = 1;
+
+function novaConversa(){
+  const conv = { id: nextId++, title: "Nova conversa", messages: [] };
+  conversations.unshift(conv);
+  activeId = conv.id;
+  renderSidebar();
+  renderChat();
+}
+
+function selecionarConversa(id){
+  activeId = id;
+  renderSidebar();
+  renderChat();
+}
+
+function renderSidebar(){
+  const list = document.getElementById('conv-list');
+  list.innerHTML = "";
+  conversations.forEach(conv => {
+    const div = document.createElement('div');
+    div.className = 'conv-item' + (conv.id === activeId ? ' active' : '');
+    div.textContent = conv.title;
+    div.onclick = () => selecionarConversa(conv.id);
+    list.appendChild(div);
+  });
+}
+
+function getActiveConv(){
+  return conversations.find(c => c.id === activeId);
+}
+
+function buildEvidenceHTML(evidencias, uid){
+  if(!evidencias || evidencias.length === 0) return '';
+  const items = evidencias.map(ev => {
+    const pct = Math.min(100, Math.round(ev.similaridade * 100));
+    return `
+      <div class="evidence-item">
+        <div class="doc-title">${ev.titulo}</div>
+        <div style="color:var(--cinza-600)">Similaridade: ${pct}% · ${ev.fonte}</div>
+        <div class="score-bar-bg"><div class="score-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join("");
+  return `
+    <span class="evidence-toggle" onclick="toggleEvidence(${uid})">Ver evidências ▾</span>
+    <div class="evidence-panel" id="evidence-${uid}">${items}</div>
+  `;
+}
+
+function toggleEvidence(uid){
+  document.getElementById('evidence-'+uid).classList.toggle('open');
+}
+
+function renderChat(){
+  const conv = getActiveConv();
+  document.getElementById('chat-title').textContent = conv.title;
+  const inner = document.getElementById('chat-inner');
+  inner.innerHTML = "";
+
+  if(conv.messages.length === 0){
+    inner.parentElement.style.alignItems = "stretch";
+    inner.innerHTML = `
+      <div class="welcome">
+        <div class="mark-lg">🌿</div>
+        <h1>Como posso te ajudar, João?</h1>
+        <p>Pergunte sobre rematrícula, financeiro, documentos, trancamento ou qualquer outro procedimento acadêmico.</p>
+        <div class="welcome-suggestions">
+          <button onclick="sendSuggestion('Como emitir declaração de matrícula?')">Declaração de matrícula</button>
+          <button onclick="sendSuggestion('Fui reprovado por causa das faltas?')">Reprovação por falta</button>
+          <button onclick="sendSuggestion('Quero saber sobre o FIES')">Sobre o FIES</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  conv.messages.forEach(msg => {
+    msgCounter++;
+    inner.appendChild(buildMessageRow(msg, msgCounter));
+  });
+  scrollToBottom();
+}
+
+function buildMessageRow(msg, uid){
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + msg.sender;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = msg.sender === 'bot' ? '🌿' : 'JS';
+
+  const content = document.createElement('div');
+  content.className = 'msg-content';
+
+  if(msg.sender === 'bot'){
+    content.innerHTML = `
+      ${msg.text}
+      ${(!msg.abstencao && msg.confianca) ? `<div class="source-tag"><span class="dot"></span> Confiança: ${Math.round(msg.confianca*100)}%</div>` : ''}
+      ${buildEvidenceHTML(msg.evidencias, uid)}
+      ${msg.showHandoff ? `<div><button class="handoff-btn" onclick="handoff()">Falar com atendente</button></div>` : ''}
+    `;
+  } else {
+    content.textContent = msg.text;
+  }
+
+  row.appendChild(avatar);
+  row.appendChild(content);
+  return row;
+}
+
+function scrollToBottom(){
+  const scroll = document.getElementById('chat-scroll');
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+function sendSuggestion(text){
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+}
+
+async function sendMessage(){
+  const input = document.getElementById('chat-input');
+  const question = input.value.trim();
+  if(!question) return;
+  input.value = '';
+
+  const conv = getActiveConv();
+  if(conv.messages.length === 0){
+    conv.title = question.length > 32 ? question.slice(0,32) + "…" : question;
+  }
+  conv.messages.push({ sender: 'user', text: question });
+  renderSidebar();
+  renderChat();
+
+  // indicador de digitando
+  const inner = document.getElementById('chat-inner');
+  const typingRow = document.createElement('div');
+  typingRow.className = 'msg-row bot';
+  typingRow.innerHTML = `<div class="msg-avatar">🌿</div><div class="msg-content"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  inner.appendChild(typingRow);
+  scrollToBottom();
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pergunta: question })
+    });
+    if(!resp.ok) throw new Error("Erro na API: " + resp.status);
+    const data = await resp.json();
+
+    conv.messages.push({
+      sender: 'bot',
+      text: data.resposta,
+      confianca: data.confianca,
+      abstencao: data.abstencao,
+      evidencias: data.evidencias,
+      showHandoff: true
+    });
+  } catch (err) {
+    conv.messages.push({
+      sender: 'bot',
+      text: "Não consegui falar com o servidor agora. Verifique se a API está no ar (deploy no Vercel) e se as variáveis de ambiente do Supabase estão configuradas.",
+      showHandoff: true
+    });
+  }
+
+  renderChat();
+}
+
+function handoff(){
+  const conv = getActiveConv();
+  conv.messages.push({ sender: 'bot', text: 'Encaminhando para um atendente do ASA. Seu histórico de conversa já foi anexado para agilizar o atendimento. 🧑‍💼' });
+  renderChat();
+}
+
+// inicialização
+renderSidebar();
+renderChat();
+</script>
+
+</body>
+</html>
