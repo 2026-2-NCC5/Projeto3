@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Assistente FECAP</title>
+<title>Asa Turbo</title>
 <style>
   :root{
     --verde-950:#0A2E22;
@@ -95,6 +95,11 @@
     text-overflow:ellipsis;
     transition:background .12s ease;
   }
+  .logo-img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
   .conv-item:hover{background:rgba(255,255,255,0.07);}
   .conv-item.active{background:var(--verde-700); color:var(--branco); font-weight:600;}
 
@@ -152,6 +157,16 @@
     display:flex;
     flex-direction:column;
     gap:22px;
+  }
+  .mark img, .mark-lg img, .msg-avatar img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  }
+.sidebar-brand .mark, .welcome .mark-lg, .msg-avatar{
+  overflow: hidden;
+    flex-shrink: 0;
   }
 
   /* welcome / empty state */
@@ -273,8 +288,8 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <div class="mark">🌿</div>
-      Assistente FECAP
+      <img src="logo-asaturbo.png" class="logo-img" alt="ASA Turbo">
+      Asa Turbo
     </div>
 
     <button class="new-chat-btn" onclick="novaConversa()">
@@ -296,7 +311,7 @@
   <!-- MAIN -->
   <main class="main">
     <div class="topbar">
-      <span id="chat-title">Assistente FECAP</span>
+      <span id="chat-title">Asa Turbo</span>
       <span class="badge">Base oficial ASA</span>
     </div>
 
@@ -413,7 +428,7 @@ function renderChat(){
     inner.parentElement.style.alignItems = "stretch";
     inner.innerHTML = `
       <div class="welcome">
-        <div class="mark-lg">🌿</div>
+        <img src="logo-asaturbo.png" class="logo-img" alt="ASA Turbo">
         <h1>Como posso te ajudar, João?</h1>
         <p>Pergunte sobre rematrícula, financeiro, documentos, trancamento ou qualquer outro procedimento acadêmico.</p>
         <div class="welcome-suggestions">
@@ -439,7 +454,11 @@ function buildMessageRow(msg, uid){
 
   const avatar = document.createElement('div');
   avatar.className = 'msg-avatar';
-  avatar.textContent = msg.sender === 'bot' ? '🌿' : 'JS';
+  if(msg.sender === 'bot'){
+  avatar.innerHTML = '<img src="logo-asaturbo.png" class="logo-img" alt="ASA Turbo">';
+  } else {
+  avatar.textContent = 'JS';
+  }
 
   const content = document.createElement('div');
   content.className = 'msg-content';
@@ -488,7 +507,7 @@ async function sendMessage(){
   const inner = document.getElementById('chat-inner');
   const typingRow = document.createElement('div');
   typingRow.className = 'msg-row bot';
-  typingRow.innerHTML = `<div class="msg-avatar">🌿</div><div class="msg-content"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  typingRow.innerHTML = `<img src="logo-asaturbo.png" class="logo-img" alt="ASA Turbo">`;
   inner.appendChild(typingRow);
   scrollToBottom();
 
