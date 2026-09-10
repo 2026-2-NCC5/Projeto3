@@ -1,17 +1,21 @@
 """
-API do Agente para o Estudante (ASA/FECAP) - v2 com TF-IDF real
+API do Agente para o Estudante (ASA/FECAP) - v3 com embeddings semânticos
 ------------------------------------------------------------------
 Cada arquivo dentro de /api vira uma rota automaticamente no Vercel:
 este arquivo fica disponível em /api/perguntar sem precisar de vercel.json.
 
-Usa a MESMA lógica de vetorização do gerar_embeddings.py, incluindo a
-tabela de IDF (idf_table.json) calculada a partir de todo o corpus —
+A vetorização principal usa a Hugging Face Inference API (modelo
+BAAI/bge-small-en-v1.5, 384 dimensões). Se a chamada
+falhar por qualquer motivo (token ausente, timeout, rate limit, etc.),
+cai automaticamente para o método antigo (hashing + TF-IDF), usando a
+MESMA lógica e a tabela de IDF (idf_table.json) do gerar_embeddings.py —
 por isso os dois precisam ficar sincronizados (rode gerar_embeddings.py
 de novo sempre que atualizar os documentos, e comite o idf_table.json).
 
 Variáveis de ambiente necessárias (Vercel > Project Settings > Environment Variables):
     SUPABASE_URL
     SUPABASE_SERVICE_KEY
+    HF_API_TOKEN   (token grátis da Hugging Face; veja README/.env.example)
 """
 
 import os
@@ -20,11 +24,14 @@ import json
 import math
 import hashlib
 import unicodedata
+import requests
 from http.server import BaseHTTPRequestHandler
 from supabase import create_client
 
 VECTOR_DIM = 384
 CONFIDENCE_THRESHOLD = 0.15
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/BAAI/bge-small-en-v1.5"
+HF_TIMEOUT = 10  # segundos
 
 STOPWORDS = {
     "a","o","as","os","de","da","do","das","dos","que","e","é","para","com",
@@ -131,6 +138,57 @@ def vectorize(text, dim=VECTOR_DIM):
     return vec
 
 
+def vectorize_hf(texto, timeout=HF_TIMEOUT):
+    """Gera o embedding semântico chamando a Hugging Face Inference API
+    (BAAI/bge-small-en-v1.5, 384 dimensões).
+    Levanta exceção se algo der errado (token ausente, timeout, rate limit,
+    formato inesperado) — quem chama decide o fallback."""
+    hf_token = os.environ.get("HF_API_TOKEN", "")
+    if not hf_token:
+        raise RuntimeError("HF_API_TOKEN não configurado")
+
+    resposta = requests.post(
+        HF_API_URL,
+        headers={"Authorization": f"Bearer {hf_token}"},
+        json={"inputs": texto, "options": {"wait_for_model": True}},
+        timeout=timeout,
+    )
+    resposta.raise_for_status()
+    dados = resposta.json()
+
+    if isinstance(dados, dict) and "error" in dados:
+        raise RuntimeError(f"Hugging Face retornou erro: {dados['error']}")
+
+    if isinstance(dados, list) and dados and isinstance(dados[0], (int, float)):
+        # Formato A: a API já devolve o vetor da frase pronto.
+        vetor = [float(v) for v in dados]
+    elif isinstance(dados, list) and dados and isinstance(dados[0], list):
+        # Formato B: a API devolve um vetor por token -> mean pooling manual.
+        matriz = dados[0] if dados[0] and isinstance(dados[0][0], list) else dados
+        n_tokens = len(matriz)
+        dim = len(matriz[0])
+        vetor = [sum(tok[i] for tok in matriz) / n_tokens for i in range(dim)]
+    else:
+        raise RuntimeError(f"Formato de resposta inesperado da Hugging Face: {dados!r}")
+
+    if len(vetor) != VECTOR_DIM:
+        raise RuntimeError(f"Embedding HF com dimensão {len(vetor)}, esperado {VECTOR_DIM}")
+
+    norm = sum(v * v for v in vetor) ** 0.5
+    return [v / norm for v in vetor] if norm > 0 else vetor
+
+
+def vectorize_com_fallback(texto):
+    """Tenta o embedding semântico (Hugging Face); se falhar por qualquer
+    motivo, cai automaticamente no método antigo (hashing + TF-IDF) pra não
+    quebrar a resposta ao estudante — só loga o motivo da falha."""
+    try:
+        return vectorize_hf(texto)
+    except Exception as e:
+        print(f"[vectorize_hf] falhou ({type(e).__name__}: {e}); usando fallback TF-IDF")
+        return vectorize(texto)
+
+
 def processar_pergunta(pergunta):
     supabase_url = os.environ.get("SUPABASE_URL", "")
     supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
@@ -145,7 +203,7 @@ def processar_pergunta(pergunta):
 
     try:
         supabase = create_client(supabase_url, supabase_key)
-        query_embedding = vectorize(pergunta)
+        query_embedding = vectorize_com_fallback(pergunta)
 
         resultado = supabase.rpc(
             "buscar_chunks_similares",
