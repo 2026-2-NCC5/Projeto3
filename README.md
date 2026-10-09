@@ -14,11 +14,16 @@
 </p>
 
 <p align="center">
+  <b>🚀 Acesse a aplicação publicada: <a href="https://projeto-ia-rho.vercel.app/">https://projeto-ia-rho.vercel.app/</a></b>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow" alt="Status">
   <img src="https://img.shields.io/badge/agente-Agente%20para%20o%20Estudante-green" alt="Agente">
   <img src="https://img.shields.io/badge/integração-TOTVS-orange" alt="Integração">
   <img src="https://img.shields.io/badge/turma-5º%20CCOMP%20·%202º%20sem%202026-blue" alt="Turma">
   <img src="https://img.shields.io/badge/licença-CC%20BY--SA%204.0-lightgrey" alt="Licença">
+  <a href="https://projeto-ia-rho.vercel.app/"><img src="https://img.shields.io/badge/demo-Vercel-black" alt="Demo no Vercel"></a>
 </p>
 
 ---
@@ -139,7 +144,7 @@ O TOTVS é o sistema acadêmico da FECAP e a fonte da informação que hoje o es
 | Segurança | Credenciais e tokens em variáveis de ambiente e gestão de segredos da nuvem. Nada versionado no repositório. |
 | Rastreabilidade | Registro de origem, versão e data dos dados consultados, respeitando o nível de acesso. |
 
-> **Status:** acesso ao ambiente TOTVS ainda **pendente de autorização** da FECAP/ASA. Enquanto isso, o desenvolvimento segue pelo mock com dados fictícios, o que mantém o MVP entregável mesmo que a liberação não saia a tempo.
+> **Status:** por decisão do grupo, **a API real do TOTVS não será utilizada por enquanto**. O projeto funciona inteiramente com o mock de dados fictícios. Como a integração fica isolada atrás de um contrato próprio, a troca pela API real continua possível no futuro, caso a FECAP/ASA autorize o acesso, sem mudanças no agente.
 
 ---
 
@@ -166,10 +171,10 @@ Aplicação  ->  API  ->  Base de conhecimento versionada
 | Backend e API | Python com FastAPI ou Flask |
 | Agente e RAG | Embeddings, busca vetorial, LangChain ou LlamaIndex, modelo de linguagem autorizado |
 | Base de conhecimento | Ingestão e versionamento de documentos oficiais |
-| Integração | TOTVS via API autorizada, com mock de dados fictícios para desenvolvimento e demo |
+| Integração | Mock de dados fictícios do TOTVS (API real fora do escopo por enquanto, mantida como possível extensão) |
 | Álgebra Linear | Python: vetores, matrizes, similaridade e redução de dimensionalidade |
 | Banco de dados | Relacional + banco vetorial *(a definir)* |
-| Nuvem | Docker + provedor a definir (AWS, Azure ou GCP) |
+| Nuvem | Docker + provedor a definir (AWS, Azure ou GCP); aplicação publicada no Vercel |
 | Observabilidade | Logs estruturados e métricas de aplicação e de qualidade das respostas |
 | Versionamento | Git, GitHub e GitHub Projects |
 | Documentação | OpenAPI/Swagger, Model Card, relatório técnico |
@@ -196,22 +201,13 @@ Aplicação  ->  API  ->  Base de conhecimento versionada
 
 ## ▶️ Como executar
 
-> Preencher conforme o ambiente for sendo montado.
+### 🌐 Acessar a aplicação publicada
 
-```bash
-git clone https://github.com/<organizacao>/<repositorio>.git
-cd <repositorio>
+A aplicação já está no ar e **não precisa de instalação**. Basta abrir:
 
-# backend
-cd src/backend
-# copiar o arquivo de exemplo de variáveis de ambiente e preencher
-# a integração roda em modo mock por padrão, sem necessidade de acesso ao TOTVS
-# instruções de instalação e execução
+**👉 [https://projeto-ia-rho.vercel.app/](https://projeto-ia-rho.vercel.app/)**
 
-# notebooks
-cd ../notebooks
-# instruções de instalação e execução
-```
+Os dados acadêmicos do TOTVS são simulados por um **mock**, com dados fictícios, então nenhum dado real de estudante é exposto na demonstração.
 
 ---
 
