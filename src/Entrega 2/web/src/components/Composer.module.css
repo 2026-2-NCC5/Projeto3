@@ -1,0 +1,134 @@
+.wrap {
+  background: var(--fundo);
+  /* Mesma linha do cabeçalho: o texto que rola não é cortado direto no fundo do campo. */
+  border-top: 1px solid var(--linha);
+  padding: var(--esp-3) var(--esp-5) var(--esp-3);
+  /* Reserva a mesma calha de rolagem da conversa (App.module.css), para o campo e a coluna
+     terminarem no mesmo ponto quando a janela é mais estreita que a coluna de leitura. */
+  overflow: hidden;
+  scrollbar-gutter: stable both-edges;
+}
+
+.composer {
+  max-width: var(--largura-leitura);
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--esp-2);
+  padding: var(--esp-2) var(--esp-2) var(--esp-2) var(--esp-4);
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  background: var(--branco);
+  /* Sombra suave: o campo "flutua" sobre o fundo da conversa. */
+  box-shadow: 0 2px 10px rgb(11 42 32 / 0.08);
+  transition: border-color 0.15s ease;
+}
+
+/* Sugestões para continuar a conversa: chips acima do campo, na mesma largura dele. */
+.sugestoes {
+  max-width: var(--largura-leitura);
+  margin: 0 auto var(--esp-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  list-style: none;
+}
+.chip {
+  padding: 6px var(--esp-3);
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--branco);
+  font-size: var(--texto-sm);
+  text-align: left;
+  color: var(--tinta);
+}
+.chip:hover:not(:disabled) { background: var(--balao); color: var(--verde-escuro); }
+.chip:disabled { opacity: 0.55; cursor: wait; }
+
+/* Celular: as sugestões não podem competir com o campo. Só as 2 primeiras e com texto menor
+   (a altura do chip fica ~30 px, acima do mínimo de 24 px do WCAG 2.2). */
+@media (max-width: 560px) {
+  .sugestoes li:nth-child(n + 3) { display: none; }
+  .chip { font-size: var(--texto-xs); }
+}
+/* O foco do campo aparece no contorno do composer inteiro (borda de 2px).
+   Fallback (sem :has): qualquer foco dentro do composer o destaca. */
+.composer:focus-within {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 1px var(--verde);
+}
+/* Com :has(): só o texto focado destaca o composer; o botão focado usa o próprio anel. */
+@supports selector(:has(*)) {
+  .composer:focus-within {
+    border-color: var(--linha);
+    box-shadow: none;
+  }
+  .composer:has(.campo:focus) {
+    border-color: var(--verde);
+    box-shadow: 0 0 0 1px var(--verde);
+  }
+}
+
+.campo {
+  flex: 1;
+  min-height: 40px;
+  padding: var(--esp-2) 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  line-height: 1.5;
+}
+.campo:focus-visible { outline: none; } /* o foco aparece no contorno do .composer */
+.campo::placeholder { color: #6b7770; }
+
+/* Botão de envio: verde principal com ícone branco (contraste ~8:1). Mesma altura de antes (40 px). */
+.enviar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--raio-md);
+  background: var(--verde);
+  color: var(--branco);
+  transition: background-color 0.15s ease;
+}
+.enviar:hover:not(:disabled) { background: var(--verde-escuro); }
+.enviar:active:not(:disabled) { background: var(--verde-noite); }
+/* Foco por teclado: anel verde com respiro, visível sobre o fundo branco do campo. */
+.enviar:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
+/* Vazio: sem pergunta para enviar. Apagado, mas o ícone continua legível. */
+.enviar:disabled { background: var(--linha); color: var(--tinta-suave); cursor: not-allowed; }
+/* Carregando: continua verde (há uma pergunta em andamento) e troca a seta por um indicador. */
+.enviar[aria-busy='true'] { background: var(--verde); color: var(--branco); cursor: progress; }
+
+.carregando {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgb(255 255 255 / 0.35);
+  border-top-color: var(--branco);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.dica {
+  max-width: var(--largura-leitura);
+  margin: var(--esp-2) auto 0;
+  font-size: var(--texto-xs);
+  color: var(--tinta-suave);
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  /* 16 px, a mesma margem lateral da coluna da conversa (App.module.css). */
+  .wrap { padding: var(--esp-3) var(--esp-4) var(--esp-2); }
+  .dica { margin-top: var(--esp-1); }
+}
+/* Atalhos de teclado não servem ao toque; a nota sobre as fontes continua. */
+@media (max-width: 560px), (pointer: coarse) {
+  .atalhos { display: none; }
+  .enviar { width: 44px; height: 44px; }
+}

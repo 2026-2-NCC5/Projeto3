@@ -1,0 +1,66 @@
+.mock {
+  padding: var(--esp-2) var(--esp-5);
+  background: var(--ambar-fundo);
+  border-bottom: 1px solid var(--ambar-linha);
+  color: var(--ambar);
+  font-size: var(--texto-xs);
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-height: 56px;
+  padding: 0 var(--esp-5);
+  border-bottom: 1px solid var(--linha);
+}
+
+.textos { min-width: 0; }
+
+.titulo {
+  font-size: var(--texto-md);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pode ocupar 2 linhas no celular: a data da fonte não deve ser cortada com reticências. */
+.subtitulo {
+  font-size: var(--texto-xs);
+  color: var(--tinta-suave);
+}
+.parte { white-space: nowrap; }
+
+.menu {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  margin-left: calc(-1 * var(--esp-2));
+  flex-shrink: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--raio-md);
+  background: transparent;
+  color: var(--tinta);
+}
+.menu:hover { background: var(--superficie); }
+
+/* Hambúrguer no celular; ícone de painel no desktop (mesmo breakpoint do menu lateral).
+   O preenchimento da faixa esquerda mostra o painel aberto. */
+.iconePainel { display: none; }
+.painelAberto { opacity: 0.18; }
+.menu[aria-expanded='false'] .painelAberto { opacity: 0; }
+@media (min-width: 769px) {
+  .iconeMenu { display: none; }
+  .iconePainel { display: block; }
+}
+
+@media (max-width: 560px), (pointer: coarse) {
+  .menu { width: 44px; height: 44px; }
+}
+
+@media (max-width: 768px) {
+  .barra { padding: 0 var(--esp-4); gap: var(--esp-2); }
+  .mock { padding: var(--esp-2) var(--esp-4); }
+}

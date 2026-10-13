@@ -1,0 +1,12 @@
+.wrap {
+  max-width: var(--largura-leitura);
+  margin: 0 auto;
+}
+
+.lista {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-6);
+  padding-bottom: var(--esp-4);
+}

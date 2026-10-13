@@ -1,0 +1,36 @@
+.app {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--fundo); /* cabeçalho, conversa e campo compartilham o mesmo fundo */
+}
+
+.rolagem {
+  flex: 1;
+  overflow-y: auto;
+  /* Contém os textos .sr-only (position: absolute): sem isso eles se posicionam em relação à janela
+     e esticam a altura da página, criando uma segunda barra de rolagem. */
+  position: relative;
+  /* Calha reservada nos dois lados: o conteúdo fica centralizado como o campo de pergunta. */
+  scrollbar-gutter: stable both-edges;
+  padding: var(--esp-6) var(--esp-5) var(--esp-4);
+}
+
+@media (max-width: 560px) {
+  .rolagem { padding: var(--esp-5) var(--esp-4) var(--esp-3); }
+}
+
+/* Fundo escurecido atrás do menu no celular */
+.fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgb(11 42 32 / 0.45);
+}

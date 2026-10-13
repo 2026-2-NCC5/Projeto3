@@ -1,0 +1,6 @@
+{
+  "resposta": "[DEBUG] TypeError: type str doesn't define __round__ method",
+  "confianca": 0.0,
+  "abstencao": true,
+  "evidencias": []
+}

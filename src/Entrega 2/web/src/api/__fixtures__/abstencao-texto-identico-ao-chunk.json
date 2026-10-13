@@ -1,0 +1,21 @@
+{
+  "resposta": "Não encontrei essa informação com confiança suficiente nas fontes oficiais disponíveis. Vou te encaminhar para um atendente do ASA.",
+  "confianca": 0.0209321926066933,
+  "abstencao": true,
+  "evidencias": [
+    {
+      "titulo": "Revisão de Nota / Recurso",
+      "fonte": "Regulamento Acadêmico - Art. 19",
+      "similaridade": 0.0209,
+      "atualizado_em": "2026-02-10T00:00:00+00:00",
+      "trecho": "O pedido de revisão de nota deve ser feito em até 5 dias úteis após a divulgação do resultado, diretamente com o professor responsável pela disciplina, através do portal acadêmico."
+    },
+    {
+      "titulo": "Estágio Obrigatório",
+      "fonte": "Manual do Aluno - Seção 7.1",
+      "similaridade": 0.0048,
+      "atualizado_em": "2026-05-10T00:00:00+00:00",
+      "trecho": "O estágio obrigatório precisa ser iniciado a partir do 4º semestre, com carga horária mínima de 300 horas, supervisionado por um professor orientador e registrado no sistema de estágios."
+    }
+  ]
+}
