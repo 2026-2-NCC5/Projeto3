@@ -3,6 +3,35 @@
   margin: 0 auto;
 }
 
+/* Sugestões de continuação: no fluxo da conversa, na coluna do texto do ASA (avatar + espaço). */
+.continuar {
+  margin: 0 0 var(--esp-4) calc(28px + var(--esp-3));
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+.continuarRotulo { font-size: var(--texto-sm); color: var(--tinta-suave); }
+.sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  list-style: none;
+}
+.chip {
+  padding: 6px var(--esp-3);
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  background: var(--branco);
+  font-size: var(--texto-sm);
+  text-align: left;
+  color: var(--tinta);
+}
+.chip:hover:not(:disabled) { background: var(--balao); color: var(--verde-escuro); }
+.chip:disabled { opacity: 0.55; cursor: wait; }
+@media (max-width: 560px) {
+  .continuar { margin-left: calc(24px + var(--esp-2)); }
+}
+
 .lista {
   list-style: none;
   display: flex;

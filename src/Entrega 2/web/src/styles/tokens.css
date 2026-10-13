@@ -3,13 +3,15 @@
   /* Cores base */
   --verde: #0f5c3f;          /* ações principais, bolha do estudante */
   --verde-escuro: #0b4430;   /* hover das ações */
-  --verde-noite: #0b2a20;    /* sidebar */
+  --verde-noite: #073623;    /* sidebar (era #0b2a20; do protótipo: verde mais vivo, branco 13,45:1) */
+  --verde-pulso: #047857;    /* pontos de carregamento (verde do protótipo; 5,5:1 sobre branco) */
+  --menta: #6ee7b7;          /* acento claro sobre o verde da sidebar: ícone e item ativo (não é cor de texto corrido) */
   --verde-folha: #e3f0e8;    /* realces suaves, item ativo */
   --tinta: #18211c;          /* texto principal */
   --tinta-suave: #4d5a53;    /* texto secundário (contraste AA sobre branco) */
   --linha: #d7dfda;          /* bordas e divisórias */
   --superficie: #f3f6f4;     /* fundos de apoio */
-  --fundo: #f6f5f0;          /* área da conversa: branco levemente quente */
+  --fundo: #f6f6f0;          /* área da conversa: branco levemente quente */
   --balao: #e7eee8;          /* sálvia claro: ícone das fichas e hover das sugestões */
   --balao-estudante: #c6dccd; /* balão do estudante: mesma família do sálvia claro, mais definido (texto 11,4:1; 1,3:1 contra o fundo) */
   --branco: #ffffff;
@@ -29,20 +31,20 @@
   /* Tipografia */
   --fonte-ui: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
   --fonte-doc: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --texto-xs: 0.8125rem;   /* 13px */
-  --texto-sm: 0.875rem;    /* 14px */
-  --texto-md: 1rem;        /* 16px: corpo das mensagens */
+  --texto-xs: 0.75rem;     /* 12px */
+  --texto-sm: 0.8125rem;   /* 13px */
+  --texto-md: 0.9375rem;   /* 15px: corpo das mensagens (era 16px; o protótipo usa 14,5px) */
   --texto-lg: 1.25rem;     /* 20px */
-  --texto-xl: 1.875rem;    /* 30px: título da tela inicial */
+  --texto-xl: 1.75rem;     /* 28px: título da tela inicial (era 30px) */
 
-  /* Espaços */
-  --esp-1: 4px;
-  --esp-2: 8px;
-  --esp-3: 12px;
-  --esp-4: 16px;
-  --esp-5: 24px;
-  --esp-6: 32px;
-  --esp-7: 48px;
+  /* Espaços (em rem: acompanham a escala da página em telas grandes, ver global.css) */
+  --esp-1: 0.25rem;
+  --esp-2: 0.5rem;
+  --esp-3: 0.75rem;
+  --esp-4: 1rem;
+  --esp-5: 1.5rem;
+  --esp-6: 2rem;
+  --esp-7: 3rem;
 
   /* Formas */
   --raio-sm: 4px;   /* itens de lista, botões pequenos */
@@ -51,5 +53,5 @@
   --largura-leitura: 46rem;  /* coluna do chat (~70 caracteres por linha) */
   --largura-sidebar: 17rem;
 
-  --foco-escuro: #6fc39a;   /* cor do foco sobre o fundo verde-noite */
+  --foco-escuro: var(--menta);   /* cor do foco sobre o fundo verde-noite */
 }

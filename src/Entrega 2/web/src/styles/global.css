@@ -4,6 +4,10 @@
 
 html, body, #root { height: 100%; }
 
+/* Telas grandes (a partir de 1440 px): a página inteira cresce 6% (tudo em rem: texto, espaços,
+   sidebar e coluna). Não há degrau maior: a 18 px o texto ficava grande demais. */
+@media (min-width: 1440px) { html { font-size: 106.25%; } }
+
 body {
   font-family: var(--fonte-ui);
   font-size: var(--texto-md);

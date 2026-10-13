@@ -2,9 +2,12 @@
 // Campo ausente = informação omitida; nada é inventado.
 import { useId, useState } from 'react'
 import { EXIBIR_CORRESPONDENCIA, formatarData, nivelCorrespondencia } from '../utils/formatar.js'
+import { IconeAbrir } from './Icones.jsx'
 import styles from './FichaFonte.module.css'
 
-export default function FichaFonte({ evidencia, ocultarTrecho = false, compacta = false }) {
+// rotulo: pequeno título em caixa-alta no topo do cartão (só na fonte principal).
+// demonstracao: mostra o "Abrir" DESABILITADO; a API não envia a URL do documento (ver Message.jsx).
+export default function FichaFonte({ evidencia, ocultarTrecho = false, compacta = false, rotulo, demonstracao = false }) {
   const [aberta, setAberta] = useState(false)
   const idTrecho = useId()
   const idTitulo = useId()
@@ -13,6 +16,7 @@ export default function FichaFonte({ evidencia, ocultarTrecho = false, compacta 
 
   return (
     <article className={compacta ? `${styles.ficha} ${styles.compacta}` : styles.ficha} aria-labelledby={idTitulo}>
+      {rotulo && <p className={styles.rotulo}>{rotulo}</p>}
       <div className={styles.topo}>
         {/* Ícone file-text (estilo Lucide), só decorativo: o título já diz que é um documento. */}
         <span className={styles.icone} aria-hidden="true">
@@ -50,6 +54,19 @@ export default function FichaFonte({ evidencia, ocultarTrecho = false, compacta 
             )}
           </dl>
         </div>
+
+        {demonstracao && !compacta && (
+          <button
+            type="button"
+            className={styles.abrir}
+            disabled
+            aria-label="Abrir documento (indisponível na demonstração)"
+            title="Disponível quando o documento tiver um link"
+          >
+            Abrir
+            <IconeAbrir tamanho={14} />
+          </button>
+        )}
       </div>
 
       {temTrecho && (

@@ -1,8 +1,10 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import TextoFormatado from './TextoFormatado.jsx'
 import FichaFonte from './FichaFonte.jsx'
-import { IconeAlerta, IconeAtendimento, IconeInfo } from './Icones.jsx'
+import { IconeAlerta, IconeAtendimento, IconeCopiar, IconeInfo, IconePolegarBaixo, IconePolegarCima, IconeSeta } from './Icones.jsx'
 import { formatarHora } from '../utils/formatar.js'
+import { removerNegrito } from '../utils/negrito.js'
+import { modoMockAtivo } from '../api/mock.js'
 import styles from './Message.module.css'
 
 // Horário só quando a mensagem foi criada nesta sessão (conversas de exemplo não têm).
@@ -46,10 +48,13 @@ export default function Message({ mensagem, onTentarDeNovo, onEncaminhar }) {
 }
 
 function Resposta({ m }) {
-  const idRotulo = useId()
   const [principal, ...outras] = m.evidencias ?? []
+  const [outrosAbertos, setOutrosAbertos] = useState(false)
+  const idOutros = useId()
   // Na API atual, a resposta É o trecho do 1º documento; não repetir o mesmo texto na ficha.
-  const trechoRepetido = principal && principal.trecho.trim() === m.texto.trim()
+  // Comparação sem a marcação de negrito, que não existe no trecho.
+  const trechoRepetido = principal && principal.trecho.trim() === removerNegrito(m.texto).trim()
+  const demonstracao = modoMockAtivo()
 
   return (
     <>
@@ -57,31 +62,83 @@ function Resposta({ m }) {
 
       {principal && (
         // role="group" (e não <section>) para não criar uma região de navegação por resposta.
-        <div className={styles.fontes} role="group" aria-labelledby={idRotulo}>
-          <p id={idRotulo} className={styles.rotulo}>Fonte</p>
-          <FichaFonte evidencia={principal} ocultarTrecho={trechoRepetido} />
-          {outras.length > 0 && <OutrosDocumentos evidencias={outras} />}
+        <div className={styles.fontes} role="group" aria-label="Fonte">
+          <FichaFonte evidencia={principal} ocultarTrecho={trechoRepetido} rotulo="Fonte" demonstracao={demonstracao} />
+        </div>
+      )}
+
+      <div className={styles.rodape}>
+        {outras.length > 0 ? (
+          <button type="button" className={styles.botaoToggle} aria-expanded={outrosAbertos} aria-controls={idOutros} onClick={() => setOutrosAbertos((a) => !a)}>
+            <span className={outrosAbertos ? styles.setaAberta : undefined}><IconeSeta tamanho={14} /></span>
+            {outrosAbertos ? 'Ocultar outros documentos consultados' : 'Outros documentos consultados (' + outras.length + ')'}
+          </button>
+        ) : (
+          <span />
+        )}
+        <AcoesResposta texto={removerNegrito(m.texto)} demonstracao={demonstracao} />
+      </div>
+
+      {outras.length > 0 && (
+        <div id={idOutros} hidden={!outrosAbertos} className={styles.outrosLista}>
+          {outras.map((ev, i) => <FichaFonte key={i} evidencia={ev} compacta />)}
         </div>
       )}
     </>
   )
 }
 
-function OutrosDocumentos({ evidencias }) {
-  const [aberto, setAberto] = useState(false)
-  const id = useId()
+// Ícones sob a resposta. Todos com nome acessível (aria-label) e dica (title).
+// Copiar é real. Os polegares existem SÓ na demonstração (?mock) e não registram nada:
+// o clique só mostra o aviso, sem marcar o botão (nada sugere que o voto foi enviado).
+const AVISOS = {
+  copiado: 'Copiado',
+  falhou: 'Não foi possível copiar',
+  voto: 'Demonstração: seu voto não é enviado.',
+}
+const AVISO_MS = 2500
+
+function AcoesResposta({ texto, demonstracao }) {
+  const [aviso, setAviso] = useState('')
+  const timer = useRef(null)
+  useEffect(() => () => clearTimeout(timer.current), [])
+
+  function mostrar(chave) {
+    setAviso(chave)
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => setAviso(''), AVISO_MS)
+  }
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(texto)
+      mostrar('copiado')
+    } catch {
+      mostrar('falhou') // sem permissão, contexto não seguro ou navegador sem a API
+    }
+  }
+
   return (
-    <div className={styles.outros}>
-      <button type="button" className={styles.botaoTexto} aria-expanded={aberto} aria-controls={id} onClick={() => setAberto((a) => !a)}>
-        {aberto ? 'Ocultar outros documentos consultados' : `Outros documentos consultados (${evidencias.length})`}
-      </button>
-      <div id={id} hidden={!aberto} className={styles.outrosLista}>
-        {evidencias.map((ev, i) => <FichaFonte key={i} evidencia={ev} compacta />)}
+    <div className={styles.acoesResposta}>
+      <div className={styles.icones}>
+        <button type="button" className={styles.iconeBotao} onClick={copiar} aria-label="Copiar resposta" title="Copiar resposta">
+          <IconeCopiar />
+        </button>
+        {demonstracao && (
+          <>
+            <button type="button" className={styles.iconeBotao} onClick={() => mostrar('voto')} aria-label="Resposta útil (demonstração)" title="Resposta útil (demonstração)">
+              <IconePolegarCima />
+            </button>
+            <button type="button" className={styles.iconeBotao} onClick={() => mostrar('voto')} aria-label="Resposta não ajudou (demonstração)" title="Resposta não ajudou (demonstração)">
+              <IconePolegarBaixo />
+            </button>
+          </>
+        )}
       </div>
+      <p role="status" className={styles.confirmacao}>{AVISOS[aviso]}</p>
     </div>
   )
 }
-
 const ESPERA_LONGA_MS = 6000
 
 function Carregando() {
@@ -94,7 +151,10 @@ function Carregando() {
   return (
     <div className={styles.carregando}>
       <span className={styles.pontos} aria-hidden="true"><i /><i /><i /></span>
-      <span>{demorando ? 'Ainda consultando, isso pode levar alguns segundos…' : 'Consultando documentos oficiais…'}</span>
+      {/* Antes da espera longa, só os pontos; o texto fica só para leitor de tela. */}
+      <span className={demorando ? undefined : 'sr-only'}>
+        {demorando ? 'Ainda consultando, isso pode levar alguns segundos…' : 'Consultando a base de documentos'}
+      </span>
     </div>
   )
 }

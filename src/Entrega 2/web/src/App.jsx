@@ -55,8 +55,11 @@ export default function App() {
             <MessageList
               conversaId={ativa.id}
               mensagens={ativa.mensagens}
+              sugestoes={proximasSugestoes(ativa.mensagens)}
+              desabilitado={chat.enviando}
               onTentarDeNovo={(m) => chat.tentarDeNovo(ativa.id, m)}
               onEncaminhar={() => chat.encaminhar(ativa.id)}
+              onEscolher={chat.enviar}
             />
           )}
         </div>
@@ -65,7 +68,6 @@ export default function App() {
           key={ativa.id}
           onEnviar={chat.enviar}
           enviando={chat.enviando}
-          sugestoes={vazia ? [] : proximasSugestoes(ativa.mensagens)}
         />
       </main>
     </div>

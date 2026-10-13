@@ -20,11 +20,25 @@
   position: relative;
   /* Calha reservada nos dois lados: o conteúdo fica centralizado como o campo de pergunta. */
   scrollbar-gutter: stable both-edges;
-  padding: var(--esp-6) var(--esp-5) var(--esp-4);
+  /* Sem padding inferior: quem dá o respiro final é o ::after abaixo. */
+  padding: var(--esp-6) var(--esp-5) 0;
+}
+
+/* Degradê curto acima do campo de pergunta: o texto que rola por baixo some no fundo, sem corte seco.
+   Fica grudado na borda inferior enquanto se rola e, ao chegar ao fim, vira o espaço final
+   (abaixo do último texto, que não é esmaecido). Sem blur e sem capturar cliques. */
+.rolagem::after {
+  content: '';
+  display: block;
+  position: sticky;
+  bottom: 0;
+  height: var(--esp-5);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--fundo) 0%, transparent), var(--fundo));
+  pointer-events: none;
 }
 
 @media (max-width: 560px) {
-  .rolagem { padding: var(--esp-5) var(--esp-4) var(--esp-3); }
+  .rolagem { padding: var(--esp-5) var(--esp-4) 0; }
 }
 
 /* Fundo escurecido atrás do menu no celular */
@@ -32,5 +46,5 @@
   position: fixed;
   inset: 0;
   z-index: 10;
-  background: rgb(11 42 32 / 0.45);
+  background: rgb(7 54 35 / 0.45);
 }

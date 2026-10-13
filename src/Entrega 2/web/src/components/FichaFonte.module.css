@@ -7,6 +7,32 @@
   background: var(--branco);
 }
 
+/* Rótulo do cartão ("FONTE"): pequeno, caixa-alta, espaçado. O texto no DOM não muda. */
+.rotulo {
+  margin-bottom: var(--esp-2);
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
+}
+
+/* "Abrir": só na demonstração e sempre desabilitado (a API não envia a URL). */
+.abrir {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-md);
+  background: var(--superficie);
+  font-size: var(--texto-sm);
+  color: var(--tinta-suave);
+  cursor: not-allowed;
+}
+
 /* Ícone à esquerda do bloco título + metadados; centralizado com o bloco no desktop. */
 .ficha { --icone: 36px; --gap-icone: var(--esp-3); }
 .compacta { --icone: 28px; }
@@ -32,7 +58,7 @@
 /* Título em serifa; é o elemento principal da ficha. */
 .titulo {
   font-family: var(--fonte-doc);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 500;
   line-height: 1.35;
   color: var(--tinta);
@@ -49,7 +75,7 @@
 }
 .meta dd { margin: 0; }
 .meta > div + div dd::before {
-  content: '·';
+  content: '•';
   margin: 0 var(--esp-2);
 }
 
@@ -83,7 +109,7 @@
   padding-left: var(--esp-3);
   border-left: 2px solid var(--linha);
   font-family: var(--fonte-doc);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.7;
 }
 
@@ -91,5 +117,6 @@
 @media (max-width: 560px) {
   .topo { align-items: flex-start; } /* bloco mais alto (meta empilhada): ícone no topo */
   .meta { flex-direction: column; }
+  .abrir { align-self: flex-start; }
   .meta > div + div dd::before { content: none; }
 }

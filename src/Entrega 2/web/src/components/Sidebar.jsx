@@ -36,7 +36,7 @@ export default function Sidebar({ conversas, ativaId, onNova, onSelecionar, onFe
 
       <nav className={styles.lista}>
         <Grupo titulo="Recentes" conversas={recentes} ativaId={ativaId} onSelecionar={onSelecionar} />
-        <Grupo titulo="Conversas de demonstração" conversas={exemplos} ativaId={ativaId} onSelecionar={onSelecionar} />
+        <Grupo titulo="Conversas de demonstração" conversas={exemplos} ativaId={ativaId} onSelecionar={onSelecionar} separar={recentes.length > 0} />
       </nav>
 
       <div className={styles.usuario}>
@@ -50,24 +50,32 @@ export default function Sidebar({ conversas, ativaId, onNova, onSelecionar, onFe
   )
 }
 
-function Grupo({ titulo, conversas, ativaId, onSelecionar }) {
+// separar: divisor sutil acima do grupo (só quando há um grupo antes dele).
+function Grupo({ titulo, conversas, ativaId, onSelecionar, separar = false }) {
   if (conversas.length === 0) return null
   return (
-    <section className={styles.grupo}>
+    <section className={separar ? styles.grupo + ' ' + styles.separado : styles.grupo}>
       <h2 className={styles.grupoTitulo}>{titulo}</h2>
       <ul>
-        {conversas.map((c) => (
-          <li key={c.id}>
-            <button
-              type="button"
-              className={styles.item}
-              aria-current={c.id === ativaId ? 'page' : undefined}
-              onClick={() => onSelecionar(c.id)}
-            >
-              {c.titulo}
-            </button>
-          </li>
-        ))}
+        {conversas.map((c) => {
+          // O título é cortado em 32 caracteres ao criar a conversa; o texto inteiro é a 1ª pergunta.
+          const cortado = c.titulo.endsWith('…')
+          const completo = cortado ? c.mensagens[0]?.texto ?? c.titulo : c.titulo
+          return (
+            <li key={c.id}>
+              <button
+                type="button"
+                className={styles.item}
+                title={completo}
+                aria-label={cortado ? completo : undefined}
+                aria-current={c.id === ativaId ? 'page' : undefined}
+                onClick={() => onSelecionar(c.id)}
+              >
+                {c.titulo}
+              </button>
+            </li>
+          )
+        })}
       </ul>
     </section>
   )
