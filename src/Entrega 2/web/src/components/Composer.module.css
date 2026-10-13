@@ -1,7 +1,6 @@
 .wrap {
   background: var(--fundo);
-  /* Mesma linha do cabeçalho: o texto que rola não é cortado direto no fundo do campo. */
-  border-top: 1px solid var(--linha);
+  /* Sem linha superior: o degradê no fim da rolagem (App.module.css) suaviza o corte do texto. */
   padding: var(--esp-3) var(--esp-5) var(--esp-3);
   /* Reserva a mesma calha de rolagem da conversa (App.module.css), para o campo e a coluna
      terminarem no mesmo ponto quando a janela é mais estreita que a coluna de leitura. */
@@ -24,33 +23,6 @@
   transition: border-color 0.15s ease;
 }
 
-/* Sugestões para continuar a conversa: chips acima do campo, na mesma largura dele. */
-.sugestoes {
-  max-width: var(--largura-leitura);
-  margin: 0 auto var(--esp-2);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--esp-2);
-  list-style: none;
-}
-.chip {
-  padding: 6px var(--esp-3);
-  border: 1px solid var(--linha);
-  border-radius: 999px;
-  background: var(--branco);
-  font-size: var(--texto-sm);
-  text-align: left;
-  color: var(--tinta);
-}
-.chip:hover:not(:disabled) { background: var(--balao); color: var(--verde-escuro); }
-.chip:disabled { opacity: 0.55; cursor: wait; }
-
-/* Celular: as sugestões não podem competir com o campo. Só as 2 primeiras e com texto menor
-   (a altura do chip fica ~30 px, acima do mínimo de 24 px do WCAG 2.2). */
-@media (max-width: 560px) {
-  .sugestoes li:nth-child(n + 3) { display: none; }
-  .chip { font-size: var(--texto-xs); }
-}
 /* O foco do campo aparece no contorno do composer inteiro (borda de 2px).
    Fallback (sem :has): qualquer foco dentro do composer o destaca. */
 .composer:focus-within {
