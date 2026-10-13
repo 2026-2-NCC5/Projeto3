@@ -4,6 +4,7 @@
   --verde: #0f5c3f;          /* ações principais, bolha do estudante */
   --verde-escuro: #0b4430;   /* hover das ações */
   --verde-noite: #073623;    /* sidebar (era #0b2a20; do protótipo: verde mais vivo, branco 13,45:1) */
+  --verde-pulso: #047857;    /* pontos de carregamento (verde do protótipo; 5,5:1 sobre branco) */
   --menta: #6ee7b7;          /* acento claro sobre o verde da sidebar: ícone e item ativo (não é cor de texto corrido) */
   --verde-folha: #e3f0e8;    /* realces suaves, item ativo */
   --tinta: #18211c;          /* texto principal */

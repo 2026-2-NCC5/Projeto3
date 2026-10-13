@@ -151,7 +151,10 @@ function Carregando() {
   return (
     <div className={styles.carregando}>
       <span className={styles.pontos} aria-hidden="true"><i /><i /><i /></span>
-      <span>{demorando ? 'Ainda consultando, isso pode levar alguns segundos…' : 'Consultando documentos oficiais…'}</span>
+      {/* Antes da espera longa, só os pontos; o texto fica só para leitor de tela. */}
+      <span className={demorando ? undefined : 'sr-only'}>
+        {demorando ? 'Ainda consultando, isso pode levar alguns segundos…' : 'Consultando a base de documentos'}
+      </span>
     </div>
   )
 }
