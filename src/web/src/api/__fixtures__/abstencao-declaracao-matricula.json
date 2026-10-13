@@ -1,0 +1,28 @@
+{
+  "resposta": "Não encontrei essa informação com confiança suficiente nas fontes oficiais disponíveis. Vou te encaminhar para um atendente do ASA.",
+  "confianca": 0.0983730256557465,
+  "abstencao": true,
+  "evidencias": [
+    {
+      "titulo": "Estágio Obrigatório",
+      "fonte": "Manual do Aluno - Seção 7.1",
+      "similaridade": 0.0984,
+      "atualizado_em": "2026-05-10T00:00:00+00:00",
+      "trecho": "O estágio obrigatório precisa ser iniciado a partir do 4º semestre, com carga horária mínima de 300 horas, supervisionado por um professor orientador e registrado no sistema de estágios."
+    },
+    {
+      "titulo": "Rematrícula",
+      "fonte": "Manual do Aluno - Seção 4.2",
+      "similaridade": 0.0761,
+      "atualizado_em": "2026-08-12T00:00:00+00:00",
+      "trecho": "A rematrícula exige ausência de pendências financeiras e envio do comprovante de endereço atualizado. O prazo se encerra 10 dias antes do início do semestre letivo."
+    },
+    {
+      "titulo": "Trabalho de Conclusão de Curso (TCC)",
+      "fonte": "Manual do Aluno - Seção 7.3",
+      "similaridade": 0.0709,
+      "atualizado_em": "2026-05-10T00:00:00+00:00",
+      "trecho": "O Trabalho de Conclusão de Curso (TCC) deve ser iniciado no penúltimo semestre do curso, com orientador definido até o final do primeiro mês de aula, e entregue conforme cronograma da coordenação."
+    }
+  ]
+}

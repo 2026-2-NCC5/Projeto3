@@ -1,0 +1,6 @@
+{
+  "resposta": "[DEBUG] Erro no handler: JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "confianca": 0.0,
+  "abstencao": true,
+  "evidencias": []
+}

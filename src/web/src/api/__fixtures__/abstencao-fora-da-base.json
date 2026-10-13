@@ -1,0 +1,28 @@
+{
+  "resposta": "Não encontrei essa informação com confiança suficiente nas fontes oficiais disponíveis. Vou te encaminhar para um atendente do ASA.",
+  "confianca": 0.100304454565048,
+  "abstencao": true,
+  "evidencias": [
+    {
+      "titulo": "Certificado e Diploma",
+      "fonte": "Manual do Aluno - Seção 9.1",
+      "similaridade": 0.1003,
+      "atualizado_em": "2026-06-15T00:00:00+00:00",
+      "trecho": "O certificado de conclusão fica disponível em até 30 dias após a colação de grau. O diploma físico registrado tem prazo de emissão de até 12 meses, conforme trâmite do MEC."
+    },
+    {
+      "titulo": "Atestado Médico e Justificativa de Falta",
+      "fonte": "Regulamento Acadêmico - Art. 16",
+      "similaridade": 0.0883,
+      "atualizado_em": "2026-02-15T00:00:00+00:00",
+      "trecho": "Faltas por motivo de saúde podem ser justificadas com atestado médico enviado em até 48 horas pelo portal do aluno, mas não isentam o estudante do conteúdo e das avaliações perdidas."
+    },
+    {
+      "titulo": "Biblioteca - Empréstimo de Livros",
+      "fonte": "Manual do Aluno - Seção 8.1",
+      "similaridade": 0.0861,
+      "atualizado_em": "2026-03-01T00:00:00+00:00",
+      "trecho": "O empréstimo de livros na biblioteca permite até 3 exemplares simultâneos por 14 dias, com renovação automática caso não haja fila de espera pelo título."
+    }
+  ]
+}
