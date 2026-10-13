@@ -4,10 +4,9 @@
 
 html, body, #root { height: 100%; }
 
-/* Telas grandes: a página inteira cresce um pouco (tudo em rem: texto, espaços, sidebar e coluna),
-   para o conteúdo não parecer pequeno no meio de muita margem. Celular e notebook ficam como estão. */
+/* Telas grandes (a partir de 1440 px): a página inteira cresce 6% (tudo em rem: texto, espaços,
+   sidebar e coluna). Não há degrau maior: a 18 px o texto ficava grande demais. */
 @media (min-width: 1440px) { html { font-size: 106.25%; } }
-@media (min-width: 1800px) { html { font-size: 112.5%; } }
 
 body {
   font-family: var(--fonte-ui);

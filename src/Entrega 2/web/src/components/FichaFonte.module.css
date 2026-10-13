@@ -58,7 +58,7 @@
 /* Título em serifa; é o elemento principal da ficha. */
 .titulo {
   font-family: var(--fonte-doc);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 500;
   line-height: 1.35;
   color: var(--tinta);
@@ -109,7 +109,7 @@
   padding-left: var(--esp-3);
   border-left: 2px solid var(--linha);
   font-family: var(--fonte-doc);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.7;
 }
 

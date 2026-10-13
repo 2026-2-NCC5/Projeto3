@@ -31,11 +31,11 @@
   /* Tipografia */
   --fonte-ui: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
   --fonte-doc: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --texto-xs: 0.8125rem;   /* 13px */
-  --texto-sm: 0.875rem;    /* 14px */
-  --texto-md: 1rem;        /* 16px: corpo das mensagens */
+  --texto-xs: 0.75rem;     /* 12px */
+  --texto-sm: 0.8125rem;   /* 13px */
+  --texto-md: 0.9375rem;   /* 15px: corpo das mensagens (era 16px; o protótipo usa 14,5px) */
   --texto-lg: 1.25rem;     /* 20px */
-  --texto-xl: 1.875rem;    /* 30px: título da tela inicial */
+  --texto-xl: 1.75rem;     /* 28px: título da tela inicial (era 30px) */
 
   /* Espaços (em rem: acompanham a escala da página em telas grandes, ver global.css) */
   --esp-1: 0.25rem;
