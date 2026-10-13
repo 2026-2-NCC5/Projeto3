@@ -16,7 +16,8 @@ export default function TextoFormatado({ texto }) {
         if (grupo.tipo === 'lista') {
           const Lista = NUMERADO.test(grupo.linhas[0]) ? 'ol' : 'ul'
           return (
-            <Lista key={i}>
+            // role="list" explícito: com list-style: none, o Safari/VoiceOver deixa de anunciar o <ul> como lista.
+            <Lista key={i} role="list">
               {grupo.linhas.map((l, j) => <li key={j}><Linkificar texto={l.replace(ITEM, '')} /></li>)}
             </Lista>
           )

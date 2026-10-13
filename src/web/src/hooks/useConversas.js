@@ -43,7 +43,7 @@ function reducer(state, acao) {
         titulo: c.mensagens.length === 0 ? resumir(acao.texto) : c.titulo,
         mensagens: [
           ...c.mensagens,
-          { id: novoId('m'), autor: 'estudante', texto: acao.texto },
+          { id: novoId('m'), autor: 'estudante', texto: acao.texto, criadoEm: Date.now() },
           { id: acao.respostaId, autor: 'asa', tipo: 'carregando', pergunta: acao.texto },
         ],
       }))
@@ -52,12 +52,12 @@ function reducer(state, acao) {
       return substituirMensagem(state, acao.conversaId, acao.respostaId, (m) => ({ id: m.id, autor: 'asa', tipo: 'carregando', pergunta: m.pergunta }))
 
     case 'responder':
-      return substituirMensagem(state, acao.conversaId, acao.respostaId, (m) => ({ ...acao.resultado, id: m.id, autor: 'asa', pergunta: m.pergunta }))
+      return substituirMensagem(state, acao.conversaId, acao.respostaId, (m) => ({ ...acao.resultado, id: m.id, autor: 'asa', pergunta: m.pergunta, criadoEm: Date.now() }))
 
     case 'encaminhar':
       return atualizarConversa(state, acao.conversaId, (c) => ({
         ...c,
-        mensagens: [...c.mensagens, { id: novoId('m'), autor: 'asa', tipo: 'encaminhamento' }],
+        mensagens: [...c.mensagens, { id: novoId('m'), autor: 'asa', tipo: 'encaminhamento', criadoEm: Date.now() }],
       }))
 
     default:

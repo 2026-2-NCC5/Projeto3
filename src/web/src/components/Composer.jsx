@@ -16,7 +16,7 @@ function useCelular() {
   return celular
 }
 
-export default function Composer({ onEnviar, enviando }) {
+export default function Composer({ onEnviar, enviando, sugestoes = [] }) {
   const [texto, setTexto] = useState('')
   const campo = useRef(null)
   const celular = useCelular()
@@ -50,6 +50,15 @@ export default function Composer({ onEnviar, enviando }) {
 
   return (
     <form className={styles.wrap} onSubmit={enviar}>
+      {sugestoes.length > 0 && (
+        <ul className={styles.sugestoes} aria-label="Sugestões de perguntas">
+          {sugestoes.map((s) => (
+            <li key={s}>
+              <button type="button" className={styles.chip} onClick={() => onEnviar(s)} disabled={enviando}>{s}</button>
+            </li>
+          ))}
+        </ul>
+      )}
       <div className={styles.composer}>
         <label htmlFor="pergunta" className="sr-only">Sua pergunta</label>
         <textarea

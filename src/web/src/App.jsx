@@ -6,6 +6,8 @@ import Composer from './components/Composer.jsx'
 import { useConversas } from './hooks/useConversas.js'
 import { useMenuLateral } from './hooks/useMenuLateral.js'
 import { modoMockAtivo } from './api/mock.js'
+import { proximasSugestoes } from './data/demo.js'
+import { fonteMaisRecente } from './utils/formatar.js'
 import styles from './App.module.css'
 
 export default function App() {
@@ -13,6 +15,12 @@ export default function App() {
   const menu = useMenuLateral()
   const { ativa } = chat
   const vazia = ativa.mensagens.length === 0
+  const dataFonte = fonteMaisRecente(ativa.mensagens)
+  // Uma só linha secundária sob o título: "Conversa de demonstração · Fonte mais recente: ...".
+  const subtitulo = [
+    ativa.demo && 'Conversa de demonstração',
+    dataFonte && `Fonte mais recente: ${dataFonte}`,
+  ].filter(Boolean)
 
   // No celular, escolher algo no menu fecha o painel (e devolve o foco ao botão do menu).
   const fecharSeAberto = () => menu.aberto && menu.fechar()
@@ -34,7 +42,7 @@ export default function App() {
       <main className={styles.main} ref={menu.conteudoRef}>
         <ChatHeader
           titulo={vazia ? 'Nova conversa' : ativa.titulo}
-          demo={ativa.demo}
+          subtitulo={subtitulo}
           mock={modoMockAtivo()}
           botaoMenuRef={menu.botaoRef}
           botaoMenu={menu.botao}
@@ -53,7 +61,12 @@ export default function App() {
           )}
         </div>
 
-        <Composer key={ativa.id} onEnviar={chat.enviar} enviando={chat.enviando} />
+        <Composer
+          key={ativa.id}
+          onEnviar={chat.enviar}
+          enviando={chat.enviando}
+          sugestoes={vazia ? [] : proximasSugestoes(ativa.mensagens)}
+        />
       </main>
     </div>
   )

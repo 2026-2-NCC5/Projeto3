@@ -2,13 +2,22 @@ import { useEffect, useId, useState } from 'react'
 import TextoFormatado from './TextoFormatado.jsx'
 import FichaFonte from './FichaFonte.jsx'
 import { IconeAlerta, IconeAtendimento, IconeInfo } from './Icones.jsx'
+import { formatarHora } from '../utils/formatar.js'
 import styles from './Message.module.css'
+
+// Horário só quando a mensagem foi criada nesta sessão (conversas de exemplo não têm).
+function Hora({ ms }) {
+  const hora = formatarHora(ms)
+  if (!hora) return null
+  return <time className={styles.hora} dateTime={new Date(ms).toISOString()}>{hora}</time>
+}
 
 export default function Message({ mensagem, onTentarDeNovo, onEncaminhar }) {
   if (mensagem.autor === 'estudante') {
     return (
       <li className={styles.estudante}>
         <span className="sr-only">Você perguntou:</span>
+        <Hora ms={mensagem.criadoEm} />
         <div className={styles.bolha}>{mensagem.texto}</div>
       </li>
     )
@@ -29,6 +38,7 @@ export default function Message({ mensagem, onTentarDeNovo, onEncaminhar }) {
       </span>
       <div className={styles.corpo}>
         <span className="sr-only">ASA respondeu:</span>
+        {mensagem.tipo !== 'carregando' && <Hora ms={mensagem.criadoEm} />}
         <Conteudo m={mensagem} onTentarDeNovo={onTentarDeNovo} onEncaminhar={onEncaminhar} />
       </div>
     </li>

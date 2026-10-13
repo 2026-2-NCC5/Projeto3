@@ -1,7 +1,16 @@
 /* ---------- Estudante: balão neutro à direita ---------- */
 .estudante {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Horário discreto acima da mensagem. */
+.hora {
+  display: block;
+  margin-bottom: var(--esp-1);
+  font-size: var(--texto-xs);
+  color: var(--tinta-suave);
 }
 .bolha {
   max-width: min(80%, 34rem);

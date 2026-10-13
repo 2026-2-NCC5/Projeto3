@@ -15,6 +15,8 @@
   border-bottom: 1px solid var(--linha);
 }
 
+.textos { min-width: 0; }
+
 .titulo {
   font-size: var(--texto-md);
   font-weight: 700;
@@ -23,11 +25,12 @@
   text-overflow: ellipsis;
 }
 
-.selo {
-  flex-shrink: 0;
-  font-size: var(--texto-sm);
+/* Pode ocupar 2 linhas no celular: a data da fonte não deve ser cortada com reticências. */
+.subtitulo {
+  font-size: var(--texto-xs);
   color: var(--tinta-suave);
 }
+.parte { white-space: nowrap; }
 
 .menu {
   display: grid;

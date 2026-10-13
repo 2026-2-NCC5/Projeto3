@@ -13,6 +13,12 @@ export const SUGESTOES = [
   { tema: 'Provas', pergunta: 'Perdi a prova. Como peço segunda chamada?' },
 ]
 
+// Sugestões para continuar a conversa: as de SUGESTOES que o estudante ainda não fez.
+export function proximasSugestoes(mensagens, quantidade = 3) {
+  const feitas = new Set(mensagens.filter((m) => m.autor === 'estudante').map((m) => m.texto))
+  return SUGESTOES.map((s) => s.pergunta).filter((p) => !feitas.has(p)).slice(0, quantidade)
+}
+
 // Conversas de exemplo pré-carregadas, marcadas como demo.
 export const CONVERSAS_DEMO = [
   {

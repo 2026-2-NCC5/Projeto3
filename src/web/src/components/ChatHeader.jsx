@@ -1,6 +1,6 @@
 import styles from './ChatHeader.module.css'
 
-export default function ChatHeader({ titulo, demo, mock, botaoMenuRef, botaoMenu }) {
+export default function ChatHeader({ titulo, subtitulo = [], mock, botaoMenuRef, botaoMenu }) {
   return (
     <header>
       {mock && (
@@ -27,8 +27,20 @@ export default function ChatHeader({ titulo, demo, mock, botaoMenuRef, botaoMenu
             <path d="M8 4v12" stroke="currentColor" strokeWidth="1.8" />
           </svg>
         </button>
-        <h1 className={styles.titulo}>{titulo}</h1>
-        {demo && <span className={styles.selo}>demonstração</span>}
+        <div className={styles.textos}>
+          <h1 className={styles.titulo}>{titulo}</h1>
+          {subtitulo.length > 0 && (
+            // Cada parte não quebra por dentro: em tela estreita a linha só quebra no separador " · ".
+            <p className={styles.subtitulo}>
+              {subtitulo.map((parte, i) => (
+                <span key={parte}>
+                  <span className={styles.parte}>{parte}</span>
+                  {i < subtitulo.length - 1 && ' · '}
+                </span>
+              ))}
+            </p>
+          )}
+        </div>
       </div>
     </header>
   )
