@@ -19,7 +19,7 @@
   border-radius: 14px;
   background: var(--branco);
   /* Sombra suave: o campo "flutua" sobre o fundo da conversa. */
-  box-shadow: 0 2px 10px rgb(11 42 32 / 0.08);
+  box-shadow: 0 2px 10px rgb(7 54 35 / 0.08);
   transition: border-color 0.15s ease;
 }
 

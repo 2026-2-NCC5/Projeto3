@@ -6,7 +6,7 @@
   gap: var(--esp-4);
   padding: var(--esp-5) var(--esp-3) var(--esp-4);
   background: var(--verde-noite);
-  color: #e8efeb;
+  color: var(--branco);
 }
 
 .marca {
@@ -32,7 +32,7 @@
 }
 .subtitulo {
   font-size: var(--texto-xs);
-  color: #a9bdb2;
+  color: #84c9aa;
 }
 
 .nova {
@@ -47,6 +47,7 @@
   font-weight: 700;
   transition: background-color 0.15s ease;
 }
+.nova svg { color: var(--menta); } /* o "+" leva o acento claro */
 .nova:hover { background: rgb(255 255 255 / 0.08); }
 /* Já está na tela inicial: o botão mostra onde você está, como o item ativo da lista. */
 .nova[aria-current='true'] { background: rgb(255 255 255 / 0.12); }
@@ -65,14 +66,14 @@
 }
 .grupo ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
 /* Rótulo de grupo: pequeno, caixa-alta (só visual: o texto no DOM não muda) e espaçado.
-   #a9bdb2 sobre #0b2a20 = 7,76:1 (antes #8fa89b, 6,03:1). Peso 700: a Atkinson só tem 400 e 700. */
+   Cor do rótulo com contraste mínimo de 4,5:1 sobre o verde da sidebar. Peso 700: a Atkinson só tem 400 e 700. */
 .grupoTitulo {
   padding: 0 var(--esp-2) var(--esp-1);
   font-size: 0.6875rem; /* 11px */
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #a9bdb2;
+  color: #84c9aa;
 }
 
 .item {
@@ -86,12 +87,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #d3dfd8;
+  color: #c1ead5;
 }
 .item:hover { background: rgb(255 255 255 / 0.07); color: var(--branco); }
 /* Item ativo: fundo mais claro que o hover (0,16 contra 0,07) e texto branco. */
 .item[aria-current='page'] {
-  background: rgb(255 255 255 / 0.16);
+  background: rgb(110 231 183 / 0.16); /* --menta a 16%: o acento claro, sem faixa lateral */
   color: var(--branco);
 }
 
@@ -110,11 +111,11 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #1f6b4c;
+  background: #1b7a52; /* "highlight" do protótipo; branco sobre ele 5,4:1 */
   font-size: var(--texto-xs);
   font-weight: 700;
 }
-.perfil { font-size: var(--texto-xs); color: #a9bdb2; }
+.perfil { font-size: var(--texto-xs); color: #84c9aa; }
 
 .fechar {
   display: none;
@@ -126,7 +127,7 @@
   border: 0;
   border-radius: var(--raio-md);
   background: transparent;
-  color: #d3dfd8;
+  color: #c1ead5;
 }
 .fechar:hover { background: rgb(255 255 255 / 0.08); color: var(--branco); }
 
