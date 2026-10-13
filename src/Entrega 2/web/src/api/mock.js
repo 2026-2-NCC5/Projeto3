@@ -25,6 +25,7 @@ const BASE = [
     titulo: 'Declaração de Matrícula',
     fonte: 'Portal do Aluno - Central de Documentos',
     atualizado_em: '2026-07-03T00:00:00+00:00',
+    destaques: ['Documentos', 'Declarações'], // só no mock: termos que a resposta destaca em negrito
     trecho: 'A declaração de matrícula pode ser emitida na aba Documentos, opção Declarações, em formato PDF, com validade de 90 dias, sem custo.',
   },
   {
@@ -75,12 +76,12 @@ const TEXTO_ABSTENCAO =
   'Não encontrei essa informação com confiança suficiente nas fontes oficiais disponíveis. Vou te encaminhar para um atendente do ASA.'
 
 // Texto SÓ para testar a formatação. Não é conteúdo institucional.
-const TEXTO_FORMATACAO = `[Teste de formatação do mock] Este parágrafo verifica o espaçamento entre blocos de texto.
+const TEXTO_FORMATACAO = `[Teste de formatação do mock] Este parágrafo verifica o **espaçamento** entre blocos de texto, com **negrito** em termos-chave.
 Esta linha vem depois de uma quebra simples.
 
 Lista com marcadores:
 - primeiro item
-- segundo item, um pouco mais longo, para ver a quebra de linha dentro do item
+- segundo item, com **termo em negrito** e um pouco mais longo, para ver a quebra de linha dentro do item
 
 1. passo numerado um
 2. passo numerado dois
@@ -101,7 +102,7 @@ export function conversaGaleria() {
     demo: true,
     mensagens: [
       { id: 'g1', autor: 'estudante', texto: 'Como emitir a declaração de matrícula?' },
-      { id: 'g2', autor: 'asa', tipo: 'resposta', texto: declaracao.trecho, confianca: 0.82, evidencias: [ev(declaracao, 0.82), ev(rematricula, 0.41), ev(trancamento, 0.34)] },
+      { id: 'g2', autor: 'asa', tipo: 'resposta', texto: marcar(declaracao.trecho, declaracao.destaques), confianca: 0.82, evidencias: [ev(declaracao, 0.82), ev(rematricula, 0.41), ev(trancamento, 0.34)] },
       { id: 'g3', autor: 'estudante', texto: 'Teste de formatação' },
       { id: 'g4', autor: 'asa', tipo: 'resposta', texto: TEXTO_FORMATACAO, confianca: 0.8, evidencias: [] },
       { id: 'g5', autor: 'estudante', texto: 'Qual a capital da França?' },
@@ -140,11 +141,16 @@ export async function fetchMock(_url, options) {
   const [principal, ...outros] = encontrados
   const relacionados = outros.length ? outros : [BASE.find((d) => d !== principal)]
   return json({
-    resposta: principal.trecho,
+    resposta: marcar(principal.trecho, principal.destaques),
     confianca: 0.82,
     abstencao: false,
     evidencias: [evidencia(principal, 0.82), ...relacionados.slice(0, 2).map((d, i) => evidencia(d, 0.41 - i * 0.07))],
   })
+}
+
+// Envolve em ** a 1ª ocorrência de cada termo (a API real, hoje, envia texto puro).
+function marcar(texto, termos = []) {
+  return termos.reduce((t, termo) => t.replace(termo, '**' + termo + '**'), texto)
 }
 
 function evidencia(doc, similaridade) {

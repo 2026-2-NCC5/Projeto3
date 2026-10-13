@@ -52,13 +52,52 @@
   flex-direction: column;
   gap: var(--esp-2);
 }
-.rotulo {
+/* Rodapé da resposta: links à esquerda, ícones de ação à direita. */
+.rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-1) var(--esp-3);
+  margin-top: var(--esp-2);
+}
+.botaoToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--esp-2) 0;
+  border: 0;
+  background: transparent;
   font-size: var(--texto-sm);
-  font-weight: 400;
+  color: var(--verde);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.botaoToggle:hover { color: var(--verde-escuro); }
+.botaoToggle > span { display: inline-flex; transition: transform 0.15s ease; }
+.setaAberta { transform: rotate(90deg); }
+
+.acoesResposta { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; }
+.icones { display: flex; align-items: center; gap: 2px; }
+.iconeBotao {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--raio-md);
+  background: transparent;
   color: var(--tinta-suave);
 }
-.outros { display: flex; flex-direction: column; align-items: flex-start; gap: var(--esp-2); }
-.outrosLista { display: flex; flex-direction: column; gap: var(--esp-2); align-self: stretch; }
+.iconeBotao:hover { background: var(--superficie); color: var(--verde); }
+.iconeBotao svg { width: 18px; height: 18px; }
+@media (max-width: 560px), (pointer: coarse) {
+  .iconeBotao { width: 44px; height: 44px; }
+}
+/* Confirmação discreta (Copiado / aviso da demonstração); anunciada por leitores de tela. */
+.confirmacao { min-height: 0; font-size: var(--texto-xs); color: var(--tinta-suave); text-align: right; }
+
+.outrosLista { display: flex; flex-direction: column; gap: var(--esp-2); margin-top: var(--esp-2); }
 .outrosLista[hidden] { display: none; }
 
 /* ---------- Ações ---------- */
