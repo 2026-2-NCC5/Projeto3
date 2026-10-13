@@ -1,0 +1,175 @@
+/* ---------- Estudante: balão neutro à direita ---------- */
+.estudante {
+  display: flex;
+  justify-content: flex-end;
+}
+.bolha {
+  max-width: min(80%, 34rem);
+  padding: var(--esp-2) var(--esp-4);
+  /* A "ponta" é só o canto superior direito bem fechado (3 px), como na interface antiga:
+     a assimetria dá a direção do balão sem apêndice nenhum, sem pseudo-elementos. */
+  border-radius: 14px 3px 14px 14px;
+  background: var(--balao-estudante);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- ASA: texto solto à esquerda, sem balão ---------- */
+.asa {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--esp-3);
+  align-items: start;
+}
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--verde-noite);
+  overflow: hidden;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.corpo {
+  min-width: 0;
+  padding-top: 2px; /* alinha a 1ª linha com o centro do avatar */
+}
+
+/* ---------- Fontes: rótulo + fichas (ver FichaFonte.module.css) ---------- */
+.fontes {
+  margin-top: var(--esp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+.rotulo {
+  font-size: var(--texto-sm);
+  font-weight: 400;
+  color: var(--tinta-suave);
+}
+.outros { display: flex; flex-direction: column; align-items: flex-start; gap: var(--esp-2); }
+.outrosLista { display: flex; flex-direction: column; gap: var(--esp-2); align-self: stretch; }
+.outrosLista[hidden] { display: none; }
+
+/* ---------- Ações ---------- */
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  margin-top: var(--esp-3);
+}
+/* Ação secundária: texto, sublinhado ao apontar. */
+.botaoTexto {
+  padding: var(--esp-1) 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--texto-sm);
+  color: var(--tinta-suave);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.botaoTexto:hover { color: var(--verde); }
+
+/* Toque: amplia a área clicável sem mexer no espaçamento visual. */
+@media (max-width: 560px), (pointer: coarse) {
+  .botaoTexto { position: relative; }
+  .botaoTexto::after { content: ''; position: absolute; inset: -7px -4px; }
+}
+
+/* Ação principal do estado: o único botão preenchido. */
+.botao {
+  padding: var(--esp-2) var(--esp-4);
+  border: 1px solid transparent;
+  border-radius: var(--raio-md);
+  background: var(--verde);
+  color: var(--branco);
+  font-size: var(--texto-sm);
+  font-weight: 700;
+}
+.botao:hover { background: var(--verde-escuro); }
+.botaoNeutro {
+  border-color: var(--linha);
+  background: var(--branco);
+  color: var(--tinta);
+  font-weight: 400;
+}
+.botaoNeutro:hover { background: var(--superficie); }
+
+/* ---------- Carregando ---------- */
+.carregando {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-height: 24px;
+  font-size: var(--texto-sm);
+  color: var(--tinta-suave);
+}
+.pontos { display: inline-flex; gap: 4px; }
+.pontos i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tinta-suave);
+  animation: piscar 1.2s infinite ease-in-out;
+}
+.pontos i:nth-child(2) { animation-delay: 0.15s; }
+.pontos i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes piscar {
+  0%, 80%, 100% { opacity: 0.25; }
+  40% { opacity: 1; }
+}
+
+/* ---------- Avisos (abstenção, erro, atendimento) ----------
+   Mesma estrutura nos três: filete lateral + ícone + título + texto + ação.
+   O tom vem de três variáveis: cor do filete, do título e do fundo.
+   Abstenção e erro pedem atenção e têm fundo suave; o aviso informativo fica sem fundo. */
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border-left: 3px solid var(--aviso-filete);
+  border-radius: 0 var(--raio-md) var(--raio-md) 0;
+  background: var(--aviso-fundo);
+  line-height: 1.6;
+}
+.tomInfo {
+  --aviso-filete: var(--filete-neutro);
+  --aviso-fundo: transparent;
+  --aviso-titulo: var(--tinta);
+}
+.tomAbstencao {
+  --aviso-filete: var(--ambar-filete);
+  --aviso-fundo: var(--alerta-fundo);
+  --aviso-titulo: var(--ambar);
+}
+.tomErro {
+  --aviso-filete: var(--vermelho);
+  --aviso-fundo: var(--erro-fundo);
+  --aviso-titulo: var(--vermelho);
+}
+
+.avisoIcone {
+  flex-shrink: 0;
+  display: grid;
+  margin-top: 2px; /* centraliza os 18 px na 1ª linha (o título, em negrito, com line-height 1,4) */
+  color: var(--aviso-titulo);
+}
+.avisoCorpo { min-width: 0; display: flex; flex-direction: column; gap: var(--esp-2); }
+.avisoTitulo { font-weight: 700; line-height: 1.4; color: var(--aviso-titulo); }
+.avisoSecundario { font-size: var(--texto-sm); color: var(--tinta-suave); }
+.aviso .acoes { margin-top: var(--esp-1); }
+
+@media (max-width: 560px) {
+  /* Avatar menor ao lado do texto: não gasta uma linha inteira a cada resposta. */
+  .asa { grid-template-columns: 24px 1fr; gap: var(--esp-2); }
+  .avatar { width: 24px; height: 24px; }
+  .corpo { padding-top: 0; }
+  .bolha { max-width: 88%; }
+}
+
+/* Toque: botões de ação um pouco mais altos (~42 px). */
+@media (max-width: 560px), (pointer: coarse) {
+  .botao { padding-block: 10px; }
+}

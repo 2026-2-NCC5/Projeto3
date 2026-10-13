@@ -1,0 +1,160 @@
+.sidebar {
+  width: var(--largura-sidebar);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  padding: var(--esp-5) var(--esp-3) var(--esp-4);
+  background: var(--verde-noite);
+  color: #e8efeb;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: 0 var(--esp-2);
+}
+/* A logo é traço branco num canvas largo e transparente: "cover" num quadrado recorta o círculo. */
+.sidebar :focus-visible { outline-color: var(--foco-escuro); }
+
+.logo {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+}
+.nome {
+  font-family: var(--fonte-doc);
+  font-size: var(--texto-lg);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+.subtitulo {
+  font-size: var(--texto-xs);
+  color: #a9bdb2;
+}
+
+.nova {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: var(--raio-md);
+  background: transparent;
+  font-size: var(--texto-sm);
+  font-weight: 700;
+  transition: background-color 0.15s ease;
+}
+.nova:hover { background: rgb(255 255 255 / 0.08); }
+/* Já está na tela inicial: o botão mostra onde você está, como o item ativo da lista. */
+.nova[aria-current='true'] { background: rgb(255 255 255 / 0.12); }
+
+.lista {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+}
+.grupo ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.grupoTitulo {
+  padding: 0 var(--esp-2) var(--esp-1);
+  font-size: var(--texto-xs);
+  font-weight: 400;
+  color: #8fa89b;
+}
+
+.item {
+  width: 100%;
+  padding: var(--esp-2);
+  border: 0;
+  border-radius: var(--raio-sm);
+  background: transparent;
+  font-size: var(--texto-sm);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #d3dfd8;
+}
+.item:hover { background: rgb(255 255 255 / 0.07); color: var(--branco); }
+.item[aria-current='page'] {
+  background: rgb(255 255 255 / 0.12);
+  color: var(--branco);
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-2) 0;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  font-size: var(--texto-sm);
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #1f6b4c;
+  font-size: var(--texto-xs);
+  font-weight: 700;
+}
+.perfil { font-size: var(--texto-xs); color: #8fa89b; }
+
+.fechar {
+  display: none;
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  flex-shrink: 0;
+  place-items: center;
+  border: 0;
+  border-radius: var(--raio-md);
+  background: transparent;
+  color: #d3dfd8;
+}
+.fechar:hover { background: rgb(255 255 255 / 0.08); color: var(--branco); }
+
+/* Toque: itens e ações com ~42 px de altura. */
+@media (max-width: 768px), (pointer: coarse) {
+  .item { padding-block: 10px; }
+  .nova { padding-block: 10px; }
+  .fechar { width: 44px; height: 44px; }
+}
+
+/* Celular/tablet: a sidebar vira um painel que desliza da esquerda. */
+@media (max-width: 768px) {
+  .fechar { display: grid; }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    width: min(85vw, var(--largura-sidebar));
+    transform: translateX(-100%);
+    visibility: hidden; /* fora da ordem do Tab quando fechada */
+    transition: transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+  .aberta {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.2s ease;
+  }
+}
+
+/* Desktop: recolher desliza a sidebar para fora (margem negativa) e o conteúdo ocupa o espaço.
+   visibility:hidden, aplicado só ao fim do deslize, a tira da ordem do Tab. */
+@media (min-width: 769px) {
+  .sidebar {
+    transition: margin-left 0.25s ease, visibility 0s;
+  }
+  .recolhida {
+    margin-left: calc(-1 * var(--largura-sidebar));
+    visibility: hidden;
+    transition: margin-left 0.25s ease, visibility 0s linear 0.25s;
+  }
+}

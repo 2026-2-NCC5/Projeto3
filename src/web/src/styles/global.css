@@ -1,0 +1,32 @@
+@import "./tokens.css";
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { height: 100%; }
+
+body {
+  font-family: var(--fonte-ui);
+  font-size: var(--texto-md);
+  line-height: 1.55;
+  color: var(--tinta);
+  background: var(--branco);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+/* Foco por teclado: outline (não disputa com box-shadow de destaques como o item ativo). */
+:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
+
+/* Texto só para leitores de tela */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* animation-duration curtíssima em laços infinitos faz piscar; por isso as animações são desligadas.
+     Os indicadores de carregamento (pontinhos e anel) têm um estado estático legível. */
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+}

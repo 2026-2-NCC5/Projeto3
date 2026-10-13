@@ -1,0 +1,95 @@
+/* Superfície branca sobre o fundo quente da conversa, com borda fina neutra-esverdeada.
+   Sem sombra, sem barra colorida. A hierarquia vem da tipografia. */
+.ficha {
+  padding: var(--esp-3) var(--esp-4);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-md);
+  background: var(--branco);
+}
+
+/* Ícone à esquerda do bloco título + metadados; centralizado com o bloco no desktop. */
+.ficha { --icone: 36px; --gap-icone: var(--esp-3); }
+.compacta { --icone: 28px; }
+
+.topo {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-icone);
+}
+.icone {
+  flex-shrink: 0;
+  width: var(--icone);
+  height: var(--icone);
+  display: grid;
+  place-items: center;
+  border-radius: var(--raio-md);
+  background: var(--balao);
+  color: var(--verde);
+}
+.icone svg { width: 55%; height: 55%; }
+.info { min-width: 0; }
+
+/* Título em serifa; é o elemento principal da ficha. */
+.titulo {
+  font-family: var(--fonte-doc);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--tinta);
+}
+.compacta .titulo { font-size: var(--texto-md); }
+
+/* Origem e data: uma linha secundária; os separadores são CSS. */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 2px;
+  font-size: var(--texto-sm);
+  color: var(--tinta-suave);
+}
+.meta dd { margin: 0; }
+.meta > div + div dd::before {
+  content: '·';
+  margin: 0 var(--esp-2);
+}
+
+/* Ação e trecho ficam na mesma coluna do texto (recuo = ícone + espaço). */
+.expansao { padding-left: calc(var(--icone) + var(--gap-icone)); }
+
+/* Ação de expandir: texto sublinhado em verde + seta pequena, com área de toque confortável. */
+.alternar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--esp-2);
+  padding: var(--esp-1) 0;
+  border: 0;
+  background: transparent;
+  font-size: var(--texto-sm);
+  color: var(--verde);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.alternar:hover { color: var(--verde-escuro); }
+@media (max-width: 560px), (pointer: coarse) {
+  .alternar { position: relative; }
+  .alternar::after { content: ''; position: absolute; inset: -7px -4px; }
+}
+.alternar svg { transition: transform 0.15s ease; }
+.setaAberta { transform: rotate(180deg); }
+
+.trecho {
+  margin: var(--esp-2) 0 0;
+  padding-left: var(--esp-3);
+  border-left: 2px solid var(--linha);
+  font-family: var(--fonte-doc);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+/* Telas estreitas: origem e data em linhas separadas, sem o "·" solto no início da 2ª linha. */
+@media (max-width: 560px) {
+  .topo { align-items: flex-start; } /* bloco mais alto (meta empilhada): ícone no topo */
+  .meta { flex-direction: column; }
+  .meta > div + div dd::before { content: none; }
+}

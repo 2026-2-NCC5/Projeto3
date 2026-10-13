@@ -1,0 +1,70 @@
+.welcome {
+  max-width: var(--largura-leitura);
+  margin: 0 auto;
+  padding-top: clamp(var(--esp-4), 6vh, var(--esp-7));
+}
+
+.titulo {
+  font-family: var(--fonte-doc);
+  font-size: var(--texto-xl);
+  font-weight: 500;
+  line-height: 1.2;
+  max-width: 22ch;
+  color: var(--verde-noite);
+}
+
+.intro {
+  margin-top: var(--esp-3);
+  max-width: 56ch;
+  color: var(--tinta-suave);
+}
+
+.sugestoes { margin-top: var(--esp-6); }
+.sugestoesTitulo {
+  font-size: var(--texto-sm);
+  font-weight: 400;
+  color: var(--tinta-suave);
+  margin-bottom: var(--esp-2);
+}
+
+.grupo {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: var(--esp-3);
+  align-items: start;
+  padding: var(--esp-2) 0;
+  border-top: 1px solid var(--linha);
+}
+.grupo:last-child { border-bottom: 1px solid var(--linha); }
+.grupo ul { list-style: none; }
+
+.tema {
+  padding-top: var(--esp-2);
+  font-size: var(--texto-sm);
+  color: var(--tinta-suave);
+}
+
+.pergunta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding: var(--esp-2) var(--esp-3);
+  border: 0;
+  border-radius: var(--raio-sm);
+  background: transparent;
+  text-align: left;
+}
+/* A seta indica que a linha é uma ação. Fica sempre visível (no toque não existe hover) e ganha cor ao apontar ou focar. */
+.pergunta svg { flex-shrink: 0; color: var(--tinta-suave); }
+.pergunta:hover:not(:disabled),
+.pergunta:focus-visible { background: var(--balao); color: var(--verde-escuro); }
+.pergunta:hover:not(:disabled) svg,
+.pergunta:focus-visible svg { color: var(--verde); }
+.pergunta:disabled { opacity: 0.55; cursor: wait; }
+
+@media (max-width: 560px) {
+  .grupo { grid-template-columns: 1fr; gap: 0; }
+  .tema { padding-left: var(--esp-3); }
+}
