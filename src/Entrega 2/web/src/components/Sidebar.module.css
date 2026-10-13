@@ -56,14 +56,23 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--esp-4);
+  gap: var(--esp-5); /* mais espaço entre grupos que entre itens */
+}
+/* Grupo de demonstração: separado dos recentes por um divisor sutil. */
+.separado {
+  padding-top: var(--esp-4);
+  border-top: 1px solid rgb(255 255 255 / 0.12);
 }
 .grupo ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+/* Rótulo de grupo: pequeno, caixa-alta (só visual: o texto no DOM não muda) e espaçado.
+   #a9bdb2 sobre #0b2a20 = 7,76:1 (antes #8fa89b, 6,03:1). Peso 700: a Atkinson só tem 400 e 700. */
 .grupoTitulo {
   padding: 0 var(--esp-2) var(--esp-1);
-  font-size: var(--texto-xs);
-  font-weight: 400;
-  color: #8fa89b;
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a9bdb2;
 }
 
 .item {
@@ -80,8 +89,9 @@
   color: #d3dfd8;
 }
 .item:hover { background: rgb(255 255 255 / 0.07); color: var(--branco); }
+/* Item ativo: fundo mais claro que o hover (0,16 contra 0,07) e texto branco. */
 .item[aria-current='page'] {
-  background: rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.16);
   color: var(--branco);
 }
 
@@ -89,13 +99,13 @@
   display: flex;
   align-items: center;
   gap: var(--esp-3);
-  padding: var(--esp-3) var(--esp-2) 0;
+  padding: var(--esp-4) var(--esp-2) var(--esp-1);
   border-top: 1px solid rgb(255 255 255 / 0.12);
   font-size: var(--texto-sm);
 }
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -104,7 +114,7 @@
   font-size: var(--texto-xs);
   font-weight: 700;
 }
-.perfil { font-size: var(--texto-xs); color: #8fa89b; }
+.perfil { font-size: var(--texto-xs); color: #a9bdb2; }
 
 .fechar {
   display: none;

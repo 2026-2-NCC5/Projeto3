@@ -35,14 +35,14 @@
   --texto-lg: 1.25rem;     /* 20px */
   --texto-xl: 1.875rem;    /* 30px: título da tela inicial */
 
-  /* Espaços */
-  --esp-1: 4px;
-  --esp-2: 8px;
-  --esp-3: 12px;
-  --esp-4: 16px;
-  --esp-5: 24px;
-  --esp-6: 32px;
-  --esp-7: 48px;
+  /* Espaços (em rem: acompanham a escala da página em telas grandes, ver global.css) */
+  --esp-1: 0.25rem;
+  --esp-2: 0.5rem;
+  --esp-3: 0.75rem;
+  --esp-4: 1rem;
+  --esp-5: 1.5rem;
+  --esp-6: 2rem;
+  --esp-7: 3rem;
 
   /* Formas */
   --raio-sm: 4px;   /* itens de lista, botões pequenos */
