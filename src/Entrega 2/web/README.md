@@ -8,7 +8,7 @@ Esta pasta é separada de `src/Entrega 1/` de propósito: a versão em produçã
 Requisitos: Node 18+ (testado com Node 22.14 / npm 10.9).
 
 ```bash
-cd src/web
+cd "src/Entrega 2/web"
 npm install      # só na primeira vez
 npm run dev
 ```
