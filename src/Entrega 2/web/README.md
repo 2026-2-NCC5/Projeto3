@@ -1,7 +1,16 @@
-# ASA · novo frontend (React + Vite)
+# ASA · frontend (React + Vite) - Entrega 2
 
-Em construção. O frontend em produção continua sendo `src/Entrega 1/index.html`.
-Esta pasta é separada de `src/Entrega 1/` de propósito: a versão em produção (e seu deploy no Vercel) segue intacta até a nova ser aprovada, e o rollback é simplesmente não fazer a troca.
+Esta é a versão em produção a partir da Entrega 2, substituindo
+`src/Entrega 1/index.html`. A API também mudou: `api/perguntar.py` agora usa
+embeddings da Cloudflare Workers AI (`@cf/baai/bge-m3`, 1024 dimensões,
+multilíngue) em vez da Hugging Face (`bge-small-en-v1.5`, 384d, inglês) - veja
+o cabeçalho de `api/perguntar.py` para o motivo da troca.
+
+**Para publicar esta pasta no Vercel:** Project Settings > General > Root
+Directory > `src/Entrega 2/web`. Veja `vercel.json` nesta pasta para a
+configuração de build/rotas, e `../.env.example` para as variáveis de
+ambiente que a função em `api/` precisa (e que também precisam estar em
+Project Settings > Environment Variables).
 
 ## Rodar localmente
 
