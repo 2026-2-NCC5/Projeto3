@@ -1,0 +1,5 @@
+# Dependências da função serverless em api/perguntar.py.
+# Só "requests": a Entrega 1 usava o SDK do Supabase, que arrasta pydantic,
+# httpx e gotrue, deixava o bundle pesado e quebrava no import dentro do
+# Vercel. A busca agora é um POST direto no PostgREST.
+requests>=2.31.0
