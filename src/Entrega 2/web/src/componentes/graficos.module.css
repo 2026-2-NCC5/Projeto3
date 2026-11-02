@@ -1,0 +1,41 @@
+.figura { margin: 0; display: grid; gap: var(--esp-2); }
+.area { position: relative; width: 100%; min-height: 1px; }
+.area svg { display: block; overflow: visible; }
+
+.eixo { stroke: var(--cor-borda-forte); stroke-width: 1; }
+.grade { stroke: var(--cor-borda); stroke-width: 1; }
+.limiar { stroke: var(--cor-borda-forte); stroke-width: 1; stroke-dasharray: 3 4; }
+.guia { stroke: var(--cor-borda-forte); stroke-width: 1; }
+.realce { fill: var(--cor-texto); opacity: 0.04; pointer-events: none; }
+
+.rotuloY, .rotuloX, .rotuloLimiar { font-size: var(--texto-2xs); fill: var(--cor-texto-2); font-variant-numeric: tabular-nums; }
+.rotuloLimiar { fill: var(--cor-texto-3); }
+.valorFinal { font-size: var(--texto-xs); font-weight: var(--peso-forte); fill: var(--cor-texto); font-variant-numeric: tabular-nums; }
+
+.linha { fill: none; stroke: var(--cor-marca-700); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.marcador { stroke: var(--cor-superficie); stroke-width: 2; }
+.ponto { outline: none; cursor: default; }
+.ponto:focus-visible .marcador { stroke: var(--foco-cor); stroke-width: 3; }
+
+.serieA { fill: var(--cor-marca-700); background: var(--cor-marca-700); }
+.serieB { fill: var(--cor-borda-forte); background: var(--cor-borda-forte); }
+.risco_verde { fill: var(--risco-verde-ponto); background: var(--risco-verde-ponto); }
+.risco_amarelo { fill: var(--risco-amarelo-ponto); background: var(--risco-amarelo-ponto); }
+.risco_vermelho { fill: var(--risco-vermelho-ponto); background: var(--risco-vermelho-ponto); }
+
+.legenda { list-style: none; display: flex; flex-wrap: wrap; gap: var(--esp-1) var(--esp-4); font-size: var(--texto-xs); color: var(--cor-texto-2); }
+.legenda li { display: inline-flex; align-items: center; gap: var(--esp-2); }
+.amostra { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+
+.barraUnica { display: flex; gap: 2px; height: 14px; border-radius: var(--raio-sm); overflow: hidden; }
+.barraUnica span { min-width: 3px; }
+.legendaValores { list-style: none; display: grid; gap: var(--esp-1); font-size: var(--texto-sm); }
+.legendaValores li { display: grid; grid-template-columns: auto 1fr auto 3.5rem; align-items: center; gap: var(--esp-2); }
+.legendaValores li > :last-child { text-align: right; }
+
+.tabelaDados summary { cursor: pointer; font-size: var(--texto-xs); color: var(--cor-marca-700); font-weight: var(--peso-medio); width: max-content; }
+.tabelaDados[open] summary { margin-bottom: var(--esp-2); }
+.tabelaDados .tabela-container, .tabelaDados :global(.tabela-container) { max-height: 16rem; overflow: auto; }
+
+.medidor { display: block; height: 6px; border-radius: 3px; background: var(--cor-superficie-2); overflow: hidden; }
+.medidor > span { display: block; height: 100%; border-radius: 3px; background: var(--cor-marca-700); }
