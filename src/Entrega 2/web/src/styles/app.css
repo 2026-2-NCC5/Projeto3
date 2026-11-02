@@ -1,0 +1,105 @@
+/* =============================================================================
+   ASA Turbo · extensões do app
+   Primitivas que o app usa além das de base.css. Só tokens; nada de cor fixa.
+   ============================================================================= */
+
+/* ------------------------------------------------------- moldura e carregando */
+.tela-carregando { max-width: 36rem; margin: 0 auto; padding: var(--esp-7) var(--esp-4); }
+.pagina-solta { min-height: 100dvh; }
+.esqueleto-bloco { display: grid; gap: var(--esp-2); padding: var(--esp-4) 0; }
+
+/* ------------------------------------------------------- cabeçalho de página */
+.cabecalho-pagina {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: var(--esp-3) var(--esp-4);
+  margin-bottom: var(--esp-5);
+}
+.cabecalho-pagina h1 { font-size: var(--texto-xl); }
+.cabecalho-pagina p { color: var(--cor-texto-2); font-size: var(--texto-sm); margin-top: var(--esp-1); }
+.voltar {
+  display: inline-flex; align-items: center; gap: var(--esp-1);
+  font-size: var(--texto-sm); font-weight: var(--peso-medio); text-decoration: none;
+  margin-bottom: var(--esp-2);
+}
+.voltar:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------------- diálogo */
+.dialogo {
+  width: min(var(--largura-dialogo, 32rem), calc(100vw - 2 * var(--esp-4)));
+  max-height: calc(100dvh - 2 * var(--esp-4));
+  margin: auto;
+  padding: 0;
+  border: var(--borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-2);
+}
+.dialogo::backdrop { background: rgb(20 22 19 / 0.45); }
+.dialogo__corpo { display: grid; gap: var(--esp-4); padding: var(--esp-5); }
+.dialogo__titulo { font-size: var(--texto-lg); }
+.dialogo__descricao { color: var(--cor-texto-2); font-size: var(--texto-sm); margin-top: calc(-1 * var(--esp-2)); }
+.dialogo__acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--esp-2); }
+
+/* ---------------------------------------------------------------- paginação */
+.paginacao {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--esp-2) var(--esp-4);
+  padding: var(--esp-3) 0;
+}
+.paginacao__botoes { display: flex; align-items: center; gap: var(--esp-3); }
+
+/* ------------------------------------------------ chips de filtro (toggle) */
+.chip {
+  display: inline-flex; align-items: center; gap: var(--esp-2);
+  min-height: var(--altura-controle-sm);
+  padding: 0 var(--esp-3);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-sm);
+  background: var(--cor-superficie);
+  font-size: var(--texto-sm); font-weight: var(--peso-medio);
+  color: var(--cor-texto);
+}
+.chip:hover { background: var(--cor-superficie-2); }
+.chip[aria-pressed="true"] { border-color: var(--cor-marca-700); background: var(--cor-marca-100); box-shadow: inset 0 0 0 1px var(--cor-marca-700); }
+
+/* ------------------------------------------------- aviso de apoio à decisão */
+.aviso-decisao {
+  display: flex; gap: var(--esp-2); align-items: baseline;
+  font-size: var(--texto-xs); color: var(--cor-texto-2);
+}
+.aviso-decisao strong { color: var(--cor-texto); font-weight: var(--peso-forte); }
+
+/* -------------------------------------------------- lista de definição curta */
+.definicoes { display: grid; grid-template-columns: max-content 1fr; gap: var(--esp-1) var(--esp-4); font-size: var(--texto-sm); }
+.definicoes dt { color: var(--cor-texto-2); }
+.definicoes dd { font-variant-numeric: tabular-nums; }
+
+/* -------------------------------------------------------- grupo de opções */
+.opcoes { border: 0; display: grid; gap: var(--esp-2); }
+.opcoes legend { font-size: var(--texto-sm); font-weight: var(--peso-forte); margin-bottom: var(--esp-2); }
+.opcao {
+  display: grid; grid-template-columns: auto 1fr; gap: 0 var(--esp-2); align-items: start;
+  padding: var(--esp-3);
+  border: 1px solid var(--cor-borda); border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+  cursor: pointer;
+}
+.opcao:hover { border-color: var(--cor-borda-forte); }
+.opcao:has(input:checked) { border-color: var(--cor-marca-700); background: var(--cor-marca-100); }
+.opcao:has(input:focus-visible) { outline: var(--foco-anel); outline-offset: var(--foco-offset); }
+.opcao input { margin-top: 0.3rem; accent-color: var(--cor-marca-700); }
+.opcao input:focus-visible { outline: none; }
+.opcao strong { font-size: var(--texto-sm); }
+.opcao span { grid-column: 2; font-size: var(--texto-xs); color: var(--cor-texto-2); }
+
+/* -------------------------------------------------------------- tooltip de gráfico */
+.dica-grafico {
+  position: absolute; pointer-events: none; z-index: var(--z-menu);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--cor-superficie); border: var(--borda); border-radius: var(--raio-md);
+  box-shadow: var(--sombra-2);
+  font-size: var(--texto-xs); line-height: 1.4; white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 10px));
+}
+.dica-grafico strong { display: block; font-size: var(--texto-sm); font-variant-numeric: tabular-nums; }
