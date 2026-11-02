@@ -1,0 +1,12 @@
+# ml/ · Python 3.11+ (testado em 3.14)
+numpy>=2.1
+pandas>=2.2
+scikit-learn>=1.6
+xgboost>=2.1
+joblib>=1.4
+matplotlib>=3.9
+shap>=0.46            # só para a figura de resumo no avaliar.py
+sentence-transformers>=3.0  # avaliação do RAG (MiniLM, bge-m3)
+jupyter
+nbconvert
+pytest
