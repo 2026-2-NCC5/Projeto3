@@ -63,10 +63,7 @@ export default function FormLogin({ emailInicial = '', emailFixo = false, textoB
       </div>
 
       <div className="campo">
-        <div className={s.rotuloSenha}>
-          <label className="campo__rotulo" htmlFor={`${id}-senha`}>Senha</label>
-          {onEsqueci && <button type="button" className={s.linkBotao} onClick={() => onEsqueci(email.trim())}>Esqueci a senha</button>}
-        </div>
+        <label className="campo__rotulo" htmlFor={`${id}-senha`}>Senha</label>
         <div className={s.senhaWrap}>
           <input
             ref={refSenha} id={`${id}-senha`} className="input" type={mostrarSenha ? 'text' : 'password'} autoComplete="current-password"
@@ -78,6 +75,7 @@ export default function FormLogin({ emailInicial = '', emailFixo = false, textoB
           </button>
         </div>
         {erro?.campo === 'senha' && <span className="campo__erro" id={`${id}-senha-erro`}>{erro.mensagem}</span>}
+        {onEsqueci && <button type="button" className={s.linkBotao} onClick={() => onEsqueci(email.trim())}>Esqueci a senha</button>}
       </div>
 
       <button type="submit" className={`btn btn--primario ${s.botao}`} aria-busy={enviando} disabled={!online}>

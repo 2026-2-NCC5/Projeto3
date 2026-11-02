@@ -33,8 +33,8 @@
 .form { display: grid; gap: var(--esp-4); }
 .botao { width: 100%; min-height: 2.75rem; font-size: var(--texto-md); }
 
-.rotuloSenha { display: flex; justify-content: space-between; align-items: baseline; gap: var(--esp-2); }
 .linkBotao {
+  justify-self: start; margin-top: var(--esp-1);
   background: none; border: 0; padding: 0;
   color: var(--cor-marca-700); font-size: var(--texto-sm); font-weight: var(--peso-medio);
   text-decoration: underline; text-underline-offset: 0.18em;
