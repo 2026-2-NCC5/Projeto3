@@ -1,0 +1,34 @@
+# ASA Turbo - regras deste projeto (complementam o .gitignore da raiz do repo)
+
+# Dados reais do ASA: NUNCA versionar (LGPD). Ver docs/decisoes/0001-fase0.md
+data/
+
+# Segredos
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node / build
+node_modules/
+dist/
+
+# Artefatos de modelo podem embutir amostras de treino.
+# A sessão ml libera explicitamente (com !) o artefato treinado só com seeds.
+ml/artifacts/*.joblib
+ml/artifacts/*.pkl
+# CSVs fora de seeds/ tendem a ser extrações de dados reais
+ml/**/*.csv
+backend/**/*.csv
+
+# Backups do banco (scripts de infra)
+backups/
+*.dump

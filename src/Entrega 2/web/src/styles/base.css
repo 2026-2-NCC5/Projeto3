@@ -1,0 +1,233 @@
+/* =============================================================================
+   ASA Turbo · base
+   Reset, elementos e primitivas reutilizáveis (botão, campo, tabela, badge de
+   risco, esqueleto, estados). Tudo vem dos tokens. Sem framework.
+   Referência visual: /design-system.html
+   ============================================================================= */
+@import "./tokens.css";
+
+/* ------------------------------------------------------------------ Reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--fonte-ui);
+  font-size: var(--texto-md);
+  line-height: var(--altura-linha);
+  color: var(--cor-texto);
+  background: var(--cor-fundo);
+  -webkit-font-smoothing: antialiased;
+}
+
+img, video { max-width: 100%; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--cor-marca-700); text-underline-offset: 0.18em; }
+a:hover { color: var(--cor-marca-800); }
+
+/* ------------------------------------------------------------- Tipografia */
+h1, h2, h3, h4 {
+  font-weight: var(--peso-titulo);
+  line-height: var(--altura-linha-justa);
+  letter-spacing: var(--espacamento-titulo);
+  color: var(--cor-texto);
+  text-wrap: balance;
+}
+h1 { font-size: var(--texto-xl); }
+h2 { font-size: var(--texto-lg); }
+h3 { font-size: var(--texto-md); font-weight: var(--peso-forte); }
+p { text-wrap: pretty; }
+small, .texto-meta { font-size: var(--texto-xs); color: var(--cor-texto-2); }
+.texto-secundario { color: var(--cor-texto-2); }
+.numero { font-variant-numeric: tabular-nums; }
+.rotulo-secao {
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-forte);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-texto-2);
+}
+blockquote, .trecho-documento {
+  font-family: var(--fonte-doc);
+  font-size: var(--texto-sm);
+  color: var(--cor-texto-2);
+  border-left: 2px solid var(--cor-borda);
+  padding-left: var(--esp-3);
+}
+
+/* ----------------------------------------------------------------- Foco */
+:focus-visible {
+  outline: var(--foco-anel);
+  outline-offset: var(--foco-offset);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* --------------------------------------------------------- Acessibilidade */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.skip-link {
+  position: absolute; left: var(--esp-3); top: -100px; z-index: var(--z-toast);
+  background: var(--cor-marca-700); color: var(--cor-texto-inverso);
+  padding: var(--esp-2) var(--esp-4); border-radius: var(--raio-md);
+  font-weight: var(--peso-forte);
+}
+.skip-link:focus { top: var(--esp-3); color: var(--cor-texto-inverso); }
+
+/* --------------------------------------------------------------- Botões */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--esp-2);
+  min-height: var(--altura-controle);
+  padding: 0 var(--esp-4);
+  background: transparent;
+  color: inherit;
+  border: 1px solid transparent;
+  border-radius: var(--raio-md);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-forte);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color var(--duracao-rapida) var(--curva),
+              border-color var(--duracao-rapida) var(--curva);
+}
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+.btn--primario { background: var(--cor-marca-700); color: var(--cor-texto-inverso); }
+.btn--primario:hover:not(:disabled) { background: var(--cor-marca-800); color: var(--cor-texto-inverso); }
+.btn--secundario { background: var(--cor-superficie); color: var(--cor-texto); border-color: var(--cor-borda-forte); }
+.btn--secundario:hover:not(:disabled) { background: var(--cor-superficie-2); }
+.btn--fantasma { color: var(--cor-marca-700); }
+.btn--fantasma:hover:not(:disabled) { background: var(--cor-marca-100); }
+.btn--perigo { background: var(--cor-superficie); color: var(--cor-erro); border-color: var(--cor-erro-borda); }
+.btn--perigo:hover:not(:disabled) { background: var(--cor-erro-fundo); }
+.btn--sm { min-height: var(--altura-controle-sm); padding: 0 var(--esp-3); font-size: var(--texto-xs); }
+.btn[aria-busy="true"] { cursor: progress; }
+
+/* --------------------------------------------------------------- Campos */
+.campo { display: grid; gap: var(--esp-1); }
+.campo__rotulo { font-size: var(--texto-sm); font-weight: var(--peso-forte); }
+.campo__ajuda { font-size: var(--texto-xs); color: var(--cor-texto-2); }
+.campo__erro { font-size: var(--texto-xs); color: var(--cor-erro); font-weight: var(--peso-medio); }
+
+.input, .select, .textarea {
+  width: 100%;
+  min-height: var(--altura-controle);
+  padding: var(--esp-2) var(--esp-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-md);
+  font-size: var(--texto-md);
+  color: var(--cor-texto);
+}
+.textarea { min-height: 6rem; resize: vertical; line-height: var(--altura-linha); }
+.input::placeholder, .textarea::placeholder { color: var(--cor-texto-3); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible { outline-offset: 0; border-color: var(--cor-marca-700); }
+.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--cor-erro); }
+.select {
+  appearance: none;
+  padding-right: var(--esp-6);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* ----------------------------------------------------------------- Painel */
+.painel {
+  background: var(--cor-superficie);
+  border: var(--borda);
+  border-radius: var(--raio-lg);
+  box-shadow: var(--sombra-1);
+}
+
+/* --------------------------------------------------------- Tabela densa */
+.tabela-container { overflow-x: auto; border: var(--borda); border-radius: var(--raio-lg); background: var(--cor-superficie); }
+.tabela { width: 100%; border-collapse: collapse; font-size: var(--texto-sm); font-variant-numeric: tabular-nums; }
+.tabela caption { text-align: left; padding: var(--esp-3) var(--esp-4); font-weight: var(--peso-forte); }
+.tabela th, .tabela td { padding: 0 var(--esp-3); height: var(--altura-linha-tabela); text-align: left; border-bottom: var(--borda); white-space: nowrap; }
+.tabela thead th {
+  position: sticky; top: 0;
+  background: var(--cor-superficie-2);
+  font-size: var(--texto-xs); font-weight: var(--peso-forte);
+  color: var(--cor-texto-2);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.tabela tbody tr:last-child td { border-bottom: 0; }
+.tabela tbody tr:hover { background: var(--cor-marca-100); }
+.tabela .num { text-align: right; }
+.tabela a { font-weight: var(--peso-forte); text-decoration: none; }
+.tabela a:hover { text-decoration: underline; }
+
+/* ---------------------------------------------------- Badge de RISCO */
+/* Uso exclusivo para categoria de risco. Sempre com texto visível. */
+.badge-risco {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.125rem var(--esp-2);
+  border: 1px solid; border-radius: var(--raio-xs);
+  font-size: var(--texto-xs); font-weight: var(--peso-forte); line-height: 1.4;
+}
+.badge-risco::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor; }
+.badge-risco--verde    { color: var(--risco-verde);    background: var(--risco-verde-fundo);    border-color: var(--risco-verde-borda); }
+.badge-risco--amarelo  { color: var(--risco-amarelo);  background: var(--risco-amarelo-fundo);  border-color: var(--risco-amarelo-borda); }
+.badge-risco--vermelho { color: var(--risco-vermelho); background: var(--risco-vermelho-fundo); border-color: var(--risco-vermelho-borda); }
+.badge-risco--verde::before    { background: var(--risco-verde-ponto); }
+.badge-risco--amarelo::before  { background: var(--risco-amarelo-ponto); }
+.badge-risco--vermelho::before { background: var(--risco-vermelho-ponto); }
+
+/* Etiqueta neutra (status de caso, papel, versão) */
+.etiqueta {
+  display: inline-flex; align-items: center;
+  padding: 0.125rem var(--esp-2);
+  border-radius: var(--raio-xs);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-2);
+  font-size: var(--texto-xs); font-weight: var(--peso-medio);
+}
+
+/* ---------------------------------------------------- Carregando (esqueleto) */
+.esqueleto {
+  display: block;
+  height: 0.875rem;
+  border-radius: var(--raio-xs);
+  background: linear-gradient(90deg, var(--cor-superficie-2) 0%, var(--cor-borda) 50%, var(--cor-superficie-2) 100%);
+  background-size: 200% 100%;
+  animation: esqueleto 1.4s ease-in-out infinite;
+}
+.esqueleto--titulo { height: 1.25rem; width: 40%; }
+@keyframes esqueleto { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+/* ------------------------------------------------ Estados: vazio/erro/offline */
+.estado {
+  display: grid; gap: var(--esp-2); justify-items: start;
+  padding: var(--esp-5);
+  border: 1px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  max-width: 36rem;
+}
+.estado__titulo { font-size: var(--texto-md); font-weight: var(--peso-forte); }
+.estado__texto { font-size: var(--texto-sm); color: var(--cor-texto-2); }
+.estado__acoes { display: flex; flex-wrap: wrap; gap: var(--esp-2); margin-top: var(--esp-2); }
+.estado--erro { border: 1px solid var(--cor-erro-borda); border-left: 3px solid var(--cor-erro); background: var(--cor-erro-fundo); }
+.estado--erro .estado__titulo { color: var(--cor-erro); }
+.estado--offline { border: 1px solid var(--cor-aviso-borda); border-left: 3px solid var(--cor-aviso); background: var(--cor-aviso-fundo); }
+.estado--offline .estado__titulo { color: var(--cor-aviso); }
+
+/* Faixa de aviso fixa no topo (ex.: "Você está offline") */
+.faixa-aviso {
+  padding: var(--esp-2) var(--esp-4);
+  background: var(--cor-aviso-fundo); color: var(--cor-aviso);
+  border-bottom: 1px solid var(--cor-aviso-borda);
+  font-size: var(--texto-sm); font-weight: var(--peso-medio);
+}
+
+/* ---------------------------------------------------------- Movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+}

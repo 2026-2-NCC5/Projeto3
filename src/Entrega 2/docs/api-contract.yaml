@@ -1,0 +1,1364 @@
+openapi: 3.1.0
+info:
+  title: ASA Turbo API
+  version: 0.9.0
+  summary: Agente para o Estudante (chat RAG) e Monitoramento de Risco de Evasão.
+  description: |
+    Contrato único entre `backend/` e `web/`. Mudanças aqui são combinadas antes
+    entre as sessões (veja CLAUDE.md). Valores monetários exatos e endereços
+    nunca trafegam por esta API.
+
+    **Autenticação.** Todas as rotas, exceto `/health` e `/metrics`, exigem
+    `Authorization: Bearer <access_token do Supabase Auth>`. O backend valida
+    o JWT e lê o papel na tabela `perfis`.
+
+    **Papéis.** Cada operação lista os papéis aceitos em `x-papeis`. Quem não
+    está na lista recebe `403`. Princípio do menor privilégio:
+    - `estudante`: só o chat e os próprios dados. **Nunca** acessa `/casos` nem `/risco`.
+    - `atendente`: fila de risco, detalhe, validação e histórico.
+    - `administrador`: tudo do atendente + dashboard e base de conhecimento.
+    - `equipe_tecnica`: operação do modelo (`/risco/*`), sem dados de casos.
+
+    **Regras de produto que o contrato garante.**
+    - Toda resposta do chat traz `fontes` e `gerada_em`. Abaixo do limiar de
+      confiança, `abstencao = true` e o atendimento humano é oferecido.
+    - Todo score traz `fatores`, `versao_modelo` e `atualizado_em`.
+    - Nenhuma decisão automática: ações sobre casos exigem validação humana com
+      justificativa (`POST /casos/{estudante_id}/validacao`).
+    - Toda chamada que gera ou altera dado é auditada (`auditoria_logs`).
+    - Datas em ISO 8601 com fuso. Scores e probabilidades entre 0 e 1.
+
+    **Rastreio.** Toda resposta (inclusive erro) traz o header `X-Request-ID`,
+    igual ao campo `request_id` do corpo de erro. O cliente pode enviar o seu.
+  contact:
+    name: Equipe ASA Turbo · FECAP 5º CCOMP 2026.2
+servers:
+  - url: http://localhost:8000
+    description: Local (docker compose)
+  - url: https://{dominio}
+    description: Produção (VM Linux + Caddy)
+    variables:
+      dominio:
+        default: asa-turbo.example.com
+
+tags:
+  - name: Operação
+  - name: Sessão
+  - name: Chat
+  - name: Casos
+    description: Monitoramento de risco. Apenas atendente e administrador.
+  - name: Risco
+    description: Modelo de risco (inferência e metadados).
+  - name: Admin
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [Operação]
+      operationId: health
+      summary: Saúde do serviço e dependências
+      description: "Acesso: público."
+      security: []
+      x-papeis: [publico]
+      responses:
+        "200":
+          description: Serviço no ar. `status = degradado` se uma dependência falhou.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Saude" }
+        "503": { $ref: "#/components/responses/Indisponivel" }
+
+  /metrics:
+    get:
+      tags: [Operação]
+      operationId: metrics
+      summary: Métricas no formato Prometheus
+      description: |
+        Acesso: público na rede interna. O Caddy bloqueia o acesso externo.
+        Inclui, no mínimo: `http_requests_total{rota,metodo,status}`,
+        `http_request_duration_seconds` (histograma), `chat_respostas_total{abstencao}`,
+        `chat_feedback_total{avaliacao}`, `embedding_falhas_total`,
+        `risco_inferencias_total{versao_modelo}`, `validacoes_total{decisao}`.
+      security: []
+      x-papeis: [publico]
+      responses:
+        "200":
+          description: Texto de exposição Prometheus.
+          content:
+            text/plain:
+              schema: { type: string }
+
+  /me:
+    get:
+      tags: [Sessão]
+      operationId: me
+      summary: Perfil e papel do usuário autenticado
+      description: "Acesso: qualquer usuário autenticado."
+      x-papeis: [estudante, atendente, administrador, equipe_tecnica]
+      responses:
+        "200":
+          description: Perfil.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+
+  /chat:
+    post:
+      tags: [Chat]
+      operationId: enviarMensagem
+      summary: Envia uma pergunta e recebe a resposta com fontes
+      description: |
+        Acesso: estudante.
+        Sem `conversa_id`, cria uma conversa nova. `historico` leva as últimas
+        mensagens (máx. 6) para dar contexto à busca. O backend também carrega o
+        histórico salvo da conversa; o enviado pelo cliente é só um atalho.
+        Se a similaridade ficar abaixo do limiar, ou se a vetorização/busca
+        falhar, a resposta vem com `abstencao = true` e um `encaminhamento`.
+        Falha de dependência **não** vira 5xx: vira abstenção (o estudante
+        sempre recebe uma resposta legível).
+      x-papeis: [estudante]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatPergunta" }
+      responses:
+        "200":
+          description: Resposta do agente (ou abstenção).
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChatResposta" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "422": { $ref: "#/components/responses/Validacao" }
+        "429": { $ref: "#/components/responses/MuitasRequisicoes" }
+
+  /chat/conversas:
+    get:
+      tags: [Chat]
+      operationId: listarConversas
+      summary: Conversas do estudante autenticado
+      description: "Acesso: estudante (só as próprias). Ordenadas da mais recente para a mais antiga."
+      x-papeis: [estudante]
+      parameters:
+        - $ref: "#/components/parameters/Pagina"
+        - $ref: "#/components/parameters/PorPagina"
+      responses:
+        "200":
+          description: Página de conversas.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaConversas" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+
+  /chat/conversas/{conversa_id}:
+    get:
+      tags: [Chat]
+      operationId: obterConversa
+      summary: Mensagens de uma conversa, com fontes de cada resposta
+      description: "Acesso: estudante (dono da conversa). Conversa de outra pessoa retorna 404."
+      x-papeis: [estudante]
+      parameters:
+        - name: conversa_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Conversa completa.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConversaDetalhe" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+
+  /chat/feedback:
+    post:
+      tags: [Chat]
+      operationId: enviarFeedback
+      summary: Avalia uma resposta como útil ou não útil
+      description: "Acesso: estudante (só respostas das próprias conversas). Reenviar substitui a avaliação anterior."
+      x-papeis: [estudante]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FeedbackEntrada" }
+      responses:
+        "201":
+          description: Feedback registrado.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Feedback" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "422": { $ref: "#/components/responses/Validacao" }
+
+  /casos:
+    get:
+      tags: [Casos]
+      operationId: listarCasos
+      summary: Fila de risco de evasão
+      description: |
+        Acesso: atendente, administrador.
+        Um item por estudante com o score mais recente. Ordem padrão:
+        prioridade (urgente → baixa), depois score (maior → menor).
+      x-papeis: [atendente, administrador]
+      parameters:
+        - name: categoria
+          in: query
+          description: Filtra pela categoria vigente (após validação humana, se houver). Aceita várias.
+          schema:
+            type: array
+            items: { $ref: "#/components/schemas/Categoria" }
+          style: form
+          explode: true
+        - name: prioridade
+          in: query
+          schema:
+            type: array
+            items: { $ref: "#/components/schemas/Prioridade" }
+          style: form
+          explode: true
+        - name: status
+          in: query
+          schema:
+            type: array
+            items: { $ref: "#/components/schemas/StatusCaso" }
+          style: form
+          explode: true
+        - name: responsavel
+          in: query
+          description: "`eu` = casos atribuídos a quem consulta; `nenhum` = sem responsável."
+          schema: { type: string, enum: [eu, nenhum] }
+        - name: busca
+          in: query
+          description: Nome ou RA (parcial, sem acento).
+          schema: { type: string, maxLength: 80 }
+        - name: ordenar
+          in: query
+          schema:
+            type: string
+            enum: [prioridade, -score, score, prazo, -variacao, nome]
+            default: prioridade
+        - $ref: "#/components/parameters/Pagina"
+        - $ref: "#/components/parameters/PorPagina"
+      responses:
+        "200":
+          description: Página da fila.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaCasos" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+
+  /casos/{estudante_id}:
+    get:
+      tags: [Casos]
+      operationId: obterCaso
+      summary: Detalhe do risco de um estudante
+      description: |
+        Acesso: atendente, administrador.
+        Score geral e por dimensão, fatores (direção e peso), tendência dos
+        últimos 6 meses, recomendação de ação, versão do modelo e data.
+        Atributos sensíveis (sexo, estado civil, idade) nunca aparecem como fator.
+      x-papeis: [atendente, administrador]
+      parameters:
+        - $ref: "#/components/parameters/EstudanteId"
+      responses:
+        "200":
+          description: Detalhe do caso.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CasoDetalhe" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+
+  /casos/{estudante_id}/validacao:
+    post:
+      tags: [Casos]
+      operationId: validarCaso
+      summary: Registra a decisão humana sobre o score atual
+      description: |
+        Acesso: atendente, administrador.
+        `confirmado`: o atendente concorda com a categoria do modelo.
+        `ajustado`: exige `categoria_ajustada` (passa a ser a categoria vigente).
+        `rejeitado`: o alerta não procede; o caso vai para `arquivado`, salvo
+        se `status` for informado.
+        A validação é imutável (append-only) e entra no histórico e na auditoria.
+        Responde `409` se o score atual mudou desde que a tela foi aberta
+        (`score_id` diferente).
+      x-papeis: [atendente, administrador]
+      parameters:
+        - $ref: "#/components/parameters/EstudanteId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ValidacaoEntrada" }
+      responses:
+        "201":
+          description: Validação registrada. Retorna o caso atualizado.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Validacao" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "409": { $ref: "#/components/responses/Conflito" }
+        "422": { $ref: "#/components/responses/Validacao" }
+
+  /casos/{estudante_id}/historico:
+    get:
+      tags: [Casos]
+      operationId: historicoCaso
+      summary: Linha do tempo do caso
+      description: |
+        Acesso: atendente, administrador.
+        Scores calculados, validações humanas, contatos do ASA e mudanças de
+        status/prioridade/prazo/responsável, do mais recente para o mais antigo.
+      x-papeis: [atendente, administrador]
+      parameters:
+        - $ref: "#/components/parameters/EstudanteId"
+        - $ref: "#/components/parameters/Pagina"
+        - $ref: "#/components/parameters/PorPagina"
+      responses:
+        "200":
+          description: Eventos do caso.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaHistorico" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+
+  /risco/inferir:
+    post:
+      tags: [Risco]
+      operationId: inferirRisco
+      summary: Calcula o risco a partir de features
+      description: |
+        Acesso: administrador, equipe_tecnica.
+        Informe `estudante_id` (usa as features mais recentes salvas) **ou**
+        `features` (simulação; nada é gravado em `scores_risco`). Com
+        `estudante_id` e `persistir = true`, grava o score da competência atual
+        e atualiza o caso. Toda chamada é auditada.
+      x-papeis: [administrador, equipe_tecnica]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InferenciaEntrada" }
+      responses:
+        "200":
+          description: Resultado da inferência.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InferenciaResultado" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "422": { $ref: "#/components/responses/Validacao" }
+        "503": { $ref: "#/components/responses/Indisponivel" }
+
+  /risco/modelo:
+    get:
+      tags: [Risco]
+      operationId: modeloRisco
+      summary: Metadados do modelo de risco em uso
+      description: "Acesso: atendente, administrador, equipe_tecnica."
+      x-papeis: [atendente, administrador, equipe_tecnica]
+      responses:
+        "200":
+          description: Versão, métricas e limiares.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModeloInfo" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "503": { $ref: "#/components/responses/Indisponivel" }
+
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      operationId: dashboard
+      summary: Indicadores agregados
+      description: "Acesso: administrador. Período padrão: últimos 30 dias. Só agregados, sem dado individual."
+      x-papeis: [administrador]
+      parameters:
+        - name: de
+          in: query
+          schema: { type: string, format: date }
+        - name: ate
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Indicadores.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Dashboard" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+
+  /admin/documentos:
+    get:
+      tags: [Admin]
+      operationId: listarDocumentos
+      summary: Documentos da base de conhecimento
+      description: "Acesso: administrador."
+      x-papeis: [administrador]
+      parameters:
+        - name: busca
+          in: query
+          schema: { type: string, maxLength: 80 }
+        - name: categoria
+          in: query
+          schema: { type: string }
+        - name: ativo
+          in: query
+          schema: { type: boolean }
+        - $ref: "#/components/parameters/Pagina"
+        - $ref: "#/components/parameters/PorPagina"
+      responses:
+        "200":
+          description: Página de documentos.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginaDocumentos" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+    post:
+      tags: [Admin]
+      operationId: cadastrarDocumento
+      summary: Cadastra um documento (versão 1)
+      description: |
+        Acesso: administrador.
+        O backend divide o conteúdo em chunks, gera os embeddings e só então
+        ativa o documento. Se a vetorização falhar, responde 503 e nada é gravado.
+      x-papeis: [administrador]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DocumentoEntrada" }
+      responses:
+        "201":
+          description: Documento criado.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DocumentoDetalhe" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "422": { $ref: "#/components/responses/Validacao" }
+        "503": { $ref: "#/components/responses/Indisponivel" }
+
+  /admin/documentos/{documento_id}:
+    get:
+      tags: [Admin]
+      operationId: obterDocumento
+      summary: Documento com conteúdo vigente e lista de versões
+      description: "Acesso: administrador."
+      x-papeis: [administrador]
+      parameters:
+        - $ref: "#/components/parameters/DocumentoId"
+      responses:
+        "200":
+          description: Documento.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DocumentoDetalhe" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+
+  /admin/documentos/{documento_id}/versoes:
+    post:
+      tags: [Admin]
+      operationId: novaVersaoDocumento
+      summary: Publica uma nova versão do documento
+      description: |
+        Acesso: administrador.
+        Incrementa `versao`, guarda a anterior em `documentos_versoes`, refaz
+        chunks e embeddings e atualiza `data_atualizacao` (que aparece nas
+        fontes do chat). `versao_base` evita sobrescrever edição concorrente (409).
+      x-papeis: [administrador]
+      parameters:
+        - $ref: "#/components/parameters/DocumentoId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NovaVersaoEntrada" }
+      responses:
+        "201":
+          description: Nova versão publicada.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DocumentoDetalhe" }
+        "400": { $ref: "#/components/responses/RequisicaoInvalida" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "409": { $ref: "#/components/responses/Conflito" }
+        "422": { $ref: "#/components/responses/Validacao" }
+        "503": { $ref: "#/components/responses/Indisponivel" }
+
+  /admin/documentos/{documento_id}/desativar:
+    post:
+      tags: [Admin]
+      operationId: desativarDocumento
+      summary: Desativa o documento (sai das buscas do chat)
+      description: "Acesso: administrador. Não apaga: o histórico e as respostas antigas continuam citando a fonte."
+      x-papeis: [administrador]
+      parameters:
+        - $ref: "#/components/parameters/DocumentoId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivo]
+              properties:
+                motivo: { type: string, minLength: 10, maxLength: 500 }
+      responses:
+        "200":
+          description: Documento desativado.
+          headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DocumentoDetalhe" }
+        "401": { $ref: "#/components/responses/NaoAutenticado" }
+        "403": { $ref: "#/components/responses/SemPermissao" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+        "409": { $ref: "#/components/responses/Conflito" }
+        "422": { $ref: "#/components/responses/Validacao" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: access_token emitido pelo Supabase Auth (login por e-mail e senha).
+
+  headers:
+    XRequestID:
+      description: Identificador da requisição (também no corpo de erro e nos logs).
+      schema: { type: string }
+
+  parameters:
+    Pagina:
+      name: pagina
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PorPagina:
+      name: por_pagina
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    EstudanteId:
+      name: estudante_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    DocumentoId:
+      name: documento_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    RequisicaoInvalida:
+      description: JSON malformado ou parâmetro inválido.
+      headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example: { codigo: requisicao_invalida, mensagem: "Parâmetro 'pagina' deve ser inteiro.", request_id: "c0a8012e-5f1b" }
+    NaoAutenticado:
+      description: Token ausente, inválido ou expirado.
+      headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example: { codigo: nao_autenticado, mensagem: "Sua sessão expirou. Entre novamente.", request_id: "c0a8012e-5f1b" }
+    SemPermissao:
+      description: Papel sem acesso a esta rota.
+      headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example: { codigo: sem_permissao, mensagem: "Seu perfil não tem acesso a esta área.", request_id: "c0a8012e-5f1b" }
+    NaoEncontrado:
+      description: Recurso inexistente ou de outra pessoa.
+      headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example: { codigo: nao_encontrado, mensagem: "Não encontramos esse registro.", request_id: "c0a8012e-5f1b" }
+    Conflito:
+      description: O recurso mudou desde a última leitura.
+      headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example: { codigo: conflito, mensagem: "O score foi atualizado enquanto você analisava. Recarregue para ver a versão nova.", request_id: "c0a8012e-5f1b" }
+    Validacao:
+      description: Corpo com campos inválidos. `detalhes` lista cada campo.
+      headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example:
+            codigo: validacao
+            mensagem: "Revise os campos destacados."
+            request_id: "c0a8012e-5f1b"
+            detalhes: [{ campo: justificativa, mensagem: "Escreva pelo menos 20 caracteres." }]
+    MuitasRequisicoes:
+      description: Limite de requisições excedido.
+      headers:
+        X-Request-ID: { $ref: "#/components/headers/XRequestID" }
+        Retry-After:
+          description: Segundos até poder tentar de novo.
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example: { codigo: limite_excedido, mensagem: "Muitas mensagens em pouco tempo. Aguarde alguns segundos.", request_id: "c0a8012e-5f1b" }
+    Indisponivel:
+      description: Dependência fora do ar (banco, embeddings ou modelo).
+      headers: { X-Request-ID: { $ref: "#/components/headers/XRequestID" } }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Erro" }
+          example: { codigo: indisponivel, mensagem: "Serviço temporariamente indisponível. Tente de novo em instantes.", request_id: "c0a8012e-5f1b" }
+
+  schemas:
+    # ------------------------------------------------------------- comuns
+    Erro:
+      type: object
+      required: [codigo, mensagem, request_id]
+      properties:
+        codigo:
+          type: string
+          description: Código estável, em snake_case, para o front decidir o que mostrar.
+          enum: [requisicao_invalida, nao_autenticado, sem_permissao, nao_encontrado, conflito,
+                 validacao, limite_excedido, erro_interno, indisponivel]
+        mensagem:
+          type: string
+          description: Texto em português, pronto para exibir ao usuário.
+        request_id: { type: string }
+        detalhes:
+          type: array
+          items:
+            type: object
+            required: [campo, mensagem]
+            properties:
+              campo: { type: string }
+              mensagem: { type: string }
+
+    Paginacao:
+      type: object
+      required: [total, pagina, por_pagina]
+      properties:
+        total: { type: integer, minimum: 0 }
+        pagina: { type: integer, minimum: 1 }
+        por_pagina: { type: integer, minimum: 1 }
+
+    Papel:
+      type: string
+      enum: [estudante, atendente, administrador, equipe_tecnica]
+    Categoria:
+      type: string
+      enum: [verde, amarelo, vermelho]
+      description: "Verde < 0,30 ≤ Amarelo < 0,60 ≤ Vermelho."
+    Prioridade:
+      type: string
+      enum: [baixa, media, alta, urgente]
+    StatusCaso:
+      type: string
+      enum: [novo, em_acompanhamento, contatado, resolvido, arquivado]
+    Decisao:
+      type: string
+      enum: [confirmado, ajustado, rejeitado]
+    Dimensao:
+      type: string
+      enum: [financeira, academica, relacionamento]
+    Tendencia:
+      type: string
+      enum: [subindo, estavel, caindo]
+    FaixaDistancia:
+      type: string
+      enum: [ate_5km, 5_15km, 15_30km, acima_30km]
+      description: Geografia sempre aproximada. Endereço exato nunca trafega.
+    Probabilidade:
+      type: number
+      minimum: 0
+      maximum: 1
+
+    # ------------------------------------------------------------- operação
+    Saude:
+      type: object
+      required: [status, versao, dependencias, verificado_em]
+      properties:
+        status: { type: string, enum: [ok, degradado] }
+        versao: { type: string, examples: ["0.9.0"] }
+        versao_modelo_risco: { type: [string, "null"] }
+        dependencias:
+          type: object
+          additionalProperties:
+            type: object
+            required: [status]
+            properties:
+              status: { type: string, enum: [ok, falha] }
+              latencia_ms: { type: [integer, "null"] }
+          examples: [{ banco: { status: ok, latencia_ms: 18 }, embeddings: { status: ok, latencia_ms: 240 }, modelo_risco: { status: ok } }]
+        verificado_em: { type: string, format: date-time }
+
+    Me:
+      type: object
+      required: [id, nome, email, papel]
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        email: { type: string, format: email }
+        papel: { $ref: "#/components/schemas/Papel" }
+        estudante:
+          description: Presente só para o papel estudante.
+          type: [object, "null"]
+          required: [id, ra, curso, semestre]
+          properties:
+            id: { type: string, format: uuid }
+            ra: { type: string }
+            curso: { type: string }
+            semestre: { type: integer }
+
+    # ------------------------------------------------------------- chat
+    MensagemHistorico:
+      type: object
+      required: [papel, conteudo]
+      properties:
+        papel: { type: string, enum: [estudante, agente] }
+        conteudo: { type: string, maxLength: 2000 }
+
+    ChatPergunta:
+      type: object
+      required: [mensagem]
+      properties:
+        mensagem: { type: string, minLength: 1, maxLength: 1000 }
+        conversa_id: { type: [string, "null"], format: uuid }
+        historico:
+          type: array
+          maxItems: 6
+          items: { $ref: "#/components/schemas/MensagemHistorico" }
+      examples:
+        - { mensagem: "Como tiro o atestado de matrícula?" }
+
+    Fonte:
+      type: object
+      required: [titulo, fonte, data_atualizacao, trecho]
+      properties:
+        documento_id: { type: string, format: uuid }
+        titulo: { type: string }
+        fonte: { type: string, description: Referência oficial (ex. seção da Cesta de Serviços ASA). }
+        data_atualizacao: { type: string, format: date-time }
+        trecho: { type: string, description: Trecho usado na resposta. }
+        similaridade: { $ref: "#/components/schemas/Probabilidade" }
+
+    Encaminhamento:
+      type: object
+      required: [id, status, setor_destino]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [aberto, em_andamento, resolvido] }
+        setor_destino: { type: string, examples: [ASA] }
+        prazo: { type: [string, "null"], format: date-time }
+
+    ChatResposta:
+      type: object
+      required: [resposta, fontes, confianca, abstencao, resposta_id, conversa_id, versao_modelo, gerada_em]
+      properties:
+        resposta:
+          type: string
+          description: Curta. Procedimentos em passos numerados (`1. ...`). Sem markdown pesado.
+        fontes:
+          type: array
+          description: Vazia só quando não há documento relevante. Em abstenção pode trazer os candidatos fracos.
+          items: { $ref: "#/components/schemas/Fonte" }
+        confianca:
+          $ref: "#/components/schemas/Probabilidade"
+        abstencao:
+          type: boolean
+          description: true quando o agente não respondeu por falta de base confiável.
+        motivo_abstencao:
+          type: [string, "null"]
+          enum: [baixa_similaridade, sem_documentos, falha_vetorizacao, falha_busca, fora_do_escopo, null]
+        encaminhamento:
+          description: Criado quando há abstenção (o estudante pode acompanhar).
+          oneOf:
+            - $ref: "#/components/schemas/Encaminhamento"
+            - type: "null"
+        resposta_id: { type: string, format: uuid }
+        conversa_id: { type: string, format: uuid }
+        versao_modelo: { type: string, description: "Versão do pipeline RAG + embedding.", examples: ["rag-0.9+bge-m3"] }
+        gerada_em: { type: string, format: date-time }
+      examples:
+        - resposta: "Para emitir o atestado de matrícula:\n1. Acesse o portal.\n2. Escolha a opção Relatórios.\n3. Emita o documento."
+          fontes:
+            - titulo: Atestado de matrícula
+              fonte: Cesta de Serviços ASA - Documentos Acadêmicos
+              data_atualizacao: "2026-10-15T00:00:00Z"
+              trecho: "Precisa do atestado de matrícula? É super simples: basta acessar o portal, escolher a opção Relatórios e emitir o documento."
+              similaridade: 0.71
+          confianca: 0.71
+          abstencao: false
+          motivo_abstencao: null
+          encaminhamento: null
+          resposta_id: 6f1c1c2e-2d0b-4c8e-9a51-0d2f7b3c9e10
+          conversa_id: 1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed
+          versao_modelo: rag-0.9+bge-m3
+          gerada_em: "2026-11-02T19:12:03-03:00"
+
+    ConversaResumo:
+      type: object
+      required: [id, titulo, status, iniciada_em, atualizada_em]
+      properties:
+        id: { type: string, format: uuid }
+        titulo: { type: string }
+        status: { type: string, enum: [aberta, encerrada, encaminhada_humano] }
+        iniciada_em: { type: string, format: date-time }
+        atualizada_em: { type: string, format: date-time }
+        ultima_mensagem: { type: [string, "null"], maxLength: 140 }
+
+    PaginaConversas:
+      allOf:
+        - $ref: "#/components/schemas/Paginacao"
+        - type: object
+          required: [itens]
+          properties:
+            itens:
+              type: array
+              items: { $ref: "#/components/schemas/ConversaResumo" }
+
+    MensagemConversa:
+      type: object
+      required: [id, remetente, conteudo, criado_em]
+      properties:
+        id: { type: string, format: uuid }
+        remetente: { type: string, enum: [estudante, agente, atendente] }
+        conteudo: { type: string }
+        criado_em: { type: string, format: date-time }
+        resposta:
+          description: Presente nas mensagens do agente.
+          type: [object, "null"]
+          required: [resposta_id, fontes, confianca, abstencao]
+          properties:
+            resposta_id: { type: string, format: uuid }
+            fontes:
+              type: array
+              items: { $ref: "#/components/schemas/Fonte" }
+            confianca: { $ref: "#/components/schemas/Probabilidade" }
+            abstencao: { type: boolean }
+            feedback: { type: [string, "null"], enum: [util, nao_util, null] }
+
+    ConversaDetalhe:
+      allOf:
+        - $ref: "#/components/schemas/ConversaResumo"
+        - type: object
+          required: [mensagens]
+          properties:
+            mensagens:
+              type: array
+              items: { $ref: "#/components/schemas/MensagemConversa" }
+            encaminhamento:
+              oneOf:
+                - $ref: "#/components/schemas/Encaminhamento"
+                - type: "null"
+
+    FeedbackEntrada:
+      type: object
+      required: [resposta_id, avaliacao]
+      properties:
+        resposta_id: { type: string, format: uuid }
+        avaliacao: { type: string, enum: [util, nao_util] }
+        comentario: { type: [string, "null"], maxLength: 500 }
+
+    Feedback:
+      allOf:
+        - $ref: "#/components/schemas/FeedbackEntrada"
+        - type: object
+          required: [id, criado_em]
+          properties:
+            id: { type: string, format: uuid }
+            criado_em: { type: string, format: date-time }
+
+    # ------------------------------------------------------------- casos
+    EstudanteResumo:
+      type: object
+      required: [id, ra, nome, curso, semestre]
+      properties:
+        id: { type: string, format: uuid }
+        ra: { type: string }
+        nome: { type: string }
+        curso: { type: string }
+        semestre: { type: integer }
+        faixa_distancia: { oneOf: [{ $ref: "#/components/schemas/FaixaDistancia" }, { type: "null" }] }
+        regiao: { type: [string, "null"], examples: ["Zona Oeste - SP"] }
+
+    ResumoCaso:
+      type: object
+      required: [estudante, score_geral, categoria, categoria_modelo, tendencia, status, prioridade, versao_modelo, atualizado_em]
+      description: Estudante sem caso aberto (em geral, verde) vem com `caso_id`, `status` e `prioridade` nulos.
+      properties:
+        estudante: { $ref: "#/components/schemas/EstudanteResumo" }
+        caso_id: { type: [string, "null"], format: uuid, description: Nulo para estudantes verdes sem caso aberto. }
+        score_geral: { $ref: "#/components/schemas/Probabilidade" }
+        categoria:
+          $ref: "#/components/schemas/Categoria"
+          description: Categoria vigente (após validação humana, se houver).
+        categoria_modelo: { $ref: "#/components/schemas/Categoria" }
+        tendencia: { $ref: "#/components/schemas/Tendencia" }
+        variacao: { type: [number, "null"], description: Diferença de score em relação ao mês anterior. }
+        status: { oneOf: [{ $ref: "#/components/schemas/StatusCaso" }, { type: "null" }] }
+        prioridade: { oneOf: [{ $ref: "#/components/schemas/Prioridade" }, { type: "null" }] }
+        prazo: { type: [string, "null"], format: date }
+        responsavel:
+          type: [object, "null"]
+          properties:
+            id: { type: string, format: uuid }
+            nome: { type: string }
+        ultima_decisao: { oneOf: [{ $ref: "#/components/schemas/Decisao" }, { type: "null" }] }
+        versao_modelo: { type: string }
+        atualizado_em: { type: string, format: date-time }
+
+    PaginaCasos:
+      allOf:
+        - $ref: "#/components/schemas/Paginacao"
+        - type: object
+          required: [itens, contagem]
+          properties:
+            itens:
+              type: array
+              items: { $ref: "#/components/schemas/ResumoCaso" }
+            contagem:
+              description: Totais por categoria com os filtros atuais (exceto o de categoria), para os contadores da fila.
+              type: object
+              required: [verde, amarelo, vermelho]
+              properties:
+                verde: { type: integer }
+                amarelo: { type: integer }
+                vermelho: { type: integer }
+
+    Fator:
+      type: object
+      required: [codigo, descricao, dimensao, direcao, peso]
+      properties:
+        codigo: { type: string, examples: [parcelas_em_aberto] }
+        descricao: { type: string, description: Frase pronta para exibir., examples: ["34% das parcelas em aberto"] }
+        dimensao: { $ref: "#/components/schemas/Dimensao" }
+        direcao: { type: string, enum: [aumenta, reduz], description: Efeito sobre o risco. }
+        peso:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Participação relativa entre os fatores listados (somam ~1).
+
+    Score:
+      type: object
+      required: [geral, financeiro, academico, relacionamento]
+      properties:
+        geral: { $ref: "#/components/schemas/Probabilidade" }
+        financeiro: { $ref: "#/components/schemas/Probabilidade" }
+        academico: { $ref: "#/components/schemas/Probabilidade" }
+        relacionamento: { $ref: "#/components/schemas/Probabilidade" }
+
+    PontoTendencia:
+      type: object
+      required: [competencia, score_geral, categoria]
+      properties:
+        competencia: { type: string, format: date, description: 1º dia do mês. }
+        score_geral: { $ref: "#/components/schemas/Probabilidade" }
+        categoria: { $ref: "#/components/schemas/Categoria" }
+
+    CasoDetalhe:
+      type: object
+      required: [estudante, score_id, score, categoria, categoria_modelo, fatores, tendencia, recomendacao, caso, versao_modelo, atualizado_em]
+      properties:
+        estudante: { $ref: "#/components/schemas/EstudanteResumo" }
+        score_id: { type: string, format: uuid, description: Enviar de volta na validação (controle de concorrência). }
+        score: { $ref: "#/components/schemas/Score" }
+        categoria: { $ref: "#/components/schemas/Categoria" }
+        categoria_modelo: { $ref: "#/components/schemas/Categoria" }
+        fatores:
+          type: array
+          maxItems: 8
+          items: { $ref: "#/components/schemas/Fator" }
+        tendencia:
+          type: array
+          description: Últimos 6 meses, do mais antigo para o mais recente.
+          items: { $ref: "#/components/schemas/PontoTendencia" }
+        recomendacao:
+          type: string
+          description: Sugestão de apoio (nunca ação punitiva).
+        caso:
+          type: object
+          required: [status, prioridade]
+          properties:
+            id: { type: [string, "null"], format: uuid }
+            status: { $ref: "#/components/schemas/StatusCaso" }
+            prioridade: { $ref: "#/components/schemas/Prioridade" }
+            prazo: { type: [string, "null"], format: date }
+            responsavel:
+              type: [object, "null"]
+              properties:
+                id: { type: string, format: uuid }
+                nome: { type: string }
+        ultima_validacao:
+          oneOf:
+            - $ref: "#/components/schemas/Validacao"
+            - type: "null"
+        versao_modelo: { type: string, examples: ["rl-baseline-1.0"] }
+        atualizado_em: { type: string, format: date-time }
+        aviso:
+          type: string
+          const: "Apoio à decisão. Nenhuma ação deve ser tomada sem avaliação humana."
+
+    ValidacaoEntrada:
+      type: object
+      required: [decisao, justificativa, score_id]
+      properties:
+        score_id: { type: string, format: uuid, description: O score que foi analisado (de CasoDetalhe). }
+        decisao: { $ref: "#/components/schemas/Decisao" }
+        justificativa: { type: string, minLength: 20, maxLength: 2000 }
+        categoria_ajustada:
+          description: Obrigatória quando `decisao = ajustado`.
+          oneOf: [{ $ref: "#/components/schemas/Categoria" }, { type: "null" }]
+        prioridade: { oneOf: [{ $ref: "#/components/schemas/Prioridade" }, { type: "null" }] }
+        prazo: { type: [string, "null"], format: date }
+        status: { oneOf: [{ $ref: "#/components/schemas/StatusCaso" }, { type: "null" }] }
+        assumir_caso: { type: boolean, default: true, description: Torna quem validou o responsável pelo caso. }
+      if:
+        properties: { decisao: { const: ajustado } }
+      then:
+        required: [categoria_ajustada]
+        properties:
+          categoria_ajustada: { $ref: "#/components/schemas/Categoria" }
+
+    Validacao:
+      type: object
+      required: [id, decisao, justificativa, atendente, versao_modelo, criado_em]
+      properties:
+        id: { type: string, format: uuid }
+        score_id: { type: [string, "null"], format: uuid }
+        decisao: { $ref: "#/components/schemas/Decisao" }
+        justificativa: { type: string }
+        categoria_ajustada: { oneOf: [{ $ref: "#/components/schemas/Categoria" }, { type: "null" }] }
+        prioridade: { oneOf: [{ $ref: "#/components/schemas/Prioridade" }, { type: "null" }] }
+        prazo: { type: [string, "null"], format: date }
+        atendente:
+          type: object
+          required: [id, nome]
+          properties:
+            id: { type: string, format: uuid }
+            nome: { type: string }
+        versao_modelo: { type: string }
+        criado_em: { type: string, format: date-time }
+
+    EventoHistorico:
+      type: object
+      required: [id, tipo, ocorrido_em, descricao]
+      properties:
+        id: { type: string, format: uuid }
+        tipo: { type: string, enum: [score, validacao, contato, status, prioridade, prazo, responsavel, criado] }
+        ocorrido_em: { type: string, format: date-time }
+        descricao: { type: string, description: Frase pronta para a linha do tempo. }
+        usuario:
+          type: [object, "null"]
+          properties:
+            id: { type: string, format: uuid }
+            nome: { type: string }
+        dados:
+          type: object
+          description: |
+            Depende de `tipo`. score → {score_geral, categoria, versao_modelo};
+            validacao → Validacao; contato → {origem, canal, motivo, resultado};
+            status/prioridade/prazo/responsavel → {de, para}.
+          additionalProperties: true
+
+    PaginaHistorico:
+      allOf:
+        - $ref: "#/components/schemas/Paginacao"
+        - type: object
+          required: [itens]
+          properties:
+            itens:
+              type: array
+              items: { $ref: "#/components/schemas/EventoHistorico" }
+
+    # ------------------------------------------------------------- risco
+    FeaturesRisco:
+      type: object
+      description: Mesmo formato da base do modelo (veja ml/README.md).
+      required: [tempo_de_curso, total_parcelas, pct_parcelas_em_aberto, pct_parcelas_acordo, atraso_medio_dias,
+                 media_notas, media_assiduidade, pct_reprovacao, total_semestres]
+      properties:
+        tempo_de_curso: { type: number, minimum: 0 }
+        idade: { type: integer, minimum: 14, maximum: 100 }
+        mora_sp_capital: { type: boolean }
+        total_parcelas: { type: integer, minimum: 0 }
+        pct_parcelas_em_aberto: { type: number, minimum: 0, maximum: 1 }
+        pct_parcelas_acordo: { type: number, minimum: 0, maximum: 1 }
+        atraso_medio_dias: { type: number }
+        valor_total_periodo: { type: number, minimum: 0 }
+        media_notas: { type: number, minimum: 0, maximum: 100 }
+        media_assiduidade: { type: number, minimum: 0, maximum: 100 }
+        pct_reprovacao: { type: number, minimum: 0, maximum: 1 }
+        tendencia_notas: { type: number }
+        tendencia_assiduidade: { type: number }
+        total_semestres: { type: integer, minimum: 0 }
+        total_contatos: { type: integer, minimum: 0, description: "Regra 5: apenas contatos ativos do ASA." }
+        dias_desde_ultimo_contato: { type: integer, minimum: 0 }
+        forma_ingresso: { type: string }
+        grau_academico: { type: string }
+        turno: { type: string }
+        estado_civil: { type: string }
+        sexo: { type: string }
+        tem_bolsa: { type: boolean }
+
+    InferenciaEntrada:
+      type: object
+      oneOf:
+        - required: [estudante_id]
+        - required: [features]
+      properties:
+        estudante_id: { type: string, format: uuid }
+        features: { $ref: "#/components/schemas/FeaturesRisco" }
+        persistir: { type: boolean, default: false }
+
+    InferenciaResultado:
+      type: object
+      required: [probabilidade, categoria, score, fatores, versao_modelo, calculado_em]
+      properties:
+        probabilidade: { $ref: "#/components/schemas/Probabilidade" }
+        categoria: { $ref: "#/components/schemas/Categoria" }
+        score: { $ref: "#/components/schemas/Score" }
+        fatores:
+          type: array
+          items: { $ref: "#/components/schemas/Fator" }
+        recomendacao: { type: string }
+        versao_modelo: { type: string }
+        calculado_em: { type: string, format: date-time }
+        persistido: { type: boolean }
+        score_id: { type: [string, "null"], format: uuid }
+
+    ModeloInfo:
+      type: object
+      required: [versao, algoritmo, treinado_em, limiares, metricas]
+      properties:
+        versao: { type: string, examples: ["rl-baseline-1.0"] }
+        algoritmo: { type: string, examples: ["Regressão Logística"] }
+        treinado_em: { type: string, format: date-time }
+        limiares:
+          type: object
+          required: [amarelo, vermelho]
+          properties:
+            amarelo: { type: number, const: 0.3 }
+            vermelho: { type: number, const: 0.6 }
+        metricas:
+          type: object
+          properties:
+            auc: { type: number }
+            recall: { type: number }
+            precisao: { type: number }
+            f1: { type: number }
+        features: { type: array, items: { type: string } }
+
+    # ------------------------------------------------------------- admin
+    Dashboard:
+      type: object
+      required: [periodo, chat, risco, validacoes, encaminhamentos, atualizado_em]
+      properties:
+        periodo:
+          type: object
+          required: [de, ate]
+          properties:
+            de: { type: string, format: date }
+            ate: { type: string, format: date }
+        chat:
+          type: object
+          required: [conversas, perguntas, estudantes_ativos, taxa_abstencao, feedback]
+          properties:
+            conversas: { type: integer }
+            perguntas: { type: integer }
+            estudantes_ativos: { type: integer }
+            taxa_abstencao: { $ref: "#/components/schemas/Probabilidade" }
+            confianca_media: { $ref: "#/components/schemas/Probabilidade" }
+            latencia_p95_ms: { type: [integer, "null"] }
+            feedback:
+              type: object
+              required: [util, nao_util]
+              properties:
+                util: { type: integer }
+                nao_util: { type: integer }
+            perguntas_por_dia:
+              type: array
+              items:
+                type: object
+                required: [dia, total, abstencoes]
+                properties:
+                  dia: { type: string, format: date }
+                  total: { type: integer }
+                  abstencoes: { type: integer }
+            principais_documentos:
+              type: array
+              maxItems: 10
+              items:
+                type: object
+                required: [titulo, citacoes]
+                properties:
+                  documento_id: { type: string, format: uuid }
+                  titulo: { type: string }
+                  citacoes: { type: integer }
+        risco:
+          type: object
+          required: [distribuicao, versao_modelo]
+          properties:
+            distribuicao:
+              type: object
+              required: [verde, amarelo, vermelho]
+              properties:
+                verde: { type: integer }
+                amarelo: { type: integer }
+                vermelho: { type: integer }
+            distribuicao_mensal:
+              type: array
+              items:
+                type: object
+                required: [competencia, verde, amarelo, vermelho]
+                properties:
+                  competencia: { type: string, format: date }
+                  verde: { type: integer }
+                  amarelo: { type: integer }
+                  vermelho: { type: integer }
+            casos_por_status:
+              type: object
+              additionalProperties: { type: integer }
+            versao_modelo: { type: string }
+        validacoes:
+          type: object
+          required: [confirmado, ajustado, rejeitado]
+          properties:
+            confirmado: { type: integer }
+            ajustado: { type: integer }
+            rejeitado: { type: integer }
+            tempo_medio_ate_validacao_horas: { type: [number, "null"] }
+        encaminhamentos:
+          type: object
+          required: [abertos, em_andamento, resolvidos]
+          properties:
+            abertos: { type: integer }
+            em_andamento: { type: integer }
+            resolvidos: { type: integer }
+        atualizado_em: { type: string, format: date-time }
+
+    DocumentoResumo:
+      type: object
+      required: [id, titulo, categoria, fonte, versao, ativo, data_atualizacao, total_chunks]
+      properties:
+        id: { type: string, format: uuid }
+        titulo: { type: string }
+        categoria: { type: string }
+        fonte: { type: string }
+        versao: { type: integer, minimum: 1 }
+        ativo: { type: boolean }
+        data_atualizacao: { type: string, format: date-time }
+        total_chunks: { type: integer }
+        chunks_sem_embedding: { type: integer, description: "> 0 indica vetorização pendente." }
+
+    PaginaDocumentos:
+      allOf:
+        - $ref: "#/components/schemas/Paginacao"
+        - type: object
+          required: [itens]
+          properties:
+            itens:
+              type: array
+              items: { $ref: "#/components/schemas/DocumentoResumo" }
+
+    DocumentoEntrada:
+      type: object
+      required: [titulo, categoria, fonte, conteudo]
+      properties:
+        titulo: { type: string, minLength: 3, maxLength: 200 }
+        categoria: { type: string, minLength: 2, maxLength: 60 }
+        fonte: { type: string, minLength: 3, maxLength: 300, description: Referência oficial. }
+        conteudo: { type: string, minLength: 20, maxLength: 100000 }
+        data_atualizacao: { type: string, format: date-time, description: Padrão = agora. }
+
+    NovaVersaoEntrada:
+      type: object
+      required: [versao_base, conteudo, motivo]
+      properties:
+        versao_base: { type: integer, minimum: 1, description: Versão que o admin editou. }
+        titulo: { type: string, minLength: 3, maxLength: 200 }
+        categoria: { type: string }
+        fonte: { type: string }
+        conteudo: { type: string, minLength: 20, maxLength: 100000 }
+        motivo: { type: string, minLength: 10, maxLength: 500 }
+        data_atualizacao: { type: string, format: date-time }
+
+    DocumentoDetalhe:
+      allOf:
+        - $ref: "#/components/schemas/DocumentoResumo"
+        - type: object
+          required: [conteudo, versoes]
+          properties:
+            conteudo: { type: string }
+            desativado_em: { type: [string, "null"], format: date-time }
+            motivo_desativacao: { type: [string, "null"] }
+            versoes:
+              type: array
+              items:
+                type: object
+                required: [versao, data_atualizacao, criado_em]
+                properties:
+                  versao: { type: integer }
+                  data_atualizacao: { type: string, format: date-time }
+                  motivo: { type: [string, "null"] }
+                  alterado_por: { type: [string, "null"], description: Nome de quem publicou. }
+                  criado_em: { type: string, format: date-time }

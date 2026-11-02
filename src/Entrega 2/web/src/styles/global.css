@@ -1,4 +1,4 @@
-@import "./tokens.css";
+@import "./base.css"; /* base.css importa tokens.css */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

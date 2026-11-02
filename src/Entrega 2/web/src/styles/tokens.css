@@ -1,57 +1,166 @@
-/* Tokens de design do ASA. Toda cor, fonte e espaçamento vem daqui. */
+/* =============================================================================
+   ASA Turbo · tokens de design
+   Fonte única de cor, tipografia, espaço, forma e movimento.
+   Referência visual: /design-system.html
+   Regras (CLAUDE.md, "Direção de design"):
+     - 1 cor de destaque: verde institucional FECAP.
+     - Semáforo Verde/Amarelo/Vermelho existe SÓ para risco de evasão.
+     - Nada de gradiente, brilho, glass, sombra pesada, pill em tudo.
+   Contrastes indicados = WCAG 2.1 sobre o fundo indicado (AA texto: >= 4,5:1).
+   ============================================================================= */
 :root {
-  /* Cores base */
-  --verde: #0f5c3f;          /* ações principais, bolha do estudante */
-  --verde-escuro: #0b4430;   /* hover das ações */
-  --verde-noite: #073623;    /* sidebar (era #0b2a20; do protótipo: verde mais vivo, branco 13,45:1) */
-  --verde-pulso: #047857;    /* pontos de carregamento (verde do protótipo; 5,5:1 sobre branco) */
-  --menta: #6ee7b7;          /* acento claro sobre o verde da sidebar: ícone e item ativo (não é cor de texto corrido) */
-  --verde-folha: #e3f0e8;    /* realces suaves, item ativo */
-  --tinta: #18211c;          /* texto principal */
-  --tinta-suave: #4d5a53;    /* texto secundário (contraste AA sobre branco) */
-  --linha: #d7dfda;          /* bordas e divisórias */
-  --superficie: #f3f6f4;     /* fundos de apoio */
-  --fundo: #f6f6f0;          /* área da conversa: branco levemente quente */
-  --balao: #e7eee8;          /* sálvia claro: ícone das fichas e hover das sugestões */
-  --balao-estudante: #c6dccd; /* balão do estudante: mesma família do sálvia claro, mais definido (texto 11,4:1; 1,3:1 contra o fundo) */
-  --branco: #ffffff;
+  /* ---------------------------------------------------------------- Marca */
+  --cor-marca-900: #062d1f;   /* barra lateral, cabeçalho escuro */
+  --cor-marca-800: #0b4430;   /* hover/pressionado do primário */
+  --cor-marca-700: #0f5c3f;   /* PRIMÁRIA: botões, links, foco (7,3:1 sobre --cor-fundo) */
+  --cor-marca-600: #1b7352;   /* ícones ativos */
+  --cor-marca-200: #bfd9cb;   /* bordas de destaque */
+  --cor-marca-100: #e3efe7;   /* item selecionado, realce suave */
+  --cor-marca-acento-escuro: #8fd8b4; /* foco e item ativo SOBRE --cor-marca-900 */
 
-  /* Estados */
-  --ambar: #7a4a00;          /* encaminhamento / abstenção (texto) */
-  --ambar-fundo: #fdf1dc;
-  --ambar-linha: #efd29c;
-  --alerta-fundo: #f6ead0;   /* abstenção: âmbar suave; sem borda, o fundo precisa se destacar do fundo quente */
-  --ambar-filete: #b7791f;   /* filete lateral da abstenção */
-  --erro-fundo: #faefed;     /* erro: rosado discreto; o vermelho do título e do filete é o sinal principal */
-  --filete-neutro: #8a998f;  /* filete do aviso informativo */
-  --vermelho: #a1281f;       /* erro real (texto) */
-  --vermelho-fundo: #fbeae8;
-  --vermelho-linha: #f0c3be;
+  /* ------------------------------------------------------- Neutros quentes */
+  --cor-fundo: #f7f5ef;        /* fundo da aplicação (papel quente) */
+  --cor-superficie: #fffdf8;   /* painéis, tabelas, campos */
+  --cor-superficie-2: #f0ede5; /* cabeçalho de tabela, áreas de apoio */
+  --cor-borda: #dcd7cb;        /* divisórias */
+  --cor-borda-forte: #857e70;  /* borda de campos (3,8:1 – componente de UI) */
+  --cor-texto: #1e1c18;        /* texto principal (15,6:1) */
+  --cor-texto-2: #57524a;      /* texto secundário (7,1:1) */
+  --cor-texto-3: #6e685e;      /* legendas, placeholders (5,0:1; 4,7:1 sobre --cor-superficie-2) */
+  --cor-texto-inverso: #fffdf8;
 
-  /* Tipografia */
-  --fonte-ui: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
-  --fonte-doc: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --texto-xs: 0.75rem;     /* 12px */
-  --texto-sm: 0.8125rem;   /* 13px */
-  --texto-md: 0.9375rem;   /* 15px: corpo das mensagens (era 16px; o protótipo usa 14,5px) */
-  --texto-lg: 1.25rem;     /* 20px */
-  --texto-xl: 1.75rem;     /* 28px: título da tela inicial (era 30px) */
+  /* ------------------------------------------- Feedback (não é semáforo) */
+  --cor-info: #1f4f7a;         --cor-info-fundo: #e8eff6;
+  --cor-aviso: #7a4a00;        --cor-aviso-fundo: #fbf0d9;  --cor-aviso-borda: #e4c17d;
+  --cor-erro: #a1281f;         --cor-erro-fundo: #fbebe8;   --cor-erro-borda: #e9b2ab;
+  --cor-sucesso: var(--cor-marca-700);
 
-  /* Espaços (em rem: acompanham a escala da página em telas grandes, ver global.css) */
-  --esp-1: 0.25rem;
-  --esp-2: 0.5rem;
-  --esp-3: 0.75rem;
-  --esp-4: 1rem;
-  --esp-5: 1.5rem;
-  --esp-6: 2rem;
-  --esp-7: 3rem;
+  /* -------------------------------- Semáforo de RISCO (uso exclusivo) ----- */
+  /* Sempre acompanhado de texto ("Verde", "Amarelo", "Vermelho"): cor nunca
+     é o único sinal. Texto sobre o fundo do próprio badge >= 4,5:1. */
+  --risco-verde: #1e6a3a;     --risco-verde-fundo: #e2f1e6;     --risco-verde-borda: #93c7a2;    --risco-verde-ponto: #2f8a4f;
+  --risco-amarelo: #6f4b00;   --risco-amarelo-fundo: #fbefc9;   --risco-amarelo-borda: #dfba4f;  --risco-amarelo-ponto: #c99200;
+  --risco-vermelho: #9b2318;  --risco-vermelho-fundo: #fbe6e2;  --risco-vermelho-borda: #e3a296; --risco-vermelho-ponto: #c43a2b;
 
-  /* Formas */
+  /* ------------------------------------------------------------ Tipografia */
+  --fonte-ui: "Schibsted Grotesk", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --fonte-doc: "Source Serif 4", Georgia, "Times New Roman", serif; /* só trechos citados */
+  --fonte-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --texto-2xs: 0.6875rem;  /* 11 – rótulos de eixo */
+  --texto-xs: 0.75rem;     /* 12 – legendas, rodapé de fontes */
+  --texto-sm: 0.8125rem;   /* 13 – tabela densa, metadados */
+  --texto-md: 0.9375rem;   /* 15 – corpo */
+  --texto-lg: 1.125rem;    /* 18 – subtítulo de seção */
+  --texto-xl: 1.375rem;    /* 22 – título de página */
+  --texto-2xl: 1.75rem;    /* 28 – número de destaque (score) */
+  --texto-3xl: 2.25rem;    /* 36 – título de boas-vindas */
+
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-forte: 650;
+  --peso-titulo: 750;
+
+  --altura-linha: 1.55;
+  --altura-linha-justa: 1.25;
+  --espacamento-titulo: -0.01em;
+
+  /* ------------------------------------------------------- Espaço (base 4) */
+  --esp-0: 0;
+  --esp-1: 0.25rem;  /* 4 */
+  --esp-2: 0.5rem;   /* 8 */
+  --esp-3: 0.75rem;  /* 12 */
+  --esp-4: 1rem;     /* 16 */
+  --esp-5: 1.5rem;   /* 24 */
+  --esp-6: 2rem;     /* 32 */
+  --esp-7: 3rem;     /* 48 */
+  --esp-8: 4rem;     /* 64 */
+
+  /* ------------------------------------------------------------- Forma */
+  --raio-xs: 2px;   /* badges, chips */
   --raio-sm: 4px;   /* itens de lista, botões pequenos */
-  --raio-md: 6px;   /* botões e controles */
-  --raio-lg: 8px;   /* campo de pergunta, balão do estudante */
-  --largura-leitura: 46rem;  /* coluna do chat (~70 caracteres por linha) */
-  --largura-sidebar: 17rem;
+  --raio-md: 6px;   /* botões, campos */
+  --raio-lg: 8px;   /* painéis, campo do chat */
+  --borda: 1px solid var(--cor-borda);
 
-  --foco-escuro: var(--menta);   /* cor do foco sobre o fundo verde-noite */
+  --sombra-1: 0 1px 2px rgb(30 28 24 / 0.06);                                   /* painel sobre o fundo */
+  --sombra-2: 0 4px 12px rgb(30 28 24 / 0.08), 0 1px 2px rgb(30 28 24 / 0.06);  /* menus, diálogos */
+
+  /* ------------------------------------------------------------- Foco */
+  --foco-cor: var(--cor-marca-700);
+  --foco-anel: 2px solid var(--foco-cor);
+  --foco-offset: 2px;
+
+  /* -------------------------------------------------------- Layout */
+  --largura-leitura: 46rem;     /* coluna do chat (~70 caracteres) */
+  --largura-conteudo: 80rem;    /* telas do atendente/admin */
+  --largura-sidebar: 17rem;
+  --altura-controle: 2.5rem;    /* 40 px: botões e campos */
+  --altura-controle-sm: 2rem;
+  --altura-linha-tabela: 2.75rem;
+  --z-topo: 10;
+  --z-menu: 20;
+  --z-dialogo: 30;
+  --z-toast: 40;
+
+  /* -------------------------------------------------------- Movimento */
+  --duracao-rapida: 120ms;
+  --duracao-media: 200ms;
+  --curva: cubic-bezier(0.2, 0, 0, 1);
+
+  /* =====================================================================
+     ALIASES de compatibilidade (nomes usados pelos componentes atuais).
+     Componentes novos usam os nomes acima. A sessão web remove aos poucos.
+     ===================================================================== */
+  --verde: var(--cor-marca-700);
+  --verde-escuro: var(--cor-marca-800);
+  --verde-noite: var(--cor-marca-900);
+  --verde-pulso: var(--cor-marca-600);
+  --menta: var(--cor-marca-acento-escuro);
+  --verde-folha: var(--cor-marca-100);
+  --tinta: var(--cor-texto);
+  --tinta-suave: var(--cor-texto-2);
+  --linha: var(--cor-borda);
+  --superficie: var(--cor-superficie-2);
+  --fundo: var(--cor-fundo);
+  --balao: #e7eee8;
+  --balao-estudante: #c6dccd;
+  --branco: #ffffff;
+  --ambar: var(--cor-aviso);
+  --ambar-fundo: var(--cor-aviso-fundo);
+  --ambar-linha: var(--cor-aviso-borda);
+  --alerta-fundo: #f6ead0;
+  --ambar-filete: #b7791f;
+  --erro-fundo: var(--cor-erro-fundo);
+  --filete-neutro: #8a998f;
+  --vermelho: var(--cor-erro);
+  --vermelho-fundo: var(--cor-erro-fundo);
+  --vermelho-linha: var(--cor-erro-borda);
+  --foco-escuro: var(--cor-marca-acento-escuro);
+}
+
+/* Modo escuro: só tokens, por enquanto OPT-IN (data-theme="dark" no <html>).
+   Os componentes atuais ainda têm cores fixas; quando a sessão web terminar a
+   migração para os tokens novos, liga-se também via prefers-color-scheme. */
+:root[data-theme="dark"] {
+  --cor-fundo: #141613;
+  --cor-superficie: #1b1e1a;
+  --cor-superficie-2: #222621;
+  --cor-borda: #33382f;
+  --cor-borda-forte: #565c51;
+  --cor-texto: #ecebe4;
+  --cor-texto-2: #b9b6ac;
+  --cor-texto-3: #9a978d;
+  --cor-texto-inverso: #141613;
+  --cor-marca-700: #6fc79d;
+  --cor-marca-800: #8fd8b4;
+  --cor-marca-100: #1d3328;
+  --cor-marca-200: #2c5240;
+  --risco-verde: #8fd3a3;    --risco-verde-fundo: #183323;    --risco-verde-borda: #2e6a43;
+  --risco-amarelo: #f0cf6e;  --risco-amarelo-fundo: #3a2f12;  --risco-amarelo-borda: #7a6220;
+  --risco-vermelho: #f3a497; --risco-vermelho-fundo: #3f1d18; --risco-vermelho-borda: #84392d;
+  --cor-erro: #f3a497;       --cor-erro-fundo: #3f1d18;
+  --cor-aviso: #f0cf6e;      --cor-aviso-fundo: #3a2f12;
+  --cor-info: #a9c8e8;       --cor-info-fundo: #1a2836;
+  --branco: #1b1e1a;
 }

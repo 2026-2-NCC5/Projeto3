@@ -18,9 +18,9 @@ falhar, o chunk fica sem embedding e o script avisa, para você rodar de novo.
 
 Pré-requisitos
 --------------
-1. Rodar db/migracao_entrega2_1024.sql no SQL Editor do Supabase (troca a
-   coluna embedding para vector(1024) e recria a RPC e o índice).
-2. Um arquivo .env nesta pasta (veja .env.example).
+1. Banco com infra/sql/001_schema_base.sql aplicado (já tem a
+   coluna embedding em vector(1024), a RPC e o índice HNSW).
+2. Um arquivo .env na raiz do projeto (src/Entrega 2/.env; veja .env.example).
 
 Uso
 ---
@@ -43,6 +43,7 @@ import time
 import requests
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
+RAIZ = os.path.abspath(os.path.join(AQUI, "..", ".."))  # src/Entrega 2
 
 CF_MODEL = "@cf/baai/bge-m3"
 VECTOR_DIM = 1024
@@ -56,9 +57,9 @@ TIMEOUT = 60
 # ---------------------------------------------------------------------------
 
 def carregar_env():
-    """Lê o .env desta pasta sem depender do pacote python-dotenv.
+    """Lê o .env da raiz do projeto sem depender do pacote python-dotenv.
     Variáveis já definidas no ambiente têm prioridade."""
-    caminho = os.path.join(AQUI, ".env")
+    caminho = os.path.join(RAIZ, ".env")
     if os.path.exists(caminho):
         with open(caminho, encoding="utf-8") as f:
             for linha in f:

@@ -16,16 +16,16 @@ Login → estudante conversa com o chat e recebe resposta com fontes e data de a
 | Pasta | Conteúdo |
 |---|---|
 | `backend/` | FastAPI (Python 3.11), roda em Docker. Valida JWT do Supabase, aplica RBAC, expõe a API. |
-| `web/` | App responsivo instalável (PWA), HTML/CSS/JS com ES modules, **sem build step**. Servido pelo mesmo container ou por CDN. |
+| `web/` | App responsivo instalável (PWA) em **React 18 + Vite**. Tokens e primitivas em `web/src/styles/` (`tokens.css`, `base.css`), referência em `web/design-system.html`. Servido pelo mesmo container ou por CDN. |
 | `ml/` | Notebooks, scripts de treino, avaliação do RAG, artefatos do modelo (`ml/artifacts/`). |
 | `infra/` | Dockerfile(s), docker-compose, Caddyfile, scripts de deploy, backup e teste de carga. |
 | `seeds/` | Dados **fictícios** para demo e testes. |
 | `data/` | Dados reais do ASA. **Está no .gitignore. Nunca versionar, nunca copiar para outras pastas.** |
 | `docs/` | Contrato da API (`api-contract.yaml`), decisões, evidências. |
 
-- Banco: Supabase (Postgres + pgvector + Auth). O schema base está em `schema.sql` (ou `infra/sql/`). Mudanças vão em migrations numeradas, nunca editando o que já rodou.
+- Banco: Supabase (Postgres + pgvector + Auth). Migrations em `infra/sql/` (`001_schema_base.sql`, `002_contrato_v09.sql`, ...). Mudanças vão em migrations numeradas, nunca editando o que já rodou.
 - Autenticação: Supabase Auth com e-mail e senha. O papel (`estudante`, `atendente`, `administrador`, `equipe_tecnica`) vem da tabela `perfis`. Menor privilégio em todos os endpoints.
-- RAG: busca vetorial via `buscar_chunks_similares` (384 dimensões). Embeddings via Hugging Face Inference (`sentence-transformers/all-MiniLM-L6-v2`) com fallback automático para TF-IDF (`idf_table.json`) se a API falhar. Se a similaridade ficar abaixo do limiar, o agente **se abstém** e encaminha para humano. Nunca inventar procedimento, prazo ou regra.
+- RAG: busca vetorial via `buscar_chunks_similares` (**1024 dimensões**). Embeddings via Cloudflare Workers AI (`@cf/baai/bge-m3`, multilíngue). Sem fallback TF-IDF: se a vetorização falhar, ou se a similaridade ficar abaixo do limiar (0,55), o agente **se abstém** e encaminha para humano. Nunca inventar procedimento, prazo ou regra. Lógica de referência: `web/api/perguntar.py`.
 - Modelo de risco: Regressão Logística baseline (AUC 0,82, Recall 77%). Faixas: Verde <30%, Amarelo 30–60%, Vermelho ≥60%. A v2 compara Random Forest e XGBoost.
 
 ## Regras inegociáveis (vêm do enunciado)
@@ -38,13 +38,13 @@ Login → estudante conversa com o chat e recebe resposta com fontes e data de a
 
 ## Padrões de código
 - Python: tipado, módulos pequenos, `ruff` + `pytest`. Configuração por variáveis de ambiente (pydantic-settings). Logs estruturados em JSON.
-- Front: sem framework pesado, sem build. Componentes simples em módulos ES. Acessível (contraste, foco visível, navegação por teclado, `aria-*`, leitor de tela).
+- Front: React 18 + Vite, sem bibliotecas de UI pesadas. Estilos só via tokens (`web/src/styles/tokens.css`) e CSS Modules. Rotas por papel carregadas sob demanda. Acessível (contraste, foco visível, navegação por teclado, `aria-*`, leitor de tela).
 - Commits pequenos e frequentes, mensagens no imperativo em português (`feat(web): fila de risco do atendente`).
 - Ajuste pequeno = alterar só o arquivo necessário e dizer quais arquivos mudaram. Não reescrever o que não foi pedido.
 - Cada sessão paralela só mexe na **sua pasta**. Se precisar mudar o contrato (`docs/api-contract.yaml`) ou outra pasta, pare e avise em vez de editar.
 
 ## Direção de design (o produto não pode ter "cara de IA")
-Identidade FECAP: verde escuro institucional, fundo claro quente, muito respiro. Marca "ASA Turbo" (sandália alada com chama de turbina) em `web/assets/`.
+Identidade FECAP: verde escuro institucional, fundo claro quente, muito respiro. Marca "ASA Turbo" (sandália alada com chama de turbina) em `web/public/logo-asaturbo.png`.
 
 **Fazer:**
 - Interface de produto sério: hierarquia tipográfica clara, grade consistente, 1 cor de destaque (verde), semáforo Verde/Amarelo/Vermelho usado só para risco.
