@@ -1,0 +1,327 @@
+{
+  "gerado_em": "2026-11-02T21:53:57+00:00",
+  "corpus": {
+    "fonte": "src/Entrega 1/seed_v2.sql",
+    "documentos": 20,
+    "chunks": 20,
+    "observacao": "documentos fictícios da Entrega 1; a base real (230 documentos) não foi usada aqui"
+  },
+  "perguntas": {
+    "total": 60,
+    "por_tipo": {
+      "direta": 20,
+      "reformulada": 20,
+      "continuacao": 8,
+      "fora_escopo_proxima": 6,
+      "fora_escopo": 6
+    }
+  },
+  "definicoes": {
+    "recall_at_k": "fração das perguntas dentro do escopo com um documento esperado entre os k primeiros",
+    "mrr": "média de 1/posição do primeiro documento esperado no ranking completo",
+    "abstencao_correta": "fração das perguntas fora do escopo em que o agente se absteve",
+    "abstencao_indevida": "fração das perguntas dentro do escopo em que o agente se absteve",
+    "acerto_do_agente": "(dentro: respondeu com o documento certo no top-1) + (fora: absteve-se), sobre o total",
+    "acerto_cv": "limiar escolhido em 4/5 das perguntas e medido no 1/5 restante (5 dobras)",
+    "contexto": "continuações usam a última pergunta do estudante concatenada à atual"
+  },
+  "metodos": {
+    "tfidf_hashing": {
+      "nome": "TF-IDF (hashing, sem IDF)",
+      "recuperacao": {
+        "dentro_do_escopo": {
+          "n": 48,
+          "recall_at_1": 0.7292,
+          "recall_at_3": 0.9375,
+          "mrr": 0.8333
+        },
+        "por_tipo": {
+          "direta": {
+            "n": 20,
+            "recall_at_1": 0.9,
+            "recall_at_3": 1.0,
+            "mrr": 0.95
+          },
+          "reformulada": {
+            "n": 20,
+            "recall_at_1": 0.55,
+            "recall_at_3": 0.85,
+            "mrr": 0.7
+          },
+          "continuacao": {
+            "n": 8,
+            "recall_at_1": 0.75,
+            "recall_at_3": 1.0,
+            "mrr": 0.875
+          }
+        }
+      },
+      "continuacao_sem_contexto_recall_at_1": 0.375,
+      "similaridade_top1": {
+        "dentro_media": 0.3197,
+        "dentro_min": 0.098,
+        "fora_media": 0.1781,
+        "fora_max": 0.3485
+      },
+      "limiar_otimo": 0.1965,
+      "no_limiar_otimo": {
+        "limiar": 0.1965,
+        "abstencao_correta": 0.5833,
+        "abstencao_indevida": 0.1458,
+        "precisao_das_respostas": 0.6739,
+        "respostas_erradas": 15,
+        "acerto_do_agente": 0.6333
+      },
+      "validacao_cruzada_limiar": {
+        "acerto_cv": 0.5833,
+        "limiar_medio": 0.1712,
+        "limiar_dp": 0.0226
+      }
+    },
+    "tfidf_idf": {
+      "nome": "TF-IDF + tabela IDF",
+      "recuperacao": {
+        "dentro_do_escopo": {
+          "n": 48,
+          "recall_at_1": 0.7292,
+          "recall_at_3": 0.9167,
+          "mrr": 0.8365
+        },
+        "por_tipo": {
+          "direta": {
+            "n": 20,
+            "recall_at_1": 0.85,
+            "recall_at_3": 1.0,
+            "mrr": 0.925
+          },
+          "reformulada": {
+            "n": 20,
+            "recall_at_1": 0.55,
+            "recall_at_3": 0.8,
+            "mrr": 0.7075
+          },
+          "continuacao": {
+            "n": 8,
+            "recall_at_1": 0.875,
+            "recall_at_3": 1.0,
+            "mrr": 0.9375
+          }
+        }
+      },
+      "continuacao_sem_contexto_recall_at_1": 0.375,
+      "similaridade_top1": {
+        "dentro_media": 0.2669,
+        "dentro_min": 0.1007,
+        "fora_media": 0.1336,
+        "fora_max": 0.2564
+      },
+      "limiar_otimo": 0.1874,
+      "no_limiar_otimo": {
+        "limiar": 0.1874,
+        "abstencao_correta": 0.8333,
+        "abstencao_indevida": 0.2292,
+        "precisao_das_respostas": 0.7949,
+        "respostas_erradas": 8,
+        "acerto_do_agente": 0.6833
+      },
+      "validacao_cruzada_limiar": {
+        "acerto_cv": 0.6333,
+        "limiar_medio": 0.1815,
+        "limiar_dp": 0.0113
+      }
+    },
+    "minilm": {
+      "nome": "MiniLM-L6 (all-MiniLM-L6-v2)",
+      "recuperacao": {
+        "dentro_do_escopo": {
+          "n": 48,
+          "recall_at_1": 0.5208,
+          "recall_at_3": 0.6875,
+          "mrr": 0.6249
+        },
+        "por_tipo": {
+          "direta": {
+            "n": 20,
+            "recall_at_1": 0.85,
+            "recall_at_3": 0.9,
+            "mrr": 0.8853
+          },
+          "reformulada": {
+            "n": 20,
+            "recall_at_1": 0.2,
+            "recall_at_3": 0.45,
+            "mrr": 0.3529
+          },
+          "continuacao": {
+            "n": 8,
+            "recall_at_1": 0.5,
+            "recall_at_3": 0.75,
+            "mrr": 0.6542
+          }
+        }
+      },
+      "continuacao_sem_contexto_recall_at_1": 0.25,
+      "similaridade_top1": {
+        "dentro_media": 0.5863,
+        "dentro_min": 0.4823,
+        "fora_media": 0.5087,
+        "fora_max": 0.5918
+      },
+      "limiar_otimo": 0.508,
+      "no_limiar_otimo": {
+        "limiar": 0.508,
+        "abstencao_correta": 0.5833,
+        "abstencao_indevida": 0.2083,
+        "precisao_das_respostas": 0.5814,
+        "respostas_erradas": 18,
+        "acerto_do_agente": 0.5333
+      },
+      "validacao_cruzada_limiar": {
+        "acerto_cv": 0.5333,
+        "limiar_medio": 0.508,
+        "limiar_dp": 0.0014
+      }
+    },
+    "minilm_multi": {
+      "nome": "MiniLM-L12 multilíngue",
+      "recuperacao": {
+        "dentro_do_escopo": {
+          "n": 48,
+          "recall_at_1": 0.7083,
+          "recall_at_3": 0.8542,
+          "mrr": 0.8002
+        },
+        "por_tipo": {
+          "direta": {
+            "n": 20,
+            "recall_at_1": 0.9,
+            "recall_at_3": 0.95,
+            "mrr": 0.9375
+          },
+          "reformulada": {
+            "n": 20,
+            "recall_at_1": 0.5,
+            "recall_at_3": 0.7,
+            "mrr": 0.633
+          },
+          "continuacao": {
+            "n": 8,
+            "recall_at_1": 0.75,
+            "recall_at_3": 1.0,
+            "mrr": 0.875
+          }
+        }
+      },
+      "continuacao_sem_contexto_recall_at_1": 0.25,
+      "similaridade_top1": {
+        "dentro_media": 0.5342,
+        "dentro_min": 0.2659,
+        "fora_media": 0.2986,
+        "fora_max": 0.6427
+      },
+      "limiar_otimo": 0.3547,
+      "no_limiar_otimo": {
+        "limiar": 0.3547,
+        "abstencao_correta": 0.6667,
+        "abstencao_indevida": 0.0833,
+        "precisao_das_respostas": 0.7083,
+        "respostas_erradas": 14,
+        "acerto_do_agente": 0.7
+      },
+      "validacao_cruzada_limiar": {
+        "acerto_cv": 0.65,
+        "limiar_medio": 0.366,
+        "limiar_dp": 0.047
+      }
+    },
+    "bge_m3": {
+      "nome": "bge-m3 (modelo de produção)",
+      "recuperacao": {
+        "dentro_do_escopo": {
+          "n": 48,
+          "recall_at_1": 0.9375,
+          "recall_at_3": 0.9583,
+          "mrr": 0.9509
+        },
+        "por_tipo": {
+          "direta": {
+            "n": 20,
+            "recall_at_1": 1.0,
+            "recall_at_3": 1.0,
+            "mrr": 1.0
+          },
+          "reformulada": {
+            "n": 20,
+            "recall_at_1": 0.85,
+            "recall_at_3": 0.9,
+            "mrr": 0.8822
+          },
+          "continuacao": {
+            "n": 8,
+            "recall_at_1": 1.0,
+            "recall_at_3": 1.0,
+            "mrr": 1.0
+          }
+        }
+      },
+      "continuacao_sem_contexto_recall_at_1": 0.625,
+      "similaridade_top1": {
+        "dentro_media": 0.6649,
+        "dentro_min": 0.4663,
+        "fora_media": 0.4224,
+        "fora_max": 0.547
+      },
+      "limiar_otimo": 0.5511,
+      "no_limiar_otimo": {
+        "limiar": 0.5511,
+        "abstencao_correta": 1.0,
+        "abstencao_indevida": 0.1042,
+        "precisao_das_respostas": 0.9767,
+        "respostas_erradas": 1,
+        "acerto_do_agente": 0.9
+      },
+      "validacao_cruzada_limiar": {
+        "acerto_cv": 0.8667,
+        "limiar_medio": 0.5437,
+        "limiar_dp": 0.0138
+      },
+      "no_limiar_producao_0_55": {
+        "limiar": 0.55,
+        "abstencao_correta": 1.0,
+        "abstencao_indevida": 0.1042,
+        "precisao_das_respostas": 0.9767,
+        "respostas_erradas": 1,
+        "acerto_do_agente": 0.9
+      }
+    }
+  },
+  "escolhido": {
+    "metodo": "bge_m3",
+    "nome": "bge-m3 (modelo de produção)",
+    "limiar": 0.5511
+  },
+  "groundedness": {
+    "respostas_avaliadas": 43,
+    "groundedness_media": 1.0,
+    "respostas_100pct_fundamentadas": 1.0,
+    "fundamentadas_mas_documento_errado": 1,
+    "metodo": "bge_m3",
+    "observacao": "a resposta atual é extrativa (trecho top-1), por isso é sempre fundamentada; o risco real é responder com o trecho de outro documento"
+  },
+  "validacao_verificador_groundedness": {
+    "respostas_fieis_aceitas": 1.0,
+    "n_fieis": 40,
+    "numero_trocado_detectado": 1.0,
+    "n_numero": 15,
+    "frase_inventada_detectada": 1.0,
+    "n_inventada": 20
+  },
+  "revisao_amostra": {
+    "arquivo": "ml/rag_eval/revisao_amostra.jsonl",
+    "n": 13,
+    "revisadas": 13,
+    "responde_a_pergunta": 0.9231,
+    "fundamentada": 1.0,
+    "revisor": "sessão de IA (Claude), 02/11/2026 — pendente de confirmação por um membro da equipe"
+  }
+}
