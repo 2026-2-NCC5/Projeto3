@@ -45,7 +45,7 @@
 .esqueleto { display: grid; gap: var(--esp-4); padding: var(--esp-4); }
 
 /* tendência: risco subindo pede atenção (texto escuro), caindo é neutro. Sem semáforo. */
-.tendencia { display: inline-flex; align-items: center; gap: var(--esp-1); font-size: var(--texto-sm); white-space: nowrap; }
+.tendencia { font-variant-numeric: normal; display: inline-flex; align-items: center; gap: var(--esp-1); font-size: var(--texto-sm); white-space: nowrap; }
 .t_subindo { color: var(--cor-texto); font-weight: var(--peso-forte); }
 .t_estavel, .t_caindo { color: var(--cor-texto-2); }
 
