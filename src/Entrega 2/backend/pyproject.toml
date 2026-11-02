@@ -1,0 +1,34 @@
+[project]
+name = "asa-turbo-backend"
+version = "0.9.0"
+description = "API FastAPI do ASA Turbo (chat RAG + monitoramento de risco de evasão)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".venv", "venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "BLE", "C4", "SIM", "RUF", "S", "ANN"]
+ignore = [
+    "ANN401",  # Any é usado de propósito nas linhas vindas do banco
+    "RUF001", "RUF002", "RUF003",  # textos em português com aspas/traços tipográficos
+    "S101",    # assert
+    "B008",    # Depends/Query em defaults (padrão FastAPI)
+    "UP040",
+    "N818",    # exceções com nomes em português (FalhaBusca, ErroAPI...)
+    "C408",    # dict(...) usado para montar kwargs
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "ANN", "N802", "RUF012", "SIM105"]
+"app/risk/modelo.py" = ["N806"]  # X, Xtr, Xte: convenção do scikit-learn
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
