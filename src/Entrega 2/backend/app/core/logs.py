@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 
 from app.core.contexto import papel_var, request_id_var, usuario_id_var
 
-_CAMPOS_PADRAO = set(vars(logging.makeLogRecord({})).keys()) | {"message", "asctime"}
+_CAMPOS_PADRAO = set(vars(logging.makeLogRecord({})).keys()) | {"message", "asctime", "color_message"}
 _CAMPOS_CONTEXTO = ("request_id", "usuario_id", "papel")
 _fabrica_original = logging.getLogRecordFactory()
 

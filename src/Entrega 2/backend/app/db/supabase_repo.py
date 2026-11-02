@@ -53,9 +53,17 @@ class SupabaseRepositorio:
 
     # ------------------------------------------------------------------ util
     @staticmethod
-    def _exec(fn: Callable[[], T]) -> T:
+    def _exec(fn: Callable[[], T], *, idempotente: bool = True) -> T:
+        """Executa e traduz erros. Leituras tentam de novo UMA vez em erro de transporte
+        (conexão keep-alive que o servidor já fechou); escritas nunca repetem, para não duplicar."""
         try:
-            return fn()
+            try:
+                return fn()
+            except httpx.TransportError:
+                if not idempotente:
+                    raise
+                log.warning("conexão com o banco reiniciada; repetindo a leitura")
+                return fn()
         except APIError as e:
             if e.code == "PT404":
                 raise RegistroNaoEncontrado(e.message) from e
@@ -74,8 +82,8 @@ class SupabaseRepositorio:
         dados = self._rows(query.limit(1))
         return dados[0] if dados else None
 
-    def _rpc(self, nome: str, params: dict[str, Any]) -> Any:
-        return self._exec(lambda: self.c.rpc(nome, params).execute()).data
+    def _rpc(self, nome: str, params: dict[str, Any], *, escrita: bool = True) -> Any:
+        return self._exec(lambda: self.c.rpc(nome, params).execute(), idempotente=not escrita).data
 
     @staticmethod
     def _faixa(pagina: int, por_pagina: int) -> tuple[int, int]:
@@ -105,7 +113,9 @@ class SupabaseRepositorio:
     # ------------------------------------------------------------------ RAG
     def buscar_chunks_similares(self, vetor: list[float], limite: int) -> list[dict[str, Any]]:
         dados = self._rpc(
-            "buscar_chunks_similares", {"query_embedding": vetor, "limite": limite, "limiar_similaridade": 0.0}
+            "buscar_chunks_similares",
+            {"query_embedding": vetor, "limite": limite, "limiar_similaridade": 0.0},
+            escrita=False,
         )
         return dados if isinstance(dados, list) else []
 
@@ -351,7 +361,7 @@ class SupabaseRepositorio:
 
     # ------------------------------------------------------------------ admin
     def dashboard(self, de: date, ate: date) -> dict[str, Any]:
-        return self._rpc("dashboard_agregados", {"p_de": de.isoformat(), "p_ate": ate.isoformat()})
+        return self._rpc("dashboard_agregados", {"p_de": de.isoformat(), "p_ate": ate.isoformat()}, escrita=False)
 
     def listar_documentos(
         self, busca: str | None, categoria: str | None, ativo: bool | None, pagina: int, por_pagina: int
@@ -413,4 +423,4 @@ class SupabaseRepositorio:
 
     # ------------------------------------------------------------------ auditoria
     def registrar_auditoria(self, registro: dict[str, Any]) -> None:
-        self._exec(lambda: self.c.table("auditoria_logs").insert(registro).execute())
+        self._exec(lambda: self.c.table("auditoria_logs").insert(registro).execute(), idempotente=False)
