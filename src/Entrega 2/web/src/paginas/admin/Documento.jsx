@@ -61,7 +61,7 @@ export default function Documento({ documentoId }) {
               {d.versoes.map((v) => (
                 <li key={v.versao}>
                   <strong>Versão {v.versao}{v.versao === d.versao ? ' (vigente)' : ''}</strong>
-                  {v.motivo && <span>{v.motivo}</span>}
+                  {v.motivo && <span>{/migra[cç][aã]o/i.test(v.motivo) ? 'Versão importada da base oficial' : v.motivo}</span>}
                   <span className="texto-meta">Publicada em {dataHora(v.criado_em)}{v.alterado_por ? ` por ${v.alterado_por}` : ''} · vale a partir de {dataCurta(v.data_atualizacao)}</span>
                 </li>
               ))}

@@ -44,7 +44,7 @@ export default function NovoDocumento() {
       <div className="cabecalho-pagina">
         <div>
           <h1>Cadastrar documento</h1>
-          <p>O documento entra no chat assim que os trechos forem vetorizados. Se a vetorização falhar, nada é gravado.</p>
+          <p>O documento é gravado e passa a valer para o chat. Se a vetorização estiver fora do ar, os trechos ficam como “aguardando vetorização” até a vetorização ser refeita.</p>
         </div>
       </div>
       <form className={`painel ${s.bloco} ${s.form}`} onSubmit={enviar} noValidate>
@@ -70,7 +70,7 @@ export default function NovoDocumento() {
         </Campo>
         {erro && erro.codigo !== 'validacao' && <div className={s.erroForm} role="alert">{erro.codigo === 'indisponivel' ? 'Não foi possível vetorizar o documento agora, então ele não foi gravado. Tente de novo em instantes.' : erro.mensagem}</div>}
         <div className={s.acoesForm}>
-          <button type="submit" className="btn btn--primario" aria-busy={enviando} disabled={enviando || !online}>{enviando ? 'Cadastrando e vetorizando…' : 'Cadastrar documento'}</button>
+          <button type="submit" className="btn btn--primario" aria-busy={enviando} disabled={enviando || !online}>{enviando ? 'Cadastrando…' : 'Cadastrar documento'}</button>
           <Link to="/admin/documentos" className="btn btn--secundario">Cancelar</Link>
         </div>
       </form>

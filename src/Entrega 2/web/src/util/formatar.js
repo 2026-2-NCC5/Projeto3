@@ -64,6 +64,7 @@ export const ROTULO = {
 }
 
 export function iniciais(nome = '') {
-  const p = nome.trim().split(/\s+/)
+  // Só palavras que começam com letra: "Júlia Prado (demo)" -> "JP", não "J(".
+  const p = nome.trim().split(/\s+/).filter((w) => /^\p{L}/u.test(w))
   return ((p[0]?.[0] ?? '') + (p.length > 1 ? p.at(-1)[0] : '')).toUpperCase()
 }

@@ -109,7 +109,7 @@ blockquote, .trecho-documento {
 .btn[aria-busy="true"] { cursor: progress; }
 
 /* --------------------------------------------------------------- Campos */
-.campo { display: grid; gap: var(--esp-1); }
+.campo { display: grid; gap: var(--esp-1); align-content: start; } /* sem isso, num grid de 2 colunas o campo sem ajuda estica o controle */
 .campo__rotulo { font-size: var(--texto-sm); font-weight: var(--peso-forte); }
 .campo__ajuda { font-size: var(--texto-xs); color: var(--cor-texto-2); }
 .campo__erro { font-size: var(--texto-xs); color: var(--cor-erro); font-weight: var(--peso-medio); }

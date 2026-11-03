@@ -5,6 +5,28 @@ import { useCarregar, useTituloPagina } from '../util/hooks.js'
 import { dataHora, pct } from '../util/formatar.js'
 import { AvisoDecisao } from './atendente/pecas.jsx'
 
+// Nome legível de cada variável do modelo (o código técnico vai no title).
+const NOME_VARIAVEL = {
+  tempo_de_curso: 'Tempo de curso',
+  mora_sp_capital: 'Mora na capital (SP)',
+  total_parcelas: 'Total de parcelas do contrato',
+  pct_parcelas_em_aberto: 'Parcelas em aberto (%)',
+  pct_parcelas_acordo: 'Parcelas em acordo (%)',
+  atraso_medio_dias: 'Atraso médio nos pagamentos',
+  valor_total_periodo: 'Valor do período (faixa, nunca o valor exato)',
+  media_notas: 'Média de notas',
+  media_assiduidade: 'Frequência média',
+  pct_reprovacao: 'Reprovações (%)',
+  tendencia_notas: 'Tendência das notas',
+  tendencia_assiduidade: 'Tendência da frequência',
+  total_semestres: 'Semestres cursados',
+  tem_bolsa: 'Bolsa ou financiamento',
+  sem_historico_academico: 'Sem histórico acadêmico lançado',
+  forma_ingresso: 'Forma de ingresso',
+  grau_academico: 'Grau acadêmico',
+  turno: 'Turno',
+}
+
 export default function Modelo() {
   useTituloPagina('Modelo de risco')
   const { dados: m, erro, recarregar } = useCarregar(({ signal }) => api.modeloRisco({ signal }), [])
@@ -44,9 +66,9 @@ export default function Modelo() {
               <section className="painel" style={{ padding: 'var(--esp-4) var(--esp-5)', display: 'grid', gap: 'var(--esp-3)' }} aria-labelledby="t-f">
                 <h2 id="t-f" className="rotulo-secao">Variáveis consideradas</h2>
                 <ul style={{ paddingLeft: 'var(--esp-4)', fontSize: 'var(--texto-sm)', display: 'grid', gap: 2 }}>
-                  {m.features.map((f) => <li key={f}><code style={{ fontFamily: 'var(--fonte-mono)', fontSize: 'var(--texto-xs)' }}>{f}</code></li>)}
+                  {m.features.map((f) => <li key={f} title={f}>{NOME_VARIAVEL[f] ?? f.replaceAll('_', ' ')}</li>)}
                 </ul>
-                <p className="texto-meta">Pedidos de ajuda ao ASA nunca aumentam o risco: só contatos ativos da equipe entram na conta.</p>
+                <p className="texto-meta">Contatos e pedidos de ajuda ao ASA não entram no modelo: procurar o ASA nunca muda o score. Sexo e estado civil também ficam de fora.</p>
               </section>
             )}
           </div>

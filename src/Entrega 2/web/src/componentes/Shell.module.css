@@ -71,7 +71,7 @@
 @media (max-width: 860px) {
   .linha { flex-wrap: wrap; gap: 0 var(--esp-3); padding-top: var(--esp-1); }
   .nav { order: 3; width: calc(100% + 2 * var(--esp-4)); margin: 0 calc(-1 * var(--esp-4)); padding: 0 var(--esp-2); overflow-x: auto; scrollbar-width: none; }
-  .nav a { min-height: 2.5rem; }
+  .nav a { min-height: 2.5rem; padding: 0 var(--esp-2); }
   .nomeUsuario, .demo { display: none; }
   .conteudo { padding: var(--esp-4) var(--esp-4) var(--esp-7); }
 }

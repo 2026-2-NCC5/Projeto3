@@ -15,8 +15,13 @@ const paraBackend = {
   bypass: (req) => (req.headers.accept?.includes('text/html') ? req.url : undefined),
 }
 
+// Build sem mock quando VITE_API_MOCK=false (produção/Docker): os módulos de src/api/mock/
+// ficam fora do bundle. Em `npm run dev` o mock continua disponível.
+const COM_MOCK = process.env.VITE_API_MOCK !== 'false'
+
 export default defineConfig({
   plugins: [react()],
+  define: { __COM_MOCK__: JSON.stringify(COM_MOCK) },
   build: {
     rollupOptions: {
       // design-system.html: página de referência dos tokens e primitivas (CSS puro).

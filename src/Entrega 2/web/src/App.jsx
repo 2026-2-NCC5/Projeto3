@@ -8,6 +8,7 @@ import { Dialogo, EstadoErro, Esqueleto } from './componentes/comum.jsx'
 import { casar, Link, navegar, useLocalizacao } from './rotas/roteador.jsx'
 import { podeAcessar } from './rotas/permissoes.js'
 import { INICIO_POR_PAPEL } from './config.js'
+import { useTituloPagina } from './util/hooks.js'
 
 const Chat = lazy(() => import('./paginas/estudante/Chat.jsx'))
 const Fila = lazy(() => import('./paginas/atendente/Fila.jsx'))
@@ -101,6 +102,7 @@ function Moldura({ shell, children }) {
 }
 
 function NaoEncontrada({ inicio }) {
+  useTituloPagina('Página não encontrada')
   return (
     <div className="estado" role="status">
       <h1 className="estado__titulo">Página não encontrada</h1>
@@ -111,6 +113,7 @@ function NaoEncontrada({ inicio }) {
 }
 
 function SemAcesso({ inicio }) {
+  useTituloPagina('Sem acesso')
   return (
     <div className="estado" role="status">
       <h1 className="estado__titulo">Seu perfil não tem acesso a esta área</h1>

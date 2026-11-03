@@ -33,7 +33,8 @@ export default function Caso({ estudanteId }) {
   const d = caso.dados
   const e = d.estudante
   const tendenciaGeral = d.tendencia.length > 1 ? d.tendencia.at(-1).score_geral - d.tendencia.at(-2).score_geral : null
-  const sentido = tendenciaGeral === null ? 'estavel' : tendenciaGeral > 0.02 ? 'subindo' : tendenciaGeral < -0.02 ? 'caindo' : 'estavel'
+  // Mesmo critério da fila (vw_fila_risco): variação de 5 p.p. ou mais muda a tendência.
+  const sentido = tendenciaGeral === null ? 'estavel' : tendenciaGeral >= 0.05 ? 'subindo' : tendenciaGeral <= -0.05 ? 'caindo' : 'estavel'
 
   return (
     <>
@@ -76,7 +77,7 @@ export default function Caso({ estudanteId }) {
                 </div>
               ))}
             </dl>
-            <p className="texto-meta">Modelo <span className="numero">{d.versao_modelo}</span> · calculado em {dataHora(d.atualizado_em)}</p>
+            <p className="texto-meta">Modelo {d.versao_modelo} · calculado em {dataHora(d.atualizado_em)}</p>
           </section>
 
           <section className={`painel ${s.bloco}`} aria-labelledby="t-tendencia">
@@ -285,10 +286,9 @@ function Historico({ estudanteId, versao }) {
               <ol className={s.linhaTempo}>
                 {h.dados.itens.map((ev) => (
                   <li key={ev.id} className={s[`ev_${ev.tipo}`]}>
-                    <p className={s.evTexto}>{ev.descricao}</p>
+                    <p className={s.evTexto}>{textoEvento(ev)}</p>
                     {ev.tipo === 'validacao' && ev.dados?.justificativa && <p className={s.evJust}>“{ev.dados.justificativa}”</p>}
                     {ev.tipo === 'contato' && ev.dados?.resultado && <p className={s.evJust}>{ev.dados.resultado}</p>}
-                    {['status', 'prioridade'].includes(ev.tipo) && ev.dados && <p className={s.evJust}>{rotuloMudanca(ev)}</p>}
                     <p className="texto-meta"><time dateTime={ev.ocorrido_em}>{dataHora(ev.ocorrido_em)}</time>{ev.usuario ? ` · ${ev.usuario.nome}` : ' · sistema'}{ev.tipo === 'score' && ev.dados?.versao_modelo ? ` · ${ev.dados.versao_modelo}` : ''}</p>
                   </li>
                 ))}
@@ -304,8 +304,20 @@ function Historico({ estudanteId, versao }) {
   )
 }
 
-function rotuloMudanca(ev) {
-  const mapa = ev.tipo === 'status' ? ROTULO.status : ROTULO.prioridade
-  return `${mapa[ev.dados.de] ?? '—'} → ${mapa[ev.dados.para] ?? '—'}`
+// Texto da linha do tempo com os rótulos do app (o backend manda códigos crus
+// como "vermelho" e "2026-10" na descrição de alguns eventos).
+function textoEvento(ev) {
+  const d = ev.dados ?? {}
+  if ((ev.tipo === 'status' || ev.tipo === 'prioridade') && (d.de || d.para)) {
+    const mapa = ev.tipo === 'status' ? ROTULO.status : ROTULO.prioridade
+    const nome = ev.tipo === 'status' ? 'Situação' : 'Prioridade'
+    return `${nome}: ${mapa[d.de] ?? '—'} → ${mapa[d.para] ?? '—'}`
+  }
+  if (ev.tipo === 'score' && typeof d.score_geral === 'number') {
+    const iso = d.competencia ?? (/(\d{4}-\d{2})(?:-\d{2})?\s*$/.exec(ev.descricao ?? '')?.[1] ? `${/(\d{4}-\d{2})/.exec(ev.descricao)[1]}-01` : null)
+    const comp = iso ? ` · ${mesAno(iso)}` : ''
+    return `Score calculado: ${pct(d.score_geral)} (${ROTULO.categoria[d.categoria] ?? d.categoria})${comp}`
+  }
+  return ev.descricao
 }
 

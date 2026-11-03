@@ -89,9 +89,14 @@ const CHAVE_MOCK = 'asa:mock-token'
 const SENHA_DEMO = 'AsaTurbo#Demo2026'
 const espera = (ms) => new Promise((r) => setTimeout(r, ms))
 
+// Módulos do mock só existem em builds com __COM_MOCK__ (ver vite.config.js).
+const SEM_MOCK = () => Promise.reject(new Error('modo mock indisponível neste build'))
+const importarToken = () => (__COM_MOCK__ ? import('../api/mock/token.js') : SEM_MOCK())
+const importarDados = () => (__COM_MOCK__ ? import('../api/mock/dados.js') : SEM_MOCK())
+
 const mockProvedor = {
   async token() {
-    const { lerTokenMock } = await import('../api/mock/token.js')
+    const { lerTokenMock } = await importarToken()
     let t = null
     try { t = sessionStorage.getItem(CHAVE_MOCK) } catch { /* sem storage */ }
     return lerTokenMock(t) ? t : null
@@ -100,7 +105,7 @@ const mockProvedor = {
   async entrar(email, senha) {
     await espera(500)
     if (!navigator.onLine) throw new ErroLogin('rede', MSG.rede)
-    const [{ USUARIOS }, { criarTokenMock }] = await Promise.all([import('../api/mock/dados.js'), import('../api/mock/token.js')])
+    const [{ USUARIOS }, { criarTokenMock }] = await Promise.all([importarDados(), importarToken()])
     const usuario = Object.values(USUARIOS).find((u) => u.email === email.trim().toLowerCase())
     if (!usuario || senha !== SENHA_DEMO) throw new ErroLogin('credenciais', MSG.credenciais)
     try { sessionStorage.setItem(CHAVE_MOCK, criarTokenMock(usuario.papel)) } catch { /* sem storage */ }

@@ -1,0 +1,35 @@
+Acessibilidade (axe-core 4.10 via @axe-core/playwright, regras WCAG 2.0/2.1 A e AA)
+Gerado por e2e/telas.mjs contra a stack local (http://localhost:8080), 03/11/2026.
+Telas: login, chat (inicio e conversa), fila, caso, modelo, painel, documentos, documento, cadastro de documento; 390px e 1280px.
+
+ANTES: 4 nós com violação
+  - chat-conversa@390: listitem (serious, 2 nós) <li> elements must be contained in a <ul> or <ol>
+  - chat-conversa@1280: listitem (serious, 2 nós) <li> elements must be contained in a <ul> or <ol>
+  Causa: role="log" aplicado direto no <ol> das mensagens apagava a semântica de lista dos <li>.
+  Correção: role="log" passou para um <div> em volta do <ol> (web/src/paginas/estudante/Chat.jsx).
+
+DEPOIS: 0 nós com violação
+
+  login@390: 'Entrar · ASA Turbo' · overflow horizontal 0px · axe ok
+  chat-inicio@390: 'Nova conversa · ASA Turbo' · overflow horizontal 0px · axe ok
+  chat-conversa@390: 'Como tiro o atestado de matrícula? · ASA Turbo' · overflow horizontal 0px · axe ok
+  fila@390: 'Fila de risco · ASA Turbo' · overflow horizontal 0px · axe ok
+  caso@390: 'Fernanda Soares Duarte · ASA Turbo' · overflow horizontal 0px · axe ok
+  modelo@390: 'Modelo de risco · ASA Turbo' · overflow horizontal 0px · axe ok
+  painel@390: 'Painel · ASA Turbo' · overflow horizontal 0px · axe ok
+  documentos@390: 'Base de conhecimento · ASA Turbo' · overflow horizontal 0px · axe ok
+  documento@390: 'Abatimento de valores de Disciplinas em Inglês · ASA Turbo' · overflow horizontal 0px · axe ok
+  novo-documento@390: 'Cadastrar documento · ASA Turbo' · overflow horizontal 0px · axe ok
+  login@1280: 'Entrar · ASA Turbo' · overflow horizontal 0px · axe ok
+  chat-inicio@1280: 'Nova conversa · ASA Turbo' · overflow horizontal 0px · axe ok
+  chat-conversa@1280: 'Como tiro o atestado de matrícula? · ASA Turbo' · overflow horizontal 0px · axe ok
+  fila@1280: 'Fila de risco · ASA Turbo' · overflow horizontal 0px · axe ok
+  caso@1280: 'Fernanda Soares Duarte · ASA Turbo' · overflow horizontal 0px · axe ok
+  modelo@1280: 'Modelo de risco · ASA Turbo' · overflow horizontal 0px · axe ok
+  painel@1280: 'Painel · ASA Turbo' · overflow horizontal 0px · axe ok
+  documentos@1280: 'Base de conhecimento · ASA Turbo' · overflow horizontal 0px · axe ok
+  documento@1280: 'Abatimento de valores de Disciplinas em Inglês · ASA Turbo' · overflow horizontal 0px · axe ok
+  novo-documento@1280: 'Cadastrar documento · ASA Turbo' · overflow horizontal 0px · axe ok
+
+Limites: axe cobre ~30-40% dos critérios WCAG. Não testado: leitor de tela real (NVDA/VoiceOver), zoom 200%, contraste de estados hover/foco animados.
+Detalhe por tela em a11y.json (depois) e a11y-antes.json (antes).

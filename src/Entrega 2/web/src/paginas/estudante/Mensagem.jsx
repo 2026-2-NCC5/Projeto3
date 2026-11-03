@@ -65,20 +65,33 @@ export function MensagemAgente({ m, encaminhamentoConversa, onAvaliar }) {
   )
 }
 
+// Vários trechos do mesmo documento viram UMA fonte (com os trechos juntos),
+// para o rodapé não repetir o mesmo título.
+function agruparFontes(fontes) {
+  const grupos = new Map()
+  for (const f of fontes) {
+    const chave = f.documento_id ?? `${f.titulo}|${f.fonte}`
+    const g = grupos.get(chave)
+    if (g) { if (f.trecho) g.trechos.push(f.trecho) } else grupos.set(chave, { ...f, chave, trechos: f.trecho ? [f.trecho] : [] })
+  }
+  return [...grupos.values()]
+}
+
 function Fontes({ fontes }) {
+  const grupos = agruparFontes(fontes)
   return (
     <footer className={s.fontes}>
-      <p className={s.fontesRotulo}>{fontes.length > 1 ? 'Fontes' : 'Fonte'}</p>
+      <p className={s.fontesRotulo}>{grupos.length > 1 ? 'Fontes' : 'Fonte'}</p>
       <ul>
-        {fontes.map((f, i) => (
-          <li key={f.documento_id ?? i}>
+        {grupos.map((f) => (
+          <li key={f.chave}>
             <details>
               <summary>
                 <span className={s.fonteTitulo}>{f.titulo}</span>
                 <span> · {f.fonte}</span>
                 <span className={s.fonteData}> · atualizado em {dataCurta(f.data_atualizacao)}</span>
               </summary>
-              {f.trecho && <blockquote className={s.trecho}>{f.trecho}</blockquote>}
+              {f.trechos.map((t, i) => <blockquote key={i} className={s.trecho}>{t}</blockquote>)}
             </details>
           </li>
         ))}

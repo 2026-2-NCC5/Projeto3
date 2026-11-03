@@ -252,13 +252,16 @@ function Conversa({ chat }) {
   const pendente = conversa.mensagens.some((m) => m.estado === 'pendente')
   return (
     <div className={s.rolagem} ref={rolagem}>
-      <ol className={s.coluna} role="log" aria-live="polite" aria-relevant="additions" aria-label="Mensagens">
+      {/* role="log" num wrapper: no próprio <ol> ele apagaria a semântica de lista dos <li> */}
+      <div role="log" aria-live="polite" aria-relevant="additions" aria-label="Mensagens">
+      <ol className={s.coluna}>
         {conversa.mensagens.map((m) => (m.remetente === 'estudante'
           ? <MensagemEstudante key={m.id} m={m} onTentarDeNovo={chat.tentarDeNovo} desabilitado={enviando} />
           : <MensagemAgente key={m.id} m={m} encaminhamentoConversa={conversa.encaminhamento} onAvaliar={chat.avaliar} />))}
         {pendente && <Digitando />}
         <li ref={fim} aria-hidden="true" className={s.fim} />
       </ol>
+      </div>
     </div>
   )
 }

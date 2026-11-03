@@ -83,7 +83,13 @@ let transporte = transporteHttp
 let mockCarregado = null
 async function obterTransporte() {
   if (!MODO_MOCK) return transporte
-  if (!mockCarregado) mockCarregado = import('./mock/index.js').then((m) => m.transporteMock)
+  // __COM_MOCK__ (vite.config.js) é constante de build: com VITE_API_MOCK=false o Rollup
+  // remove este import e os dados fictícios nem entram no bundle de produção.
+  if (!mockCarregado) {
+    mockCarregado = __COM_MOCK__
+      ? import('./mock/index.js').then((m) => m.transporteMock)
+      : Promise.reject(new Error('modo mock indisponível neste build'))
+  }
   return mockCarregado
 }
 
