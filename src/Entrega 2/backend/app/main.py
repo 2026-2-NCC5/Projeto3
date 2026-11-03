@@ -127,7 +127,9 @@ def create_app(
     st.servico_chat = ServicoChat(repo, embeddings, indice, s)
     st.servico_casos = ServicoCasos(repo)
     st.servico_risco = ServicoRisco(repo, modelo)  # type: ignore[arg-type]
-    st.servico_documentos = ServicoDocumentos(repo, embeddings, indice)
+    st.servico_documentos = ServicoDocumentos(
+        repo, embeddings, indice, permitir_sem_embedding=s.rag_fallback_lexical and not embeddings.provedores
+    )
 
     for r in (operacao.router, chat.router, casos.router, risco.router, admin.router):
         app.include_router(r)

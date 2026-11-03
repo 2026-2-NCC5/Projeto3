@@ -36,6 +36,10 @@
 
 	# API do backend: /api/chat -> backend:8000/chat
 	handle_path /api/* {
+		# Nenhuma rota da API precisa de mais que isso (documento: 100 mil caracteres)
+		request_body {
+			max_size 1MB
+		}
 		# /metrics fica só na rede interna (Prometheus); nunca exposto pelo proxy
 		@metrics path /metrics
 		respond @metrics 404

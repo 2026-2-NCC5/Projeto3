@@ -54,6 +54,26 @@ def test_cadastro_com_vetorizacao_fora_e_503_e_nada_e_gravado(amb):
     assert amb.repo.documentos == {}
 
 
+def test_sem_nenhum_provedor_salva_com_embedding_pendente(modelo):
+    """Ambiente local/demonstração: sem provedor configurado e com o fallback lexical
+    ligado, o documento é salvo com embeddings pendentes e já entra na busca lexical."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from app.rag.embeddings import CadeiaEmbeddings
+    from tests.conftest import settings_teste
+    from tests.fakes import RepoMemoria
+
+    repo = RepoMemoria()
+    app = create_app(settings_teste(), repo=repo, embeddings=CadeiaEmbeddings([], cooldown_s=0), modelo=modelo)
+    with TestClient(app, raise_server_exceptions=False) as c:
+        r = c.post("/admin/documentos", headers=H, json=DOC)
+        assert r.status_code == 201
+        corpo = r.json()
+        validar("DocumentoDetalhe", corpo)
+        assert corpo["chunks_sem_embedding"] == corpo["total_chunks"] >= 1
+
+
 def test_nova_versao_reindexa_e_controla_concorrencia(amb):
     doc = amb.client.post("/admin/documentos", headers=H, json=DOC).json()
     nova = {

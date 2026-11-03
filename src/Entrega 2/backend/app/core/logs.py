@@ -12,8 +12,8 @@ import logging
 import logging.handlers
 import os
 import sys
-from pathlib import Path
 from datetime import UTC, datetime
+from pathlib import Path
 
 from app.core.contexto import papel_var, request_id_var, usuario_id_var
 

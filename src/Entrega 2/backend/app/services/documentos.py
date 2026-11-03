@@ -22,14 +22,30 @@ MSG_VETORIZACAO = "Não foi possível gerar os embeddings agora, então nada foi
 
 
 class ServicoDocumentos:
-    def __init__(self, repo: Repositorio, embeddings: CadeiaEmbeddings, indice: CacheIndiceLexical) -> None:
+    def __init__(
+        self,
+        repo: Repositorio,
+        embeddings: CadeiaEmbeddings,
+        indice: CacheIndiceLexical,
+        *,
+        permitir_sem_embedding: bool = False,
+    ) -> None:
         self.repo = repo
         self.embeddings = embeddings
         self.indice = indice
+        # Só quando NENHUM provedor está configurado (ambiente local/demonstração) e o
+        # fallback lexical está ligado: o documento é salvo com embeddings pendentes
+        # (chunks_sem_embedding > 0) e o chat o encontra pela busca lexical.
+        # ml/rag/gerar_embeddings.py preenche depois. Com provedor configurado e
+        # falhando, continua valendo o contrato: 503 e nada gravado.
+        self.permitir_sem_embedding = permitir_sem_embedding
 
     def _chunks_vetorizados(self, conteudo: str, titulo: str) -> list[dict[str, Any]]:
         """Divide e vetoriza ANTES de gravar: se a vetorização falhar, nada é gravado (contrato: 503)."""
         textos = dividir_em_chunks(conteudo, titulo)
+        if self.permitir_sem_embedding and not self.embeddings.provedores:
+            log.warning("documento salvo sem embeddings (nenhum provedor configurado)", extra={"chunks": len(textos)})
+            return [{"conteudo": t, "embedding": None} for t in textos]
         saida: list[dict[str, Any]] = []
         try:
             for i in range(0, len(textos), LOTE_EMBEDDINGS):
