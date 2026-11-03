@@ -52,13 +52,33 @@ def _selecionar(trechos: list[Trecho], limiar: float) -> list[Trecho]:
     return escolhidos
 
 
+_SEM_INFORMACAO = re.compile(r"^condi[cç][oõ]es:\s*n[aã]o h[aá] condi[cç][oõ]es espec[ií]ficas", re.IGNORECASE)
+
+
+def _limpar(t: Trecho) -> str:
+    """Tira o prefixo com o título do documento, que se repete em todo trecho da base
+    ("Atestado de matrícula - Condições: ..." -> "Condições: ..."). O título já aparece na fonte."""
+    texto = t.conteudo.strip()
+    titulo = (t.titulo or "").strip()
+    if titulo and texto.lower().startswith(titulo.lower()):
+        resto = texto[len(titulo) :].lstrip()
+        if resto[:1] in ("-", ":", "–"):
+            texto = resto[1:].strip()
+    return texto
+
+
 def compor_resposta(rec: Recuperacao) -> tuple[str, list[Trecho]]:
     """Devolve (texto da resposta, trechos efetivamente usados)."""
     if rec.abstencao or not rec.trechos:
         texto = TEXTO_FALHA if rec.motivo_abstencao in ("falha_vetorizacao", "falha_busca") else TEXTO_ABSTENCAO
         return texto, []
     usados = _selecionar(rec.trechos, rec.limiar_aplicado)
-    blocos = [formatar_passos(t.conteudo) for t in usados]
+    limpos = [(t, _limpar(t)) for t in usados]
+    # "Condições: não há condições específicas" não informa nada: sai da resposta
+    # (a não ser que seja o único trecho).
+    uteis = [(t, x) for t, x in limpos if not _SEM_INFORMACAO.match(x)] or limpos
+    usados = [t for t, _ in uteis]
+    blocos = [formatar_passos(x) for _, x in uteis]
     texto = "\n\n".join(b for b in blocos if b)
     if len(texto) > MAX_CARACTERES:
         corte = texto.rfind(". ", 0, MAX_CARACTERES)

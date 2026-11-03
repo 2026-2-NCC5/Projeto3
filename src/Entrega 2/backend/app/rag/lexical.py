@@ -86,3 +86,9 @@ class IndiceLexical:
                 pontos[i] = pontos.get(i, 0.0) + peso * self._docs[i].pesos[termo]
         melhores = sorted(pontos.items(), key=lambda kv: -kv[1])[:limite]
         return [(self._docs[i].meta, round(min(max(s, 0.0), 1.0), 4)) for i, s in melhores]
+
+    def trechos_do_documento(self, documento_id: Any) -> list[dict[str, Any]]:
+        """Todos os trechos ativos de um documento, na ordem original (campo `ordem`)."""
+        alvo = str(documento_id)
+        trechos = [d.meta for d in self._docs if str(d.meta.get("documento_id")) == alvo]
+        return sorted(trechos, key=lambda m: (m.get("ordem") is None, m.get("ordem") or 0))

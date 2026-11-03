@@ -116,7 +116,21 @@ def _lexical(indice_fn: IndiceFn | None, consulta: str, top_k: int) -> list[Trec
         return None
     if indice is None or len(indice) == 0:
         return None
-    return [Trecho.de_linha(meta, sim) for meta, sim in indice.buscar(consulta, top_k)]
+    resultados = indice.buscar(consulta, top_k)
+    if not resultados:
+        return []
+    # Busca por palavras acha o DOCUMENTO certo, mas tende a preferir os trechos curtos
+    # ("Condições", "Atendimento") ao trecho principal. Como os documentos da base são
+    # curtos, o melhor documento entra inteiro, na ordem original, com a similaridade
+    # dele; os demais resultados vêm depois, como alternativas.
+    melhor_meta, melhor_sim = resultados[0]
+    doc_id = melhor_meta.get("documento_id")
+    do_doc = indice.trechos_do_documento(doc_id) if doc_id else []
+    if not do_doc:
+        return [Trecho.de_linha(meta, sim) for meta, sim in resultados]
+    vistos = {str(m.get("chunk_id")) for m in do_doc}
+    outros = [(m, s) for m, s in resultados if str(m.get("chunk_id")) not in vistos]
+    return [Trecho.de_linha(m, melhor_sim) for m in do_doc] + [Trecho.de_linha(m, s) for m, s in outros]
 
 
 def recuperar(

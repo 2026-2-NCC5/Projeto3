@@ -125,7 +125,7 @@ class SupabaseRepositorio:
         while True:
             lote = self._rows(
                 self.c.table("documentos_chunks")
-                .select("id,documento_id,conteudo,documentos_oficiais!inner(titulo,fonte,data_atualizacao,ativo)")
+                .select("id,documento_id,ordem,conteudo,documentos_oficiais!inner(titulo,fonte,data_atualizacao,ativo)")
                 .eq("ativo", True)
                 .eq("documentos_oficiais.ativo", True)
                 .order("id")
@@ -137,6 +137,7 @@ class SupabaseRepositorio:
                     {
                         "chunk_id": r["id"],
                         "documento_id": r["documento_id"],
+                        "ordem": r.get("ordem"),
                         "conteudo": r["conteudo"],
                         "titulo_documento": d.get("titulo"),
                         "fonte_documento": d.get("fonte"),
