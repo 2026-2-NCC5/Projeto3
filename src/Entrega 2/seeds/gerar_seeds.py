@@ -13,10 +13,18 @@ Saídas (nesta pasta):
                                casos, validações, contatos e conversas do
                                estudante demo.
 
-Determinístico: semente fixa. Rodar duas vezes gera arquivos idênticos.
+Scores: cada estudante recebe uma probabilidade-alvo (≈60% verde, 25% amarelo,
+15% vermelho no mês mais recente) e uma trajetória (estável, piorando,
+melhorando). As features são geradas a partir de um nível latente de risco, e o
+nível é escolhido por busca para que o MODELO REAL (ml/artifacts/risco_v2.joblib)
+chegue perto do alvo. Score, categoria, fatores e recomendação vêm do
+RiskModel.predict, ou seja, são exatamente o que o backend mostraria.
 
-Uso:
-    python3 seeds/gerar_seeds.py
+Determinístico: semente fixa. Rodar duas vezes gera arquivos idênticos
+(com o mesmo artefato de modelo).
+
+Uso (precisa das dependências de ml/requirements.txt):
+    ml/.venv/bin/python seeds/gerar_seeds.py
 """
 
 from __future__ import annotations
@@ -25,6 +33,7 @@ import csv
 import json
 import math
 import random
+import sys
 import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
@@ -33,8 +42,8 @@ from pathlib import Path
 SEMENTE = 20261106
 N_ESTUDANTES = 300
 AQUI = Path(__file__).resolve().parent
+RAIZ = AQUI.parent  # src/Entrega 2
 
-VERSAO_MODELO_SEED = "seed-sintetico-0"
 COMPETENCIAS = [date(2026, m, 1) for m in range(5, 11)]  # mai..out/2026
 LIMIAR_AMARELO = 0.30
 LIMIAR_VERMELHO = 0.60
@@ -153,23 +162,46 @@ class Estudante:
     idade: int
     tem_bolsa: bool
     mora_capital: bool
-    risco_fin: float          # latentes: z-scores por dimensão
-    risco_acad: float
-    deriva: float             # tendência mensal do risco latente
+    alvo_final: float         # probabilidade-alvo do mês mais recente
+    trajetoria: str           # estavel | piorando | melhorando
+    inclinacao: float         # variação mensal do logit-alvo
+    mensalidade: float
+    ruido: list[list[float]]  # ruído fixo por competência (deixa a busca determinística)
     mensal: list[dict] = field(default_factory=list)
+
+
+TRAJETORIAS = [("estavel", 50), ("piorando", 25), ("melhorando", 25)]
+# Faixas de probabilidade-alvo do mês mais recente (o score final sai do modelo, não daqui)
+ALVOS = {"verde": (0.02, 0.26), "amarelo": (0.33, 0.57), "vermelho": (0.64, 0.93)}
+DISTRIBUICAO_ALVO = {"verde": 0.60, "amarelo": 0.25, "vermelho": 0.15}
+GRADE_Z = [round(-3.0 + 0.1 * i, 2) for i in range(81)]  # nível latente de risco testado na busca
+
+
+def logit(p: float) -> float:
+    p = limitar(p, 1e-4, 1 - 1e-4)
+    return math.log(p / (1 - p))
 
 
 def gerar_estudantes(rng: random.Random) -> list[Estudante]:
     ras = rng.sample(range(99000001, 99099999), N_ESTUDANTES)
+    n_verm = round(N_ESTUDANTES * DISTRIBUICAO_ALVO["vermelho"])
+    n_amar = round(N_ESTUDANTES * DISTRIBUICAO_ALVO["amarelo"])
+    cats = ["vermelho"] * n_verm + ["amarelo"] * n_amar + ["verde"] * (N_ESTUDANTES - n_verm - n_amar)
+    rng.shuffle(cats)
     estudantes = []
-    for ra in ras:
+    for ra, cat in zip(ras, cats):
         curso, grau, duracao = rng.choice(CURSOS)
         regiao, faixa = rng.choice(REGIOES)
         nome = f"{rng.choice(PRENOMES)} {rng.choice(SOBRENOMES)} {rng.choice(SOBRENOMES)}"
-        base = rng.gauss(0, 1)
+        trajetoria = sorteio_ponderado(rng, TRAJETORIAS)
+        inclinacao = {"estavel": rng.gauss(0, 0.06), "piorando": rng.uniform(0.25, 0.55),
+                      "melhorando": -rng.uniform(0.25, 0.55)}[trajetoria]
+        # Evasão se concentra nos primeiros semestres: o alvo vermelho puxa o semestre para o início.
+        semestre = {"vermelho": rng.choice([1, 1, 1, 2]), "amarelo": rng.randint(1, min(3, duracao))}.get(
+            cat, rng.randint(1, duracao))
         estudantes.append(Estudante(
             id=novo_uuid(rng), ra=str(ra), nome=nome, curso=curso, grau=grau,
-            duracao=duracao, semestre=rng.randint(1, duracao), regiao=regiao, faixa=faixa,
+            duracao=duracao, semestre=semestre, regiao=regiao, faixa=faixa,
             forma_ingresso=sorteio_ponderado(rng, FORMAS_INGRESSO),
             turno=sorteio_ponderado(rng, TURNOS),
             estado_civil=sorteio_ponderado(rng, ESTADOS_CIVIS),
@@ -177,44 +209,53 @@ def gerar_estudantes(rng: random.Random) -> list[Estudante]:
             idade=int(limitar(rng.gauss(23, 4.5), 18, 58)),
             tem_bolsa=rng.random() < 0.28,
             mora_capital=faixa in ("ate_5km", "5_15km") or rng.random() < 0.2,
-            risco_fin=0.7 * base + 0.7 * rng.gauss(0, 1),
-            risco_acad=0.7 * base + 0.7 * rng.gauss(0, 1),
-            deriva=rng.gauss(0, 0.12),
+            alvo_final=rng.uniform(*ALVOS[cat]),
+            trajetoria=trajetoria,
+            inclinacao=inclinacao,
+            mensalidade=rng.uniform(900, 2600),
+            ruido=[[rng.gauss(0, 1) for _ in range(8)] for _ in COMPETENCIAS],
         ))
     return estudantes
 
 
-def features_do_mes(rng: random.Random, e: Estudante, t: int, ultimo_contato_ativo: int) -> dict:
-    """Features no formato da base do modelo para a competência t (0..5)."""
-    zf = e.risco_fin + e.deriva * t + rng.gauss(0, 0.15)
-    za = e.risco_acad + e.deriva * t + rng.gauss(0, 0.15)
+def alvo_do_mes(e: Estudante, t: int) -> float:
+    """Probabilidade-alvo da competência t (0..5): o último mês é o alvo; antes, segue a inclinação."""
+    return sigmoide(logit(e.alvo_final) + e.inclinacao * (t - (len(COMPETENCIAS) - 1)) + 0.08 * e.ruido[t][7])
+
+
+def features_de_z(e: Estudante, t: int, z: float, ultimo_contato_ativo: int, total_contatos: int) -> dict:
+    """Features no formato da base do modelo para a competência t, dado o nível latente de risco z.
+
+    Monotônicas em z (mesma direção das restrições do modelo): parcelas em aberto, acordo,
+    atraso e reprovação sobem com z; nota e frequência caem. O resto é fixo por estudante.
+    """
+    r = e.ruido[t]
     semestres = max(1, e.semestre - (1 if t < 2 and e.semestre > 1 else 0))
-    parcelas = semestres * rng.randint(6, 12)
-    pct_aberto = limitar(sigmoide(1.6 * zf - 2.2) + rng.gauss(0, 0.02), 0, 1)
-    pct_acordo = limitar(sigmoide(1.2 * zf - 2.8) * 0.6 + rng.gauss(0, 0.01), 0, 0.9)
-    atraso = rng.gauss(-3, 4) + max(0.0, zf) * 18
-    media = limitar(72 - 9 * za + rng.gauss(0, 4), 0, 100)
-    assid = limitar(88 - 9 * za + rng.gauss(0, 3), 0, 100)
-    reprov = limitar(sigmoide(1.3 * za - 1.8) * 0.8 + rng.gauss(0, 0.02), 0, 1)
-    tend_notas = -e.deriva * 40 + rng.gauss(0, 3)
-    tend_assid = -e.deriva * 30 + rng.gauss(0, 2)
+    parcelas = semestres * 6
+    pct_aberto = limitar(sigmoide(1.5 * z - 2.6) + 0.015 * r[0], 0, 1)
+    pct_acordo = limitar(sigmoide(1.2 * z - 3.2) * 0.6 + 0.01 * r[1], 0, 0.9)
+    atraso = -3 + 2.5 * r[2] + max(0.0, z) * 14
+    media = limitar(74 - 10 * z + 3 * r[3], 5, 100)
+    assid = limitar(90 - 8 * z + 2 * r[4], 5, 100)
+    reprov = limitar(sigmoide(1.3 * z - 2.2) * 0.8 + 0.02 * r[5], 0, 1)
     return {
-        "tempo_de_curso": float(semestres + rng.choice([0, 0, 1])),
+        "tempo_de_curso": float(semestres + (1 if r[7] > 0.8 else 0)),
         "idade": e.idade,
         "mora_sp_capital": e.mora_capital,
         "total_parcelas": parcelas,
         "pct_parcelas_em_aberto": round(pct_aberto, 4),
         "pct_parcelas_acordo": round(pct_acordo, 4),
         "atraso_medio_dias": round(atraso, 2),
-        "valor_total_periodo": round(parcelas * rng.uniform(900, 2600), 2),
+        "valor_total_periodo": round(parcelas * e.mensalidade, 2),
         "media_notas": round(media, 2),
         "media_assiduidade": round(assid, 2),
         "pct_reprovacao": round(reprov, 4),
-        "tendencia_notas": round(tend_notas, 2),
-        "tendencia_assiduidade": round(tend_assid, 2),
+        # piorando -> tendência negativa
+        "tendencia_notas": round(-e.inclinacao * 25 + 2 * r[6], 2),
+        "tendencia_assiduidade": round(-e.inclinacao * 18 + 1.5 * r[6], 2),
         "total_semestres": semestres,
-        # Regra 5: conta SÓ contatos ativos do ASA, nunca pedidos do estudante.
-        "total_contatos": rng.randint(0, 6),
+        # Regra 5: conta SÓ contatos ativos do ASA (o modelo v2 nem usa estes dois campos).
+        "total_contatos": total_contatos,
         "dias_desde_ultimo_contato": ultimo_contato_ativo,
         "forma_ingresso": e.forma_ingresso,
         "grau_academico": e.grau,
@@ -226,80 +267,46 @@ def features_do_mes(rng: random.Random, e: Estudante, t: int, ultimo_contato_ati
 
 
 # ---------------------------------------------------------------------------
-# Score sintético (NÃO é o modelo real; serve só para a demo ter coerência)
+# Score: modelo real (ml/artifacts/risco_v2.joblib)
 # ---------------------------------------------------------------------------
-# Cada termo: (codigo, dimensao, peso no logit, função de contribuição, descrição)
-# Atributos sensíveis (sexo, estado civil, idade) NÃO entram como fator.
 
-def _termos(f: dict) -> list[tuple[str, str, float, str]]:
-    return [
-        ("parcelas_em_aberto", "financeira", 4.0 * (f["pct_parcelas_em_aberto"] - 0.10),
-         f"{f['pct_parcelas_em_aberto']:.0%} das parcelas em aberto"),
-        ("atraso_medio", "financeira", 0.03 * (f["atraso_medio_dias"] - 2),
-         f"Atraso médio de {f['atraso_medio_dias']:.0f} dias nos pagamentos"),
-        ("parcelas_em_acordo", "financeira", 2.0 * (f["pct_parcelas_acordo"] - 0.05),
-         f"{f['pct_parcelas_acordo']:.0%} das parcelas em acordo"),
-        ("bolsa", "financeira", -0.4 if f["tem_bolsa"] else 0.0,
-         "Possui bolsa ou financiamento"),
-        ("media_notas", "academica", -0.06 * (f["media_notas"] - 70),
-         f"Média de notas {f['media_notas']:.0f}/100"),
-        ("assiduidade", "academica", -0.08 * (f["media_assiduidade"] - 85),
-         f"Assiduidade média de {f['media_assiduidade']:.0f}%"),
-        ("reprovacoes", "academica", 3.0 * (f["pct_reprovacao"] - 0.10),
-         f"{f['pct_reprovacao']:.0%} das disciplinas com reprovação"),
-        ("tendencia_notas", "academica", -0.05 * f["tendencia_notas"],
-         "Notas em queda no período" if f["tendencia_notas"] < 0 else "Notas em melhora no período"),
-        ("semestre_inicial", "relacionamento", 0.5 if f["total_semestres"] <= 2 else 0.0,
-         "Primeiros semestres do curso"),
-        ("sem_contato_ativo", "relacionamento", 0.004 * (f["dias_desde_ultimo_contato"] - 90),
-         f"{f['dias_desde_ultimo_contato']} dias sem contato ativo do ASA"),
-    ]
+def carregar_modelo():
+    sys.path.insert(0, str(RAIZ / "ml"))
+    from risco.modelo import RiskModel  # noqa: PLC0415 (só quando o gerador roda)
+
+    return RiskModel.carregar(RAIZ / "ml" / "artifacts" / "risco_v2.joblib")
 
 
-INTERCEPTO = -1.1  # calibrado para ~60% verde, ~25% amarelo, ~15% vermelho
-ESCALA = 0.45
+def features_do_mes_lote(modelo, estudantes: list[Estudante], t: int, contatos: dict[str, list[tuple[int, int]]]) -> dict[str, dict]:
+    """Para cada estudante, busca em grade o z cujas features o modelo pontua mais perto do alvo do mês.
+
+    Todos os estudantes do mês vão numa única chamada ao modelo.
+    """
+    import pandas as pd  # noqa: PLC0415
+
+    candidatos = [features_de_z(e, t, z, *contatos[e.id][t]) for e in estudantes for z in GRADE_Z]
+    probs = modelo.probabilidades(pd.DataFrame(candidatos))
+    k = len(GRADE_Z)
+    out = {}
+    for i, e in enumerate(estudantes):
+        alvo = alvo_do_mes(e, t)
+        bloco = probs[i * k:(i + 1) * k]
+        j = min(range(k), key=lambda m: abs(float(bloco[m]) - alvo))
+        out[e.id] = candidatos[i * k + j]
+    return out
 
 
-def pontuar(f: dict) -> dict:
-    termos = _termos(f)
-    por_dim = {"financeira": 0.0, "academica": 0.0, "relacionamento": 0.0}
-    for _, dim, v, _ in termos:
-        por_dim[dim] += v
-    geral = sigmoide(INTERCEPTO + ESCALA * sum(por_dim.values()))
-    relevantes = sorted((t for t in termos if abs(t[2]) >= 0.05), key=lambda t: -abs(t[2]))[:5]
-    total = sum(abs(t[2]) for t in relevantes) or 1.0
-    fatores = [
-        {"codigo": c, "descricao": d, "dimensao": dim,
-         "direcao": "aumenta" if v > 0 else "reduz", "peso": round(abs(v) / total, 2)}
-        for c, dim, v, d in relevantes
-    ]
+def pontuar(modelo, f: dict) -> dict:
+    r = modelo.predict(f)
     return {
-        "probabilidade": round(geral, 4),
-        "score_financeiro": round(sigmoide(-1.0 + 1.6 * por_dim["financeira"]), 4),
-        "score_academico": round(sigmoide(-1.0 + 1.6 * por_dim["academica"]), 4),
-        "score_relacionamento": round(sigmoide(-1.0 + 1.6 * por_dim["relacionamento"]), 4),
-        "categoria": categoria(geral),
-        "fatores": fatores,
+        "probabilidade": r["probabilidade"],
+        "score_financeiro": r["score"]["financeiro"],
+        "score_academico": r["score"]["academico"],
+        "score_relacionamento": r["score"]["relacionamento"],
+        "categoria": r["categoria"],
+        "fatores": r["fatores"],
+        "recomendacao": r["recomendacao"],
     }
-
-
-RECOMENDACOES = {
-    "financeira": "Oferecer conversa sobre negociação de parcelas e bolsas disponíveis "
-                  "(Cesta de Serviços: Bolsas e Financiamentos).",
-    "academica": "Convidar para plantão de monitoria ou coach acadêmico e acompanhar a "
-                 "frequência nas próximas duas semanas.",
-    "relacionamento": "Fazer contato de acolhimento e apresentar os serviços do ASA "
-                      "para o semestre.",
-}
-
-
-def recomendar(score: dict) -> str:
-    if score["categoria"] == "verde":
-        return "Sem ação imediata. Manter acompanhamento de rotina."
-    aumentam = [f for f in score["fatores"] if f["direcao"] == "aumenta"]
-    dim = aumentam[0]["dimensao"] if aumentam else "relacionamento"
-    prefixo = "Prioridade: contato nesta semana. " if score["categoria"] == "vermelho" else ""
-    return prefixo + RECOMENDACOES[dim]
 
 
 # ---------------------------------------------------------------------------
@@ -350,17 +357,27 @@ CABECALHO_CSV = [
 
 def main() -> None:
     rng = random.Random(SEMENTE)
+    modelo = carregar_modelo()
+    versao_modelo = modelo.versao
     estudantes = gerar_estudantes(rng)
 
     # Linhas a inserir
     l_est, l_feat, l_score, l_caso, l_val, l_evt, l_cont, l_csv = [], [], [], [], [], [], [], []
 
+    # Contatos ativos do ASA por competência (dias desde o último, total)
+    contatos: dict[str, list[tuple[int, int]]] = {}
     for e in estudantes:
-        ultimo_contato = rng.randint(10, 240)
+        ultimo_contato, total = rng.randint(10, 240), rng.randint(0, 6)
+        contatos[e.id] = []
+        for _ in COMPETENCIAS:
+            contatos[e.id].append((ultimo_contato, total))
+            ultimo_contato = ultimo_contato + 30 if rng.random() > 0.15 else rng.randint(1, 25)
+    features = {t: features_do_mes_lote(modelo, estudantes, t, contatos) for t in range(len(COMPETENCIAS))}
+
+    for e in estudantes:
         for t, comp in enumerate(COMPETENCIAS):
-            f = features_do_mes(rng, e, t, ultimo_contato)
-            s = pontuar(f)
-            s["recomendacao"] = recomendar(s)
+            f = features[t][e.id]
+            s = pontuar(modelo, f)
             s["id"] = novo_uuid(rng)
             e.mensal.append({"competencia": comp, "features": f, "score": s})
             l_feat.append([novo_uuid(rng), e.id, comp] + [f[c] for c in COLS_FEATURES] + ["seed"])
@@ -369,8 +386,7 @@ def main() -> None:
             ) + timedelta(hours=6)
             l_score.append([s["id"], e.id, comp, s["probabilidade"], s["score_financeiro"],
                             s["score_academico"], s["score_relacionamento"], s["categoria"],
-                            s["fatores"], s["recomendacao"], VERSAO_MODELO_SEED, calculado])
-            ultimo_contato = ultimo_contato + 30 if rng.random() > 0.15 else rng.randint(1, 25)
+                            s["fatores"], s["recomendacao"], versao_modelo, calculado])
 
         l_est.append([e.id, None, e.ra, e.nome, e.curso, e.semestre, "regular",
                       e.regiao, e.faixa, e.regiao])
@@ -424,7 +440,7 @@ def main() -> None:
                 quando = criado + timedelta(hours=rng.randint(3, 30))
                 l_val.append([novo_uuid(rng), caso_id, s["id"], ID_ATENDENTE_DEMO, decisao,
                               rng.choice(JUSTIFICATIVAS[decisao]), ajustada, prioridade, prazo,
-                              VERSAO_MODELO_SEED, quando])
+                              versao_modelo, quando])
                 l_evt.append([novo_uuid(rng), caso_id, ID_ATENDENTE_DEMO, "validacao", None,
                               decisao, None, quando])
             l_caso.append([caso_id, e.id, status, prioridade, prazo, responsavel, s["id"],
@@ -448,7 +464,7 @@ def main() -> None:
 -- Pré-requisitos: infra/sql/001 e 002 aplicados e seeds/criar_usuarios_demo.py
 -- executado (cria os 3 usuários de demo em auth.users e perfis).
 -- Pode rodar mais de uma vez: apaga antes o que este seed criou (RA 99xxxxxx).
--- Scores com versao_modelo = '{VERSAO_MODELO_SEED}': fórmula sintética, NÃO é o modelo real.
+-- Scores calculados pelo modelo real ({versao_modelo}) sobre features 100% sintéticas.
 -- =============================================================================
 
 begin;
@@ -490,6 +506,12 @@ delete from estudantes where ra like '99%';
     (AQUI / "seed_demo.sql").write_text("".join(sql), encoding="utf-8")
 
     cats = [e.mensal[-1]["score"]["categoria"] for e in estudantes]
+    for traj in ("estavel", "piorando", "melhorando"):
+        grupo = [e for e in estudantes if e.trajetoria == traj]
+        delta = sum(e.mensal[-1]["score"]["probabilidade"] - e.mensal[0]["score"]["probabilidade"] for e in grupo) / len(grupo)
+        mudou = sum(e.mensal[-1]["score"]["categoria"] != e.mensal[0]["score"]["categoria"] for e in grupo)
+        print(f"trajetória {traj}: {len(grupo)} estudantes | variação média do score mai→out {delta:+.3f} "
+              f"| {mudou} mudaram de faixa")
     print(f"estudantes: {len(estudantes)} | verde {cats.count('verde')} | amarelo {cats.count('amarelo')} "
           f"| vermelho {cats.count('vermelho')}")
     print(f"features/scores: {len(l_score)} | casos: {len(l_caso)} | validações: {len(l_val)} "
