@@ -164,3 +164,28 @@ def test_chat_com_tudo_fora_nao_vira_500(amb):
     corpo = r.json()
     assert corpo["abstencao"] and corpo["motivo_abstencao"] == "falha_vetorizacao"
     assert corpo["encaminhamento"]["setor_destino"] == "ASA"
+
+
+def test_cache_de_perguntas_repetidas_evita_nova_chamada():
+    from app.rag.embeddings import CadeiaEmbeddings
+
+    p = ProvedorFalso("cloudflare")
+    acertos = []
+    cadeia = CadeiaEmbeddings([p], cooldown_s=0, cache_max=2, ao_acertar_cache=lambda: acertos.append(1))
+    a = cadeia.vetorizar("Como tiro o atestado?")
+    b = cadeia.vetorizar("  como TIRO o atestado? ")  # mesma pergunta normalizada
+    assert a.vetor == b.vetor and len(p.chamadas) == 1 and acertos == [1]
+    cadeia.vetorizar("outra 1")
+    cadeia.vetorizar("outra 2")  # LRU com 2 posições: a primeira sai
+    cadeia.vetorizar("Como tiro o atestado?")
+    assert len(p.chamadas) == 4
+
+
+def test_cache_desligado_por_padrao_na_cadeia():
+    from app.rag.embeddings import CadeiaEmbeddings
+
+    p = ProvedorFalso("cloudflare")
+    cadeia = CadeiaEmbeddings([p], cooldown_s=0)
+    cadeia.vetorizar("x")
+    cadeia.vetorizar("x")
+    assert len(p.chamadas) == 2

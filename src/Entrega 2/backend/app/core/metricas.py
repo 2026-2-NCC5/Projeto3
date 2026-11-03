@@ -16,6 +16,9 @@ http_erros_total = Counter("http_erros_total", "Respostas de erro por código", 
 chat_respostas_total = Counter("chat_respostas_total", "Respostas do chat", ["abstencao"])
 chat_abstencoes_total = Counter("chat_abstencoes_total", "Abstenções do chat por motivo", ["motivo"])
 chat_feedback_total = Counter("chat_feedback_total", "Feedback das respostas", ["avaliacao"])
+embedding_cache_acertos_total = Counter(
+    "embedding_cache_acertos_total", "Perguntas repetidas servidas pelo cache de embeddings"
+)
 embedding_falhas_total = Counter("embedding_falhas_total", "Falhas de vetorização", ["provedor"])
 rag_recuperacoes_total = Counter(
     "rag_recuperacoes_total", "Recuperações do RAG por método (vetorial|lexical|nenhum)", ["metodo"]

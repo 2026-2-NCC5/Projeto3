@@ -52,6 +52,8 @@ class Settings(BaseSettings):
     embedding_dim: int = 1024
     embedding_timeout_s: float = 8.0
     embedding_cooldown_s: float = 30.0
+    embedding_cache_max: int = Field(2000, ge=0)  # perguntas repetidas; 0 desliga
+    embedding_cache_ttl_s: float = 3600.0
 
     # --- RAG
     confidence_threshold: float = Field(0.55, ge=0, le=1)

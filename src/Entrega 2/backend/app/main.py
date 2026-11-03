@@ -110,6 +110,9 @@ def create_app(
             _provedores(s),
             cooldown_s=s.embedding_cooldown_s,
             ao_falhar=lambda p: metricas.embedding_falhas_total.labels(p).inc(),
+            cache_max=s.embedding_cache_max,
+            cache_ttl_s=s.embedding_cache_ttl_s,
+            ao_acertar_cache=metricas.embedding_cache_acertos_total.inc,
         )
     if modelo is _NAO_CARREGAR:
         modelo = carregar_modelo(

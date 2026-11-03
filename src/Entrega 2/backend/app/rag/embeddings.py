@@ -14,6 +14,7 @@ import logging
 import math
 import threading
 import time
+from collections import OrderedDict
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -140,7 +141,14 @@ class CadeiaEmbeddings:
     """Tenta cada provedor na ordem; quem falha fica em cooldown."""
 
     def __init__(
-        self, provedores: Sequence[Provedor], cooldown_s: float = 30.0, ao_falhar: Callable[[str], None] | None = None
+        self,
+        provedores: Sequence[Provedor],
+        cooldown_s: float = 30.0,
+        ao_falhar: Callable[[str], None] | None = None,
+        *,
+        cache_max: int = 0,
+        cache_ttl_s: float = 3600.0,
+        ao_acertar_cache: Callable[[], None] | None = None,
     ) -> None:
         self.provedores = list(provedores)
         self._cooldown = cooldown_s
@@ -148,6 +156,12 @@ class CadeiaEmbeddings:
         self._ultima_latencia: dict[str, int] = {}
         self._trava = threading.Lock()
         self._ao_falhar = ao_falhar
+        # Cache LRU de perguntas repetidas (só em vetorizar(), nunca no lote de documentos).
+        # Mesmo texto -> mesmo vetor (o modelo é determinístico); poupa latência e cota.
+        self._cache_max = cache_max
+        self._cache_ttl = cache_ttl_s
+        self._cache: OrderedDict[str, tuple[float, Vetorizacao]] = OrderedDict()
+        self._ao_acertar_cache = ao_acertar_cache
 
     def _disponivel(self, p: Provedor) -> bool:
         with self._trava:
@@ -175,9 +189,26 @@ class CadeiaEmbeddings:
         raise FalhaVetorizacao("; ".join(erros) or "nenhum provedor configurado")
 
     def vetorizar(self, texto: str) -> Vetorizacao:
+        chave = " ".join(texto.lower().split())
+        if self._cache_max:
+            with self._trava:
+                item = self._cache.get(chave)
+                if item and time.monotonic() - item[0] < self._cache_ttl:
+                    self._cache.move_to_end(chave)
+                    if self._ao_acertar_cache:
+                        self._ao_acertar_cache()
+                    v = item[1]
+                    return Vetorizacao(v.vetor, v.provedor, v.modelo, 0)
         inicio = time.perf_counter()
         vetores, p = self.vetorizar_lote([texto])
-        return Vetorizacao(vetores[0], p.nome, p.modelo, int((time.perf_counter() - inicio) * 1000))
+        resultado = Vetorizacao(vetores[0], p.nome, p.modelo, int((time.perf_counter() - inicio) * 1000))
+        if self._cache_max:
+            with self._trava:
+                self._cache[chave] = (time.monotonic(), resultado)
+                self._cache.move_to_end(chave)
+                while len(self._cache) > self._cache_max:
+                    self._cache.popitem(last=False)
+        return resultado
 
     def estado(self) -> dict[str, Any]:
         """Para o /health: sem chamar a API (custa cota)."""
