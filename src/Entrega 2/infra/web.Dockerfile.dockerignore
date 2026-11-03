@@ -1,0 +1,7 @@
+# Lista de PERMISSÃO para infra/web.Dockerfile
+*
+!web/**
+!infra/caddy/Caddyfile
+web/node_modules
+web/dist
+web/.env*

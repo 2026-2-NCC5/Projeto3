@@ -29,7 +29,8 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     PORT=8000
 
 RUN groupadd --system --gid 10001 asa \
- && useradd --system --uid 10001 --gid asa --home-dir /srv --shell /usr/sbin/nologin asa
+ && useradd --system --uid 10001 --gid asa --home-dir /srv --shell /usr/sbin/nologin asa \
+ && mkdir -p /var/log/asa && chown asa:asa /var/log/asa
 
 COPY --from=deps /opt/venv /opt/venv
 # Layout igual ao do repositório: /srv = raiz do projeto (caminhos relativos do .env funcionam)

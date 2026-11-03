@@ -1,0 +1,18 @@
+# Gateway interno que imita as rotas do Supabase (no lugar do Kong do self-host):
+#   /rest/v1/* -> PostgREST     /auth/v1/* -> GoTrue
+# Só existe na stack local (profile "local"); em produção o backend fala com o Supabase real.
+{
+	admin off
+	auto_https off
+}
+
+:8000 {
+	handle_path /rest/v1/* {
+		reverse_proxy postgrest:3000
+	}
+	handle_path /auth/v1/* {
+		reverse_proxy gotrue:9999
+	}
+	respond /health 200
+	respond 404
+}

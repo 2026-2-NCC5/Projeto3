@@ -1,0 +1,188 @@
+# =============================================================================
+# ASA Turbo · docker compose
+#
+#   Local (stack completa, sem nenhuma chave externa):
+#     python3 infra/local/preparar_env.py   # gera .env com COMPOSE_PROFILES=local
+#     docker compose up -d --build
+#     http://localhost:8080
+#
+#   Produção (Supabase gerenciado): .env sem o profile "local". Ver infra/deploy/README.md.
+#
+# Profiles:
+#   local       Postgres (imagem Supabase) + PostgREST + GoTrue + gateway + job de init
+#   monitoring  Prometheus + Grafana + cAdvisor (painel pronto)
+# =============================================================================
+name: asa-turbo
+
+x-logs: &logs
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+x-seguranca: &seguranca
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  # ------------------------------------------------------------------ app
+  backend:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+    image: asa-turbo-backend:0.9.0
+    env_file: .env
+    environment:
+      LOG_DIR: /var/log/asa
+    volumes:
+      - logs-backend:/var/log/asa
+    expose:
+      - "8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+        required: false
+    <<: [*logs, *seguranca]
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:-}
+        VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+        VITE_API_BASE_URL: /api
+    image: asa-turbo-web:0.9.0
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+      CSP_CONNECT_EXTRA: ${CSP_CONNECT_EXTRA:-}
+      SUPABASE_GW: ${SUPABASE_GW:-supabase-gw:8000}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT_HTTPS:-8443}:443"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+      - logs-web:/var/log/caddy
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    <<: [*logs, *seguranca]
+
+  # ------------------------------------------------------- Supabase local
+  db:
+    profiles: [local]
+    image: supabase/postgres:15.8.1.020
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?rode infra/local/preparar_env.py}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      JWT_EXP: 3600
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./infra/local/99-roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    <<: *logs
+
+  gotrue:
+    profiles: [local]
+    image: supabase/gotrue:v2.164.0
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${PUBLIC_SUPABASE_URL:-http://localhost:8080}/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${PUBLIC_URL:-http://localhost:8080}
+      GOTRUE_URI_ALLOW_LIST: ${PUBLIC_URL:-http://localhost:8080}/*
+      GOTRUE_DISABLE_SIGNUP: "true"
+      GOTRUE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_RATE_LIMIT_TOKEN_REFRESH: 150
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9999/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    <<: *logs
+
+  postgrest:
+    profiles: [local]
+    image: postgrest/postgrest:v12.2.3
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      # igual ao Supabase gerenciado: uuid-ossp, vector e unaccent vivem no schema extensions
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_POOL: 20
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    <<: *logs
+
+  supabase-gw:
+    profiles: [local]
+    image: caddy:2.8.4-alpine
+    volumes:
+      - ./infra/local/supabase-gw.Caddyfile:/etc/caddy/Caddyfile:ro
+    expose:
+      - "8000"
+    depends_on:
+      - postgrest
+      - gotrue
+    restart: unless-stopped
+    <<: *logs
+
+  db-init:
+    profiles: [local]
+    image: supabase/postgres:15.8.1.020
+    entrypoint: ["sh", "/init-db.sh"]
+    environment:
+      PGHOST: db
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-AsaTurbo#Demo2026}
+    volumes:
+      - ./infra/local/init-db.sh:/init-db.sh:ro
+      - ./infra/sql:/sql:ro
+      - ./seeds:/seeds:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      gotrue:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
+  logs-backend:
+  logs-web:

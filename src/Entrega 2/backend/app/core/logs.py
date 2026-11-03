@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import json
 import logging
+import logging.handlers
+import os
 import sys
+from pathlib import Path
 from datetime import UTC, datetime
 
 from app.core.contexto import papel_var, request_id_var, usuario_id_var
@@ -48,11 +51,29 @@ class FormatadorJSON(logging.Formatter):
 
 
 def configurar_logs(nivel: str = "INFO") -> None:
+    """JSON no stdout (coletado pelo Docker, com rotação no driver json-file) e, se
+    LOG_DIR estiver definido, também em LOG_DIR/backend.log com rotação própria
+    (LOG_MAX_MB por arquivo, LOG_BACKUPS arquivos)."""
     logging.setLogRecordFactory(_fabrica_com_contexto)
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(FormatadorJSON())
+    handlers: list[logging.Handler] = [handler]
+    pasta = os.environ.get("LOG_DIR")
+    if pasta:
+        try:
+            Path(pasta).mkdir(parents=True, exist_ok=True)
+            arquivo = logging.handlers.RotatingFileHandler(
+                Path(pasta) / "backend.log",
+                maxBytes=int(os.environ.get("LOG_MAX_MB", "10")) * 1024 * 1024,
+                backupCount=int(os.environ.get("LOG_BACKUPS", "5")),
+                encoding="utf-8",
+            )
+            arquivo.setFormatter(FormatadorJSON())
+            handlers.append(arquivo)
+        except OSError as e:  # sem permissão no volume: segue só com o stdout
+            print(json.dumps({"nivel": "WARNING", "msg": f"LOG_DIR indisponível: {e}"}), file=sys.stderr)
     raiz = logging.getLogger()
-    raiz.handlers[:] = [handler]
+    raiz.handlers[:] = handlers
     raiz.setLevel(nivel.upper())
     # o uvicorn tem o próprio log de acesso; usamos o nosso (com request_id)
     for nome in ("uvicorn", "uvicorn.error"):
