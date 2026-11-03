@@ -58,6 +58,32 @@ def filtrar_fatores(fatores: list[dict[str, Any]] | None, maximo: int = 8) -> li
     return [{**f, "peso": round(float(f.get("peso") or 0) / total, 2)} for f in validos]
 
 
+_MESES = (
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+)
+
+
+def _mes_por_extenso(competencia: Any) -> str:
+    """'2026-10-01' -> 'outubro de 2026'."""
+    texto = str(competencia)
+    try:
+        ano, mes = int(texto[:4]), int(texto[5:7])
+        return f"{_MESES[mes - 1]} de {ano}"
+    except (ValueError, IndexError):
+        return texto[:7]
+
+
 class ServicoCasos:
     def __init__(self, repo: Repositorio) -> None:
         self.repo = repo
@@ -227,9 +253,14 @@ class ServicoCasos:
                     "tipo": "score",
                     "ocorrido_em": s["calculado_em"],
                     "usuario": None,
-                    "descricao": f"Score calculado: {p:.0%} ({s['categoria']}) · "
-                    f"competência {str(s['competencia'])[:7]}",
-                    "dados": {"score_geral": p, "categoria": s["categoria"], "versao_modelo": s["versao_modelo"]},
+                    "descricao": f"Score calculado: {p:.0%} ({s['categoria'].capitalize()}) · "
+                    f"{_mes_por_extenso(s['competencia'])}",
+                    "dados": {
+                        "score_geral": p,
+                        "categoria": s["categoria"],
+                        "versao_modelo": s["versao_modelo"],
+                        "competencia": str(s["competencia"])[:10],
+                    },
                 }
             )
         for v in fontes["validacoes"]:
