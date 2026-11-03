@@ -15,7 +15,7 @@ Login → estudante conversa com o chat e recebe resposta com fontes e data de a
 ## Arquitetura (decidida)
 | Pasta | Conteúdo |
 |---|---|
-| `backend/` | FastAPI (Python 3.11), roda em Docker. Valida JWT do Supabase, aplica RBAC, expõe a API. |
+| `backend/` | FastAPI (Python 3.12, exigido pelo XGBoost do modelo final), roda em Docker. Valida JWT do Supabase, aplica RBAC, expõe a API. |
 | `web/` | App responsivo instalável (PWA) em **React 18 + Vite**. Tokens e primitivas em `web/src/styles/` (`tokens.css`, `base.css`), referência em `web/design-system.html`. Servido pelo mesmo container ou por CDN. |
 | `ml/` | Notebooks, scripts de treino, avaliação do RAG, artefatos do modelo (`ml/artifacts/`). |
 | `infra/` | Dockerfile(s), docker-compose, Caddyfile, scripts de deploy, backup e teste de carga. |
@@ -25,8 +25,8 @@ Login → estudante conversa com o chat e recebe resposta com fontes e data de a
 
 - Banco: Supabase (Postgres + pgvector + Auth). Migrations em `infra/sql/` (`001_schema_base.sql`, `002_contrato_v09.sql`, ...). Mudanças vão em migrations numeradas, nunca editando o que já rodou.
 - Autenticação: Supabase Auth com e-mail e senha. O papel (`estudante`, `atendente`, `administrador`, `equipe_tecnica`) vem da tabela `perfis`. Menor privilégio em todos os endpoints.
-- RAG: busca vetorial via `buscar_chunks_similares` (**1024 dimensões**). Embeddings via Cloudflare Workers AI (`@cf/baai/bge-m3`, multilíngue). Sem fallback TF-IDF: se a vetorização falhar, ou se a similaridade ficar abaixo do limiar (0,55), o agente **se abstém** e encaminha para humano. Nunca inventar procedimento, prazo ou regra. Lógica de referência: `web/api/perguntar.py`.
-- Modelo de risco: Regressão Logística baseline (AUC 0,82, Recall 77%). Faixas: Verde <30%, Amarelo 30–60%, Vermelho ≥60%. A v2 compara Random Forest e XGBoost.
+- RAG: busca vetorial via `buscar_chunks_similares` (**1024 dimensões**). Embeddings via Cloudflare Workers AI (`@cf/baai/bge-m3`, multilíngue). Se a Cloudflare falhar, tenta a Hugging Face (mesmo modelo); sem nenhum provedor, usa busca lexical local (TF-IDF da própria base, limiar próprio, nunca misturada ao pgvector). Abaixo do limiar, o agente **se abstém** e encaminha para humano. Nunca inventar procedimento, prazo ou regra. Implementação: `backend/app/rag/`.
+- Modelo de risco em uso: `risco-2.0.0` (XGBoost monotônico calibrado, `ml/artifacts/risco_v2.joblib`), sem sexo, estado civil e contatos com o ASA. Baseline da E1: Regressão Logística (AUC 0,82). Faixas: Verde <30%, Amarelo 30–60%, Vermelho ≥60%.
 
 ## Regras inegociáveis (vêm do enunciado)
 1. Nenhuma decisão punitiva automática. Todo resultado é apoio. Ação com impacto exige validação humana registrada com justificativa.
