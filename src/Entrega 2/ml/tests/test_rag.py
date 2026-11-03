@@ -9,8 +9,8 @@ from pathlib import Path
 ML = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ML))
 
-from rag.groundedness import verificar  # noqa: E402
-from rag.recuperacao import Recuperador, TfidfHashing, carregar_corpus, montar_consulta  # noqa: E402
+from rag.groundedness import verificar
+from rag.recuperacao import Recuperador, TfidfHashing, carregar_corpus, montar_consulta
 
 CAMPOS_RPC = {"chunk_id", "documento_id", "conteudo", "similaridade", "titulo_documento", "fonte_documento", "data_atualizacao"}
 

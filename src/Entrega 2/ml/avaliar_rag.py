@@ -25,11 +25,16 @@ import numpy as np
 AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 
-from rag.groundedness import verificar  # noqa: E402
-from rag.recuperacao import (  # noqa: E402
-    SEED_FICTICIO, EmbeddingDenso, Recuperador, TfidfHashing, carregar_corpus, montar_consulta,
+from rag.groundedness import verificar
+from rag.recuperacao import (
+    SEED_FICTICIO,
+    EmbeddingDenso,
+    Recuperador,
+    TfidfHashing,
+    carregar_corpus,
+    montar_consulta,
 )
-from risco import graficos as g  # noqa: E402
+from risco import graficos as g
 
 PERGUNTAS = AQUI / "rag_eval" / "perguntas.jsonl"
 SAIDA = AQUI / "artifacts" / "rag_metrics.json"
@@ -90,7 +95,7 @@ def decisao(res: list[dict[str, Any]], t: float) -> dict[str, float]:
     """Comportamento do agente com limiar t (abstém se similaridade top-1 < t)."""
     dentro = [r for r in res if r["dentro"]]
     fora = [r for r in res if not r["dentro"]]
-    responde = lambda r: r["sim_top1"] >= t  # noqa: E731
+    responde = lambda r: r["sim_top1"] >= t
     respondidas = [r for r in res if responde(r)]
     certas = sum(responde(r) and r["top1_correto"] for r in dentro) + sum(not responde(r) for r in fora)
     return {
