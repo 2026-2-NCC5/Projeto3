@@ -17,6 +17,16 @@ from typing import Any
 
 from app.rag.texto import tokens
 
+# Prefixo de 6 letras sobre o radical: aproxima flexões e derivações que o
+# radical leve não junta ("cancelo"/"cancelamento", "trancar"/"trancamento").
+# Medido na base oficial (693 trechos): perguntas do escopo respondidas
+# 7/14 -> 11/14; perguntas fora do escopo continuam 8/8 em abstenção.
+TAMANHO_PREFIXO = 6
+
+
+def termos(texto: str) -> list[str]:
+    return [t[:TAMANHO_PREFIXO] for t in tokens(texto)]
+
 
 @dataclass(frozen=True)
 class _Doc:
@@ -54,7 +64,7 @@ class IndiceLexical:
         df: Counter[str] = Counter()
         for c in chunks:
             texto = f"{c.get(campo_titulo) or ''} {c.get(campo_texto) or ''}"
-            cont = Counter(tokens(texto))
+            cont = Counter(termos(texto))
             contagens.append(cont)
             df.update(cont.keys())
         n = max(len(chunks), 1)
@@ -65,7 +75,7 @@ class IndiceLexical:
 
     def buscar(self, consulta: str, limite: int = 3) -> list[tuple[dict[str, Any], float]]:
         """Devolve [(metadados do chunk, similaridade de cosseno TF-IDF)], maior primeiro."""
-        cont = Counter(tokens(consulta))
+        cont = Counter(termos(consulta))
         if not cont or not self._docs:
             return []
         # termos fora do vocabulário não ajudam a achar nada; só diluem a norma da consulta
