@@ -1,0 +1,70 @@
+# Teste de backup e restauração · ASA Turbo · 2026-11-02 23:18:06 -03
+# Ambiente: stack local (docker compose, supabase/postgres 15.8).
+# Scripts: infra/scripts/backup.sh e infra/scripts/restore.sh (modo --local).
+# Obs.: outros testes (carga/e2e) rodavam em paralelo, por isso algumas contagens variam entre passos.
+
+## 1. Estado inicial
+feedback_respostas=3  validacoes_caso=43  estudantes=351
+
+## 2. Backup
+[2026-11-02 23:18:07] backup (modo local) -> backups/asa_20261102_231807.dump
+[2026-11-02 23:18:07] ok: 812K, 291 itens no sumário, sha256 em asa_20261102_231807.dump.sha256
+[2026-11-02 23:18:07] retenção de 7 dias: 0 arquivo(s) antigo(s) removido(s)
+backups/asa_20261102_231807.dump
+
+## 3. Simulação de perda de dados
+delete from feedback_respostas: 3 linhas
+delete from validacoes_caso:    43 linhas
+feedback_respostas=0  validacoes_caso=0
+
+## 4. Restauração (--sim)
+[2026-11-02 23:18:08] sha256 conferido
+[2026-11-02 23:18:08] destino: modo local
+[2026-11-02 23:18:08] contagens ANTES:
+  perfis|58
+  estudantes|351
+  estudante_features|1800
+  scores_risco|1800
+  casos_risco|126
+  validacoes_caso|0
+  eventos_caso|221
+  contatos_asa|364
+  conversas|548
+  mensagens|1096
+  respostas_agente|548
+  feedback_respostas|0
+  encaminhamentos|207
+  documentos_oficiais|230
+  documentos_chunks|693
+  documentos_versoes|230
+  auditoria_logs|550
+[2026-11-02 23:18:08] restaurando...
+[2026-11-02 23:18:09] contagens DEPOIS:
+  perfis|58
+  estudantes|351
+  estudante_features|1800
+  scores_risco|1800
+  casos_risco|126
+  validacoes_caso|43
+  eventos_caso|221
+  contatos_asa|364
+  conversas|546
+  mensagens|1092
+  respostas_agente|546
+  feedback_respostas|3
+  encaminhamentos|208
+  documentos_oficiais|230
+  documentos_chunks|693
+  documentos_versoes|230
+  auditoria_logs|549
+[2026-11-02 23:18:09] restauração concluída
+exit=0
+
+## 5. Conferência
+feedback_respostas=3  validacoes_caso=43  estudantes=351
+health: banco ok | modelo risco-2.0.0
+
+## 6. Integridade: arquivo adulterado é recusado
+sha256sum: AVISO: checksum 1 calculado NÃO corresponde
+[2026-11-02 23:18:09] FALHA: sha256 não confere, arquivo corrompido
+exit=1

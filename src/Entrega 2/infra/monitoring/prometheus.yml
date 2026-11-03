@@ -1,0 +1,44 @@
+# ASA Turbo · Prometheus (profile "monitoring" do docker compose)
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: backend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:8000"]
+        labels:
+          servico: asa-backend
+
+  - job_name: cadvisor
+    static_configs:
+      - targets: ["cadvisor:8080"]
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Mapa id do container -> serviço do compose (via socket do Docker). Serve só para
+  # dar NOME às séries de CPU/memória do cAdvisor: com o image store do containerd
+  # (padrão no Docker 29), o cAdvisor não identifica containers Docker e exporta só o
+  # cgroup (id="/system.slice/docker-<id>.scope"). As consultas do painel juntam pelo id.
+  # Os "scrapes" deste job vão para 127.0.0.1:9 (porta discard, nada escuta) e falham
+  # de propósito (up=0) sem tocar nenhum container; importa só o rótulo.
+  - job_name: docker-nomes
+    metrics_path: /nao-existe
+    scrape_interval: 30s
+    scrape_timeout: 2s
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
+        regex: asa-turbo
+        action: keep
+      - source_labels: [__meta_docker_container_id]
+        target_label: container_id
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: servico
+      - target_label: __address__
+        replacement: 127.0.0.1:9

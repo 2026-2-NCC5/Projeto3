@@ -1,0 +1,28 @@
+# ASA Turbo · systemd: sobe o compose no boot e mantém no ar.
+# Instalado em /etc/systemd/system/ por infra/deploy/provisionar.sh.
+#   sudo systemctl start|stop|restart|status asa-turbo
+#   journalctl -u asa-turbo -f
+[Unit]
+Description=ASA Turbo (docker compose)
+Documentation=file:///opt/asa-turbo/infra/deploy/README.md
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=asa
+Group=asa
+WorkingDirectory=/opt/asa-turbo
+# Containers com restart: unless-stopped; o systemd garante o compose após boot
+ExecStartPre=/usr/bin/docker compose config -q
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose up -d --remove-orphans
+TimeoutStartSec=600
+Restart=on-failure
+RestartSec=15s
+
+[Install]
+WantedBy=multi-user.target

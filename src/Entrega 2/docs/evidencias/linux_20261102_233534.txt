@@ -1,0 +1,265 @@
+# Evidências de operação · ASA Turbo
+# Coletado em: 2026-11-02 23:35:34 -03 · host: void · usuário: ericbittu
+# Diretório: /home/ericbittu/Projeto3/src/Entrega 2 · URL testada: http://localhost:8080
+
+==============================================================================
+## Sistema operacional
+$ uname -a
+------------------------------------------------------------------------------
+Linux void 7.2.11-200.fc44.x86_64 #1 SMP PREEMPT_DYNAMIC Thu Oct 15 15:58:58 UTC 2026 x86_64 GNU/Linux
+
+==============================================================================
+## Distribuição
+$ grep -E '^(PRETTY_NAME|VERSION)=' /etc/os-release
+------------------------------------------------------------------------------
+VERSION="44 (KDE Plasma Desktop Edition)"
+PRETTY_NAME="Fedora Linux 44 (KDE Plasma Desktop Edition)"
+
+==============================================================================
+## Tempo ligado e carga
+$ uptime
+------------------------------------------------------------------------------
+ 23:35:34 up  6:13,  1 user,  load average: 2,60, 2,52, 2,14
+
+==============================================================================
+## Memória
+$ free -h
+------------------------------------------------------------------------------
+               total        used        free      shared  buff/cache   available
+Mem:            13Gi       9,1Gi       750Mi       221Mi       4,1Gi       4,5Gi
+Swap:          8,0Gi       4,7Gi       3,3Gi
+
+==============================================================================
+## Disco
+$ df -h -x tmpfs -x devtmpfs -x overlay
+------------------------------------------------------------------------------
+Sist. Arq.      Tam. Usado Disp. Uso% Montado em
+/dev/nvme0n1p3  314G  173G  138G  56% /
+efivarfs        128K   64K   60K  53% /sys/firmware/efi/efivars
+/dev/nvme0n1p3  314G  173G  138G  56% /home
+/dev/nvme0n1p2  2,0G  624M  1,2G  35% /boot
+/dev/nvme0n1p1  599M   52M  547M   9% /boot/efi
+
+==============================================================================
+## Processos por CPU (top 15)
+$ ps aux --sort=-%cpu | head -n 15
+------------------------------------------------------------------------------
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+ericbit+  111007  185 16.5 265234180 2342904 ?   SLl  23:24  20:41 /proc/self/exe --
+ericbit+   68518  1.9  2.8 1525260104 399408 ?   Sl   22:36   1:10 /home/ericbittu/.config/discord/app-1.0.167/Discord --type=renderer --crashpad-handler-pid=68395 --enable-crash-reporter=3e746d61-f098-44a8-bcbd-fe60d7251ab8,no_channel --user-data-dir=/home/ericbittu/.config/discord --standard-schemes=disclip --secure-schemes=disclip,sentry-ipc --bypasscsp-schemes=sentry-ipc --cors-schemes=disclip,sentry-ipc --fetch-schemes=disclip,sentry-ipc --streaming-schemes=disclip --app-path=/home/ericbittu/.config/discord/app-1.0.167/resources/app.asar --no-sandbox --no-zygote --enable-blink-features=EnumerateDevices,AudioOutputDevices --autoplay-policy=no-user-gesture-required --openh264-library-path=/home/ericbittu/.config/discord/discord_asset_cache/openh264/libopenh264-2.5.1-linux64.7.so --enable-libopenh264 --ozone-platform=wayland --lang=pt-BR --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=7 --launch-time-ticks=7325029343 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6194985613443871956,17976859381021043980,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,PdfUseShowSaveFilePicker --disable-features=AllowAggressiveThrottlingWithWebSocket,DropInputEventsWhilePaintHolding,HardwareMediaKeyHandling,IntensiveWakeUpThrottling,LocalNetworkAccessChecks,MediaSessionService,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation,UseEcoQoSForBackgroundProcess,WaylandWpColorManagerV1,WinRetrieveSuggestionsOnlyOnDemand --variations-seed-version --pseudonymization-salt-handle=7,i,7025616825770547244,4851351694437498891,4 --trace-process-track-uuid=3190708992871164437 --enable-node-leakage-in-renderers
+ericbit+    4454  1.2  2.6 12885204 374908 ?     Ssl  17:27   4:31 /usr/lib64/firefox/firefox
+ericbit+    7370  0.9  3.1 5710656 448080 pts/2  Sl+  17:46   3:13 claude
+10001     105384  0.9  1.1 2426432 158812 ?      Ssl  23:22   0:07 /opt/venv/bin/python /opt/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=* --no-server-header
+ericbit+    2457  0.8  0.9 5715104 131608 ?      Sl   17:25   3:17 /usr/bin/kwin_wayland --wayland-fd 7 --socket wayland-0 --xwayland-fd 8 --xwayland-fd 9 --xwayland-display :0 --xwayland-xauthority /run/user/1000/xauth_tdVHLC --xwayland
+root      110642  0.8  0.2 1269684 30244 ?       Ssl  23:24   0:05 /usr/bin/cadvisor -logtostderr --docker=unix:///nao/existe.sock --containerd=/nao/existe.sock --housekeeping_interval=15s --store_container_labels=false --disable_metrics=disk,diskIO,network,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl,cpuset,advtcp,memory_numa
+ericbit+    8508  0.6  1.6 5710656 226932 pts/4  Sl+  17:54   2:16 claude
+ericbit+    8655  0.6  1.8 5711724 265716 pts/1  Sl+  17:55   2:06 claude
+ericbit+    8447  0.5  1.5 5710656 214712 pts/3  Sl+  17:54   1:51 claude
+root        1050  0.5  0.3 2780100 49988 ?       Ssl  17:22   2:02 /usr/bin/containerd
+ericbit+    6673  0.5  6.1 4194164 865516 ?      Sl   17:37   1:53 /usr/lib64/firefox/firefox -contentproc -isForBrowser -prefsHandle 0:53445 -prefMapHandle 1:300452 -jsInitHandle 2:162336 -parentBuildID 20261012110758 -sandboxReporter 3 -chrootClient 4 -ipcHandle 5 -initialChannelId {874bff58-182b-4500-886e-393d37838b34} -parentPid 4454 -crashHelperPid 4480 -crashHelper 6 -crashReporter 7 -greomni /usr/lib64/firefox/omni.ja -appomni /usr/lib64/firefox/browser/omni.ja -appDir /usr/lib64/firefox/browser 25 tab
+root      126009  0.4  0.0      0     0 ?        I    23:31   0:00 [kworker/u48:7-btrfs-endio]
+ericbit+    3562  0.4  0.3 1312996 53080 ?       Ssl  17:25   1:40 /usr/bin/konsole
+
+==============================================================================
+## top (instantâneo)
+$ top -b -n 1 | head -n 25
+------------------------------------------------------------------------------
+top - 23:35:34 up  6:13,  1 user,  load average: 2,60, 2,52, 2,14
+Tasks: 471 total, 1 running, 467 sleep, 0 d-sleep, 3 stopped, 0 zombie
+%Cpu(s): 11,5 us,  1,3 sy,  0,0 ni, 87,2 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st 
+MiB Mem :  13847,4 total,    749,9 free,   9281,8 used,   4155,6 buff/cache     
+MiB Swap:   8192,0 total,   3386,0 free,   4806,0 used.   4565,7 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 111007 ericbit+  20   0  252,9g   2,2g 147236 S 145,4  16,5  20:41.68 Main
+   2457 ericbit+  -2   0 5715104 131608  73628 S   4,7   0,9   3:17.17 kwin_wa+
+   7370 ericbit+  20   0 5710656 448116 119236 S   4,7   3,2   3:13.78 claude
+   8508 ericbit+  20   0 5710656 226932 110860 S   4,7   1,6   2:16.90 claude
+      1 root      20   0   39740  13624   9292 S   0,0   0,1   0:06.40 systemd
+      2 root      20   0       0      0      0 S   0,0   0,0   0:00.02 kthreadd
+      3 root      20   0       0      0      0 S   0,0   0,0   0:00.00 pool_wo+
+      4 root       0 -20       0      0      0 I   0,0   0,0   0:00.00 kworker+
+      5 root       0 -20       0      0      0 I   0,0   0,0   0:00.00 kworker+
+      6 root       0 -20       0      0      0 I   0,0   0,0   0:00.00 kworker+
+      7 root       0 -20       0      0      0 I   0,0   0,0   0:00.00 kworker+
+      8 root       0 -20       0      0      0 I   0,0   0,0   0:00.00 kworker+
+     10 root       0 -20       0      0      0 I   0,0   0,0   0:00.00 kworker+
+     13 root       0 -20       0      0      0 I   0,0   0,0   0:00.00 kworker+
+     15 root      20   0       0      0      0 S   0,0   0,0   0:00.18 ksoftir+
+     16 root      20   0       0      0      0 I   0,0   0,0   0:02.79 rcu_pre+
+     17 root      20   0       0      0      0 S   0,0   0,0   0:00.00 rcu_exp+
+     18 root      20   0       0      0      0 S   0,0   0,0   0:00.32 rcu_exp+
+
+==============================================================================
+## Containers do ASA Turbo
+$ cd '/home/ericbittu/Projeto3/src/Entrega 2' && docker compose ps --format 'table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+------------------------------------------------------------------------------
+SERVICE       IMAGE                                                                     STATUS                    PORTS
+backend       sha256:1a334764de3863346aa6446c3bfb2b48d3ebff8cab123e9ed0a4613a36fdf48e   Up 12 minutes (healthy)   8000/tcp
+cadvisor      ghcr.io/google/cadvisor:v0.53.0                                           Up 11 minutes (healthy)   8080/tcp
+db            supabase/postgres:15.8.1.020                                              Up 35 minutes (healthy)   5432/tcp
+gotrue        supabase/gotrue:v2.164.0                                                  Up 35 minutes (healthy)   
+grafana       grafana/grafana:11.3.1                                                    Up 10 minutes             127.0.0.1:3000->3000/tcp
+postgrest     postgrest/postgrest:v12.2.3                                               Up 34 minutes             3000/tcp
+prometheus    prom/prometheus:v2.55.1                                                   Up 5 minutes              9090/tcp
+supabase-gw   caddy:2.8.4-alpine                                                        Up 35 minutes             80/tcp, 443/tcp, 2019/tcp, 8000/tcp, 443/udp
+web           asa-turbo-web:0.9.0                                                       Up 7 minutes (healthy)    443/udp, 2019/tcp, 0.0.0.0:8080->80/tcp, [::]:8080->80/tcp, 0.0.0.0:8443->443/tcp, [::]:8443->443/tcp
+
+==============================================================================
+## Uso de recursos por container
+$ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.PIDs}}'
+------------------------------------------------------------------------------
+NAME                      CPU %     MEM USAGE / LIMIT     MEM %     PIDS
+asa-turbo-web-1           0.00%     13.37MiB / 13.52GiB   0.10%     17
+asa-turbo-cadvisor-1      0.04%     24.27MiB / 13.52GiB   0.18%     20
+asa-turbo-backend-1       0.11%     142.4MiB / 13.52GiB   1.03%     39
+asa-turbo-prometheus-1    0.45%     63.32MiB / 13.52GiB   0.46%     17
+asa-turbo-grafana-1       0.01%     57.85MiB / 13.52GiB   0.42%     21
+asa-turbo-postgrest-1     0.10%     72.5MiB / 13.52GiB    0.52%     52
+asa-turbo-supabase-gw-1   0.00%     33.48MiB / 13.52GiB   0.24%     17
+asa-turbo-gotrue-1        1.90%     14.25MiB / 13.52GiB   0.10%     17
+asa-turbo-db-1            0.01%     67.05MiB / 13.52GiB   0.48%     14
+
+==============================================================================
+## Usuário de cada container (nenhum serviço da aplicação como root)
+$ cd '/home/ericbittu/Projeto3/src/Entrega 2' && for s in backend web; do c=$(docker compose ps -q $s); [ -n "$c" ] && echo "$s: uid=$(docker exec $c id -u) ($(docker exec $c id -un 2>/dev/null))"; done
+------------------------------------------------------------------------------
+backend: uid=10001 (asa)
+web: uid=10002 (web)
+
+==============================================================================
+## Healthchecks
+$ docker ps --filter name=asa-turbo --format '{{.Names}}: {{.Status}}'
+------------------------------------------------------------------------------
+asa-turbo-web-1: Up 7 minutes (healthy)
+asa-turbo-cadvisor-1: Up 11 minutes (healthy)
+asa-turbo-backend-1: Up 12 minutes (healthy)
+asa-turbo-prometheus-1: Up 5 minutes
+asa-turbo-grafana-1: Up 10 minutes
+asa-turbo-postgrest-1: Up 34 minutes
+asa-turbo-supabase-gw-1: Up 35 minutes
+asa-turbo-gotrue-1: Up 35 minutes (healthy)
+asa-turbo-db-1: Up 35 minutes (healthy)
+
+==============================================================================
+## Serviço systemd
+$ systemctl status asa-turbo
+------------------------------------------------------------------------------
+(unidade asa-turbo.service não instalada neste host; na VM ela é instalada por infra/deploy/provisionar.sh)
+
+==============================================================================
+## Permissões do .env (conteúdo nunca é exibido)
+$ ls -l '/home/ericbittu/Projeto3/src/Entrega 2/.env' && stat -c 'modo=%a dono=%U grupo=%G' '/home/ericbittu/Projeto3/src/Entrega 2/.env'
+------------------------------------------------------------------------------
+-rw-------. 1 ericbittu ericbittu 1884 nov  2 22:58 /home/ericbittu/Projeto3/src/Entrega 2/.env
+modo=600 dono=ericbittu grupo=ericbittu
+
+==============================================================================
+## Permissões dos backups
+$ ls -ld '/home/ericbittu/Projeto3/src/Entrega 2/backups' 2>/dev/null && ls -l '/home/ericbittu/Projeto3/src/Entrega 2/backups' 2>/dev/null | tail -n 5 || echo 'sem backups ainda'
+------------------------------------------------------------------------------
+drwx------. 1 ericbittu ericbittu 330 nov  2 23:18 /home/ericbittu/Projeto3/src/Entrega 2/backups
+-rw-------. 1 ericbittu ericbittu     91 nov  2 23:16 asa_20261102_231633.dump.sha256
+-rw-------. 1 ericbittu ericbittu 778923 nov  2 23:16 asa_20261102_231644.dump
+-rw-------. 1 ericbittu ericbittu     91 nov  2 23:16 asa_20261102_231644.dump.sha256
+-rw-------. 1 ericbittu ericbittu 830755 nov  2 23:18 asa_20261102_231807.dump
+-rw-------. 1 ericbittu ericbittu     91 nov  2 23:18 asa_20261102_231807.dump.sha256
+
+==============================================================================
+## Firewall (ufw)
+$ ufw status verbose
+------------------------------------------------------------------------------
+(ufw não instalado neste host; na VM, provisionar.sh libera só 22/80/443)
+
+==============================================================================
+## Portas em escuta
+$ ss -tlnp 2>/dev/null | grep -Ev '127.0.0.53' || netstat -tlnp
+------------------------------------------------------------------------------
+State  Recv-Q Send-Q                          Local Address:Port  Peer Address:PortProcess                                
+LISTEN 0      4096                                  0.0.0.0:5355       0.0.0.0:*                                          
+LISTEN 0      511                                 127.0.0.1:6463       0.0.0.0:*    users:(("Discord",pid=68518,fd=104))  
+LISTEN 0      4096                 100.95.235.15%tailscale0:34601      0.0.0.0:*                                          
+LISTEN 0      4096                               127.0.0.54:53         0.0.0.0:*                                          
+LISTEN 0      512                                 127.0.0.1:46453      0.0.0.0:*    users:(("claude",pid=8655,fd=35))     
+LISTEN 0      128                                 127.0.0.1:55180      0.0.0.0:*                                          
+LISTEN 0      512                                 127.0.0.1:37301      0.0.0.0:*    users:(("claude",pid=8447,fd=34))     
+LISTEN 0      4096                                  0.0.0.0:8080       0.0.0.0:*                                          
+LISTEN 0      511                                 127.0.0.1:44425      0.0.0.0:*    users:(("code",pid=4032,fd=46))       
+LISTEN 0      4096                                  0.0.0.0:8443       0.0.0.0:*                                          
+LISTEN 0      512                                 127.0.0.1:43363      0.0.0.0:*    users:(("claude",pid=8361,fd=35))     
+LISTEN 0      4096                                127.0.0.1:3000       0.0.0.0:*                                          
+LISTEN 0      512                                 127.0.0.1:32777      0.0.0.0:*    users:(("claude",pid=8508,fd=34))     
+LISTEN 0      4096                                127.0.0.1:631        0.0.0.0:*                                          
+LISTEN 0      4096                                    [::1]:631           [::]:*                                          
+LISTEN 0      4096                                     [::]:5355          [::]:*                                          
+LISTEN 0      4096                                     [::]:8080          [::]:*                                          
+LISTEN 0      4096                                     [::]:8443          [::]:*                                          
+LISTEN 0      50                                          *:1716             *:*    users:(("kdeconnectd",pid=2893,fd=17))
+LISTEN 0      4096   [fd7a:115c:a1e0::f633:eb10]%tailscale0:47256         [::]:*                                          
+
+==============================================================================
+## HTTP(S) público: cabeçalhos
+$ curl -sS -I --max-time 10 'http://localhost:8080'
+------------------------------------------------------------------------------
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Cache-Control: no-cache
+Content-Length: 1442
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Content-Type: text/html; charset=utf-8
+Cross-Origin-Opener-Policy: same-origin
+Etag: "dml7yyihdhq8142"
+Last-Modified: Tue, 03 Nov 2026 02:28:02 GMT
+Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+Referrer-Policy: strict-origin-when-cross-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Accept-Encoding
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Date: Tue, 03 Nov 2026 02:35:37 GMT
+
+
+==============================================================================
+## Saúde da API
+$ curl -sS --max-time 10 'http://localhost:8080/api/health'; echo
+------------------------------------------------------------------------------
+{"status":"degradado","versao":"0.9.0","versao_modelo_risco":"risco-2.0.0","dependencias":{"banco":{"status":"ok","latencia_ms":3},"embeddings":{"status":"falha","latencia_ms":null},"modelo_risco":{"status":"ok","latencia_ms":null}},"verificado_em":"2026-11-03T02:35:37.057482Z"}
+
+==============================================================================
+## /metrics NÃO exposto publicamente (espera 404)
+$ curl -s -o /dev/null -w '%{http_code}\n' --max-time 10 'http://localhost:8080/api/metrics'
+------------------------------------------------------------------------------
+404
+
+==============================================================================
+## Logs JSON do backend (últimas linhas, arquivo rotacionado)
+$ cd '/home/ericbittu/Projeto3/src/Entrega 2' && docker compose exec -T backend sh -c 'ls -l /var/log/asa/ && tail -n 3 /var/log/asa/backend.log'
+------------------------------------------------------------------------------
+total 1168
+-rw-r--r--. 1 asa asa 1194651 Nov  3 02:35 backend.log
+{"ts": "2026-11-03T02:35:34.147+00:00", "nivel": "WARNING", "logger": "asa.acesso", "msg": "requisicao", "request_id": "f8686374-f5db-461a-9bb5-a0dc5d11c715", "usuario_id": null, "papel": null, "rota": "/casos", "caminho": "/casos", "metodo": "GET", "status": 401, "latencia_ms": 0.4}
+{"ts": "2026-11-03T02:35:34.157+00:00", "nivel": "WARNING", "logger": "asa.acesso", "msg": "requisicao", "request_id": "cfa309bb-23e6-4acc-a8bb-7205000ff15c", "usuario_id": null, "papel": null, "rota": "/casos", "caminho": "/casos", "metodo": "GET", "status": 401, "latencia_ms": 0.5}
+{"ts": "2026-11-03T02:35:34.165+00:00", "nivel": "WARNING", "logger": "asa.acesso", "msg": "requisicao", "request_id": "5743b5ef-80e1-4cb0-bf7c-278b47113752", "usuario_id": null, "papel": null, "rota": "/casos", "caminho": "/casos", "metodo": "GET", "status": 401, "latencia_ms": 0.4}
+
+==============================================================================
+## Logs de acesso do Caddy (JSON, rotacionado)
+$ cd '/home/ericbittu/Projeto3/src/Entrega 2' && docker compose exec -T web sh -c 'ls -l /var/log/caddy/ && tail -n 2 /var/log/caddy/access.log'
+------------------------------------------------------------------------------
+total 5412
+-rw-------    1 web      web        5538360 Nov  3 02:35 access.log
+{"level":"info","ts":1793673337.0578601,"logger":"http.log.access.log0","msg":"handled request","request":{"remote_ip":"172.18.0.1","remote_port":"60106","client_ip":"172.18.0.1","proto":"HTTP/1.1","method":"GET","host":"localhost:8080","uri":"/api/health","headers":{"User-Agent":["curl/8.18.0"],"Accept":["*/*"]}},"bytes_read":0,"user_id":"","duration":0.004850978,"size":279,"status":200,"resp_headers":{"Referrer-Policy":["strict-origin-when-cross-origin"],"Date":["Tue, 03 Nov 2026 02:35:36 GMT"],"Content-Length":["279"],"Vary":["Origin"],"Content-Security-Policy":["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"],"Cross-Origin-Opener-Policy":["same-origin"],"Permissions-Policy":["camera=(), microphone=(), geolocation=(), payment=()"],"Strict-Transport-Security":["max-age=31536000; includeSubDomains"],"X-Content-Type-Options":["nosniff"],"X-Frame-Options":["DENY"],"Content-Type":["application/json"],"X-Request-Id":["a7279d24-2a37-4835-84f7-d4de95f793f9"]}}
+{"level":"info","ts":1793673337.06622,"logger":"http.log.access.log0","msg":"handled request","request":{"remote_ip":"172.18.0.1","remote_port":"60118","client_ip":"172.18.0.1","proto":"HTTP/1.1","method":"GET","host":"localhost:8080","uri":"/api/metrics","headers":{"User-Agent":["curl/8.18.0"],"Accept":["*/*"]}},"bytes_read":0,"user_id":"","duration":0.000048902,"size":0,"status":404,"resp_headers":{"Content-Type":[],"Referrer-Policy":["strict-origin-when-cross-origin"],"Strict-Transport-Security":["max-age=31536000; includeSubDomains"],"X-Content-Type-Options":["nosniff"],"Content-Security-Policy":["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"],"Cross-Origin-Opener-Policy":["same-origin"],"Permissions-Policy":["camera=(), microphone=(), geolocation=(), payment=()"],"X-Frame-Options":["DENY"]}}
+
+==============================================================================
+## Rotação de logs dos containers (driver)
+$ docker inspect --format '{{.Name}} {{.HostConfig.LogConfig.Type}} {{.HostConfig.LogConfig.Config}}' $(docker ps -q --filter name=asa-turbo)
+------------------------------------------------------------------------------
+/asa-turbo-web-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-cadvisor-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-backend-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-prometheus-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-grafana-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-postgrest-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-supabase-gw-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-gotrue-1 json-file map[max-file:5 max-size:10m]
+/asa-turbo-db-1 json-file map[max-file:5 max-size:10m]

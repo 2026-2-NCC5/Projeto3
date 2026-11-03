@@ -83,7 +83,7 @@ services:
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
     environment:
       POSTGRES_HOST: /var/run/postgresql
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?rode infra/local/preparar_env.py}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: postgres
       JWT_SECRET: ${SUPABASE_JWT_SECRET}
@@ -180,9 +180,76 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # ------------------------------------------------------- monitoramento
+  # docker compose --profile monitoring up -d   (ou COMPOSE_PROFILES=monitoring no .env)
+  # Grafana: http://127.0.0.1:3000 (na VM, por túnel SSH: ssh -L 3000:127.0.0.1:3000 ...)
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+      # só leitura, para o docker_sd nomear os containers (rede interna, sem porta publicada)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    user: "0:0"
+    expose:
+      - "9090"
+    restart: unless-stopped
+    <<: [*logs, *seguranca]
+
+  cadvisor:
+    profiles: [monitoring]
+    image: ghcr.io/google/cadvisor:v0.53.0
+    # Lê CPU/memória direto dos cgroups (id=/system.slice/docker-<id>.scope). O handler
+    # "docker" do cAdvisor fica desligado de propósito (socket inexistente): ele não
+    # reconhece containers com o image store do containerd (padrão no Docker 29) e
+    # esconderia essas séries. O nome do serviço vem do job docker-nomes do Prometheus.
+    command:
+      - --docker=unix:///nao/existe.sock
+      - --containerd=/nao/existe.sock
+      - --housekeeping_interval=15s
+      - --store_container_labels=false
+      - --disable_metrics=disk,diskIO,network,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl,cpuset,advtcp,memory_numa
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /sys:/sys:ro
+    expose:
+      - "8080"
+    restart: unless-stopped
+    <<: *logs
+
+  grafana:
+    profiles: [monitoring]
+    image: grafana/grafana:11.3.1
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?defina GRAFANA_ADMIN_PASSWORD no .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/asa-turbo.json
+    volumes:
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    <<: [*logs, *seguranca]
+
 volumes:
   db-data:
   caddy-data:
   caddy-config:
   logs-backend:
   logs-web:
+  prometheus-data:
+  grafana-data:
