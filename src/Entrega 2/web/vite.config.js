@@ -5,9 +5,15 @@ import react from '@vitejs/plugin-react'
 
 const raiz = dirname(fileURLToPath(import.meta.url))
 
-// Em desenvolvimento, /api/* é repassado para a API de produção.
-// Assim o `npm run dev` funciona sem Vercel CLI e sem segredos locais.
-const API_PROXY_TARGET = 'https://projeto-ia-rho.vercel.app'
+// Em `npm run dev` o app usa o modo mock por padrão (src/config.js).
+// Com VITE_API_MOCK=false, as rotas do contrato vão para o backend local (docker compose).
+// As mesmas rotas também são páginas do app (/chat, /admin...): pedidos de HTML ficam com o Vite.
+const BACKEND_LOCAL = process.env.ASA_BACKEND_URL || 'http://localhost:8000'
+const paraBackend = {
+  target: BACKEND_LOCAL,
+  changeOrigin: true,
+  bypass: (req) => (req.headers.accept?.includes('text/html') ? req.url : undefined),
+}
 
 export default defineConfig({
   plugins: [react()],
@@ -21,8 +27,6 @@ export default defineConfig({
     },
   },
   server: {
-    proxy: {
-      '/api': { target: API_PROXY_TARGET, changeOrigin: true },
-    },
+    proxy: Object.fromEntries(['/me', '/chat', '/casos', '/risco', '/admin', '/health'].map((p) => [p, paraBackend])),
   },
 })
