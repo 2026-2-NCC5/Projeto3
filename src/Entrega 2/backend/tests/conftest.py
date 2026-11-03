@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from app.core.config import PROJETO_DIR, Settings
 from app.main import create_app
 from app.rag.embeddings import CadeiaEmbeddings
-from app.risk.modelo import ModeloSklearn, treinar_placeholder
+from app.risk.modelo import ModeloML, ModeloSklearn, carregar_artefato, treinar_placeholder
 from tests.fakes import SEGREDO_JWT, ProvedorFalso, RepoMemoria
 
 
@@ -31,8 +31,14 @@ def settings_teste(**extra: object) -> Settings:
 
 
 @pytest.fixture(scope="session")
-def modelo() -> ModeloSklearn:
+def placeholder() -> ModeloSklearn:
     return treinar_placeholder(PROJETO_DIR / "seeds" / "estudantes_sinteticos.csv")
+
+
+@pytest.fixture(scope="session")
+def modelo() -> ModeloML | ModeloSklearn:
+    """Artefato final da sessão de ML (ml/artifacts/risco_v2.joblib), o mesmo da produção."""
+    return carregar_artefato(PROJETO_DIR / "ml" / "artifacts" / "risco_v2.joblib")
 
 
 @dataclass
@@ -45,7 +51,7 @@ class Ambiente:
 
 
 @pytest.fixture
-def amb(modelo: ModeloSklearn) -> Iterator[Ambiente]:
+def amb(modelo: ModeloML | ModeloSklearn) -> Iterator[Ambiente]:
     repo = RepoMemoria()
     principal, reserva = ProvedorFalso("cloudflare"), ProvedorFalso("huggingface")
     cadeia = CadeiaEmbeddings([principal, reserva], cooldown_s=0)

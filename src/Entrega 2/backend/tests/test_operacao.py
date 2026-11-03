@@ -15,7 +15,7 @@ def test_health_ok(amb):
     corpo = r.json()
     validar("Saude", corpo)
     assert corpo["status"] == "ok" and corpo["dependencias"]["banco"]["status"] == "ok"
-    assert corpo["versao_modelo_risco"].startswith("rl-placeholder")
+    assert corpo["versao_modelo_risco"] == "risco-2.0.0"
 
 
 def test_health_degradado_sem_embeddings_e_503_sem_banco(amb):

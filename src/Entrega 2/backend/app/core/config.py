@@ -63,8 +63,8 @@ class Settings(BaseSettings):
     rag_versao: str = "rag-0.9"
 
     # --- modelo de risco
-    risk_model_path: str = "ml/artifacts/modelo_risco.joblib"
-    risk_model_version: str = "rl-baseline-1.0"
+    risk_model_path: str = "ml/artifacts/risco_v2.joblib"
+    risk_model_version: str = "risco-2.0.0"
     risk_seeds_path: str = "seeds/estudantes_sinteticos.csv"
     risk_limiar_amarelo: float = 0.30
     risk_limiar_vermelho: float = 0.60

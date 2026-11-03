@@ -4,6 +4,7 @@
 !backend/requirements.txt
 !backend/app/**
 !ml/artifacts/**
+!ml/risco/**
 !seeds/estudantes_sinteticos.csv
 **/__pycache__
 **/*.pyc

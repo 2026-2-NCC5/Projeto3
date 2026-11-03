@@ -8,7 +8,7 @@
 # =============================================================================
 
 # ---------- estágio 1: dependências num venv isolado
-FROM python:3.11-slim AS deps
+FROM python:3.12-slim AS deps
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 COPY backend/requirements.txt .
@@ -17,7 +17,7 @@ RUN python -m venv /opt/venv \
  && /opt/venv/bin/pip install -r requirements.txt
 
 # ---------- estágio 2: runtime enxuto, usuário não-root
-FROM python:3.11-slim AS runtime
+FROM python:3.12-slim AS runtime
 LABEL org.opencontainers.image.title="asa-turbo-backend" \
       org.opencontainers.image.version="0.9.0" \
       org.opencontainers.image.description="API do ASA Turbo (chat RAG + monitoramento de risco)"
@@ -36,6 +36,7 @@ COPY --from=deps /opt/venv /opt/venv
 WORKDIR /srv/backend
 COPY --chown=asa:asa backend/app ./app
 COPY --chown=asa:asa ml/artifacts /srv/ml/artifacts
+COPY --chown=asa:asa ml/risco /srv/ml/risco
 COPY --chown=asa:asa seeds/estudantes_sinteticos.csv /srv/seeds/estudantes_sinteticos.csv
 
 USER asa

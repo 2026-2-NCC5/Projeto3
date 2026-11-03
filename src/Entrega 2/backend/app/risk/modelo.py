@@ -3,7 +3,11 @@
     RiskModel.predict(features) -> Predicao(probabilidade, categoria, score, fatores, versao_modelo)
 
 Carregamento (`carregar_modelo`):
-1. `RISK_MODEL_PATH` (artefato da sessão de ML, joblib) se existir;
+1. `RISK_MODEL_PATH` (artefato da sessão de ML, joblib) se existir. Dois formatos:
+   a) artefato FINAL da sessão de ML (`ml/artifacts/risco_v2.joblib`, chaves
+      `colunas`/`explicador`): usado através de `ml/risco/modelo.py::RiskModel`
+      (TreeSHAP nativo do XGBoost), envolvido por `ModeloML`;
+   b) dict simples `modelo`/`features` (formato abaixo), envolvido por `ModeloSklearn`;
 2. senão, PLACEHOLDER: regressão logística treinada na hora com
    `seeds/estudantes_sinteticos.csv` (dados fictícios). Versão `rl-placeholder-seeds-*`.
 
@@ -275,10 +279,82 @@ def treinar_placeholder(
     )
 
 
-def carregar_artefato(caminho: Path, limiar_amarelo: float = 0.30, limiar_vermelho: float = 0.60) -> ModeloSklearn:
+# ---------------------------------------------------------------------------
+# Artefato final da sessão de ML (ml/artifacts/risco_v2.joblib)
+# ---------------------------------------------------------------------------
+# Nomes da base (usados pelo pacote ml) -> nomes da API (FeaturesRisco do contrato)
+_NOMES_API = {
+    "Idade": "idade",
+    "Forma de Ingresso": "forma_ingresso",
+    "Grau Acadêmico": "grau_academico",
+    "Turno": "turno",
+    "Estado Civil": "estado_civil",
+    "Sexo": "sexo",
+}
+
+
+def _importar_risk_model_ml() -> Any:
+    """Importa `RiskModel` de `ml/risco/modelo.py` (raiz do projeto ou /srv no container)."""
+    import sys
+
+    from app.core.config import PROJETO_DIR
+
+    pasta_ml = str(PROJETO_DIR / "ml")
+    if pasta_ml not in sys.path:
+        sys.path.insert(0, pasta_ml)
+    from risco.modelo import RiskModel as RiskModelML  # type: ignore[import-not-found]
+
+    return RiskModelML
+
+
+class ModeloML:
+    """Envolve o `RiskModel` da sessão de ML na interface usada pelo backend (`Predicao`)."""
+
+    def __init__(self, artefato: dict[str, Any], limiar_amarelo: float, limiar_vermelho: float) -> None:
+        artefato = dict(artefato)
+        artefato["limiares"] = {"amarelo": limiar_amarelo, "vermelho": limiar_vermelho}
+        self._m = _importar_risk_model_ml()(artefato)
+        self.versao: str = self._m.versao
+        self.colunas: list[str] = list(self._m.colunas)
+        self.limiar_amarelo = limiar_amarelo
+        self.limiar_vermelho = limiar_vermelho
+
+    def predict(self, features: dict[str, Any]) -> Predicao:
+        r = self._m.predict(features)
+        presentes = {k for k, v in features.items() if v is not None}
+        imputados = [
+            _NOMES_API.get(c, c) for c in self.colunas if c not in presentes and _NOMES_API.get(c, c) not in presentes
+        ]
+        fatores = [
+            {**f, "peso": round(float(f["peso"]), 2)}
+            for f in r["fatores"]
+            if f["codigo"] not in ("sexo", "idade", "estado_civil")
+        ]
+        return Predicao(
+            probabilidade=float(r["probabilidade"]),
+            categoria=r["categoria"],
+            score={k: float(v) for k, v in r["score"].items()},
+            fatores=fatores,
+            versao_modelo=self.versao,
+            imputados=imputados,
+        )
+
+    def info(self) -> dict[str, Any]:
+        i = self._m.info()
+        api = [_NOMES_API.get(c, c) for c in i["features"]]
+        i["features"] = [f for f in api if f not in SENSIVEIS]
+        i["limiares"] = {"amarelo": self.limiar_amarelo, "vermelho": self.limiar_vermelho}
+        return i
+
+
+def carregar_artefato(
+    caminho: Path, limiar_amarelo: float = 0.30, limiar_vermelho: float = 0.60
+) -> ModeloSklearn | ModeloML:
     import joblib
 
     art = joblib.load(caminho)
+    if isinstance(art, dict) and "colunas" in art and "explicador" in art:
+        return ModeloML(art, limiar_amarelo, limiar_vermelho)
     if not isinstance(art, dict) or "modelo" not in art or "features" not in art:
         raise ModeloIndisponivel(f"artefato {caminho.name} fora do formato esperado (ver app/risk/modelo.py)")
     return ModeloSklearn(
@@ -296,7 +372,7 @@ def carregar_artefato(caminho: Path, limiar_amarelo: float = 0.30, limiar_vermel
 
 def carregar_modelo(
     caminho_artefato: Path, caminho_seeds: Path, limiar_amarelo: float = 0.30, limiar_vermelho: float = 0.60
-) -> ModeloSklearn | None:
+) -> ModeloSklearn | ModeloML | None:
     if caminho_artefato.is_file():
         try:
             m = carregar_artefato(caminho_artefato, limiar_amarelo, limiar_vermelho)

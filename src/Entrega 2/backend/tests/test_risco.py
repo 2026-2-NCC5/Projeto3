@@ -5,7 +5,7 @@ from __future__ import annotations
 import joblib
 import pytest
 
-from app.risk.modelo import ModeloSklearn, carregar_modelo, categoria_de
+from app.risk.modelo import ModeloML, ModeloSklearn, carregar_modelo, categoria_de
 from app.risk.recomendacao import prioridade_sugerida, recomendar, tendencia_de
 from tests.contrato import validar
 from tests.fakes import EST_RISCO, ID_ADMIN, ID_ATENDENTE, ID_TECNICO, auth
@@ -26,7 +26,7 @@ FEATURES = {
 }
 
 
-def test_predict_devolve_score_categoria_fatores(modelo: ModeloSklearn):
+def test_predict_devolve_score_categoria_fatores(modelo: ModeloML):
     p = modelo.predict(FEATURES)
     assert 0 <= p.probabilidade <= 1 and p.categoria == categoria_de(p.probabilidade)
     assert set(p.score) == {"geral", "financeiro", "academico", "relacionamento"}
@@ -39,7 +39,7 @@ def test_predict_devolve_score_categoria_fatores(modelo: ModeloSklearn):
         assert "R$" not in f["descricao"]  # nunca valor monetário exato
 
 
-def test_contribuicoes_tem_sinal_coerente_com_a_probabilidade(modelo: ModeloSklearn):
+def test_contribuicoes_tem_sinal_coerente_com_a_probabilidade(modelo: ModeloML):
     ruim = modelo.predict({**FEATURES, "media_notas": 20, "media_assiduidade": 40})
     bom = modelo.predict({**FEATURES, "media_notas": 95, "media_assiduidade": 99})
     assert ruim.score["academico"] > bom.score["academico"]
@@ -71,13 +71,22 @@ def test_prioridade_e_tendencia():
     assert tendencia_de(0.62, 0.6) == "estavel" and tendencia_de(0.6, None) == "estavel"
 
 
-def test_carrega_artefato_da_sessao_de_ml(tmp_path, modelo: ModeloSklearn):
+def test_artefato_final_usa_o_modelo_da_sessao_de_ml(modelo: ModeloML):
+    assert isinstance(modelo, ModeloML) and modelo.versao == "risco-2.0.0"
+    info = modelo.info()
+    assert not {"idade", "sexo", "estado_civil"} & set(info["features"])
+    ruim = modelo.predict({**FEATURES, "pct_parcelas_em_aberto": 0.9, "atraso_medio_dias": 120, "media_notas": 15})
+    assert ruim.categoria in ("amarelo", "vermelho") and any(f["direcao"] == "aumenta" for f in ruim.fatores)
+    assert ruim.probabilidade > modelo.predict(FEATURES).probabilidade
+
+
+def test_carrega_artefato_dict_simples(tmp_path, placeholder: ModeloSklearn):
     caminho = tmp_path / "modelo_risco.joblib"
     joblib.dump(
         {
-            "modelo": modelo._est,
-            "features": modelo.features,
-            "referencia": modelo.referencia,
+            "modelo": placeholder._est,
+            "features": placeholder.features,
+            "referencia": placeholder.referencia,
             "versao": "rl-baseline-1.0",
             "algoritmo": "Regressão Logística",
             "treinado_em": "2026-11-03T12:00:00-03:00",
@@ -129,7 +138,7 @@ def test_inferir_com_estudante_e_persistir(amb):
     corpo = r.json()
     validar("InferenciaResultado", corpo)
     assert corpo["persistido"] and corpo["score_id"] in amb.repo.scores
-    assert corpo["versao_modelo"].startswith("rl-placeholder")
+    assert corpo["versao_modelo"] == "risco-2.0.0"
 
 
 def test_inferir_entrada_invalida(amb):
