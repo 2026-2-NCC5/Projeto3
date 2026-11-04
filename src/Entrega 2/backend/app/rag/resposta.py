@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 
 from app.rag.recuperacao import Recuperacao, Trecho
+from app.rag.texto import normalizar, tokens
 
 TEXTO_ABSTENCAO = (
     "Não encontrei isso nos documentos oficiais com segurança suficiente. "
@@ -67,11 +68,72 @@ def _limpar(t: Trecho) -> str:
     return texto
 
 
+# Continuação com pedido específico ("e o prazo?"): (o que foi pedido, como a pergunta
+# pede, como uma frase do documento responde). Comparação feita sobre texto normalizado.
+_ASPECTOS = (
+    (
+        "o prazo",
+        re.compile(r"\b(prazos?|quando|data|demora|dias)\b"),
+        re.compile(r"\b\d+ (dias?|meses|semanas|anos?)\b|antecedencia|\bprazos?\b|vencimento|data limite"),
+    ),
+    (
+        "o local ou o horário de atendimento",
+        re.compile(r"\b(onde|local|horarios?|atendimento|setor)\b"),
+        re.compile(r"\b(setor responsavel|local|horario de atendimento)\b"),
+    ),
+    (
+        "valores",
+        re.compile(r"\b(custa|custo|valor|valores|preco|taxas?|pagar|gratis|gratuito)\b"),
+        re.compile(r"\btaxas?\b|\bvalor(es)?\b|gratuit|\bcusto\b"),
+    ),
+)
+_FRASES = re.compile(r"(?<=[.!?])\s+|\n+")
+_ROTULO = re.compile(r"^(condi[cç][oõ]es|atendimento)\s*:\s*", re.IGNORECASE)
+TEXTO_NAO_INFORMA = (
+    "Os documentos oficiais sobre {titulo} não informam {aspecto}. "
+    "Para confirmar, fale com o ASA pelos canais de atendimento."
+)
+
+
+def _repetida(frase: str, escolhidas: list[str]) -> bool:
+    novos = set(tokens(frase))
+    return any(novos and len(novos & set(tokens(e))) >= 0.7 * len(novos) for e in escolhidas)
+
+
+def _focar_continuacao(rec: Recuperacao) -> tuple[str, list[Trecho]] | None:
+    """Em "e o prazo?" sobre um assunto já respondido, devolve só as frases do documento
+    que tratam do prazo (ou diz que o documento não informa), em vez de repetir tudo."""
+    pergunta = normalizar(rec.pergunta)
+    principal = rec.trechos[0]
+    do_doc = [t for t in rec.trechos if t.documento_id == principal.documento_id]
+    for aspecto, pede, responde in _ASPECTOS:
+        if not pede.search(pergunta):
+            continue
+        frases: list[str] = []
+        usados: list[Trecho] = []
+        for t in do_doc:
+            for f in _FRASES.split(_limpar(t)):
+                f = _ROTULO.sub("", f.strip())
+                if f and responde.search(normalizar(f)) and not _repetida(f, frases):
+                    frases.append(f)
+                    if t not in usados:
+                        usados.append(t)
+        if frases:
+            return "\n".join(formatar_passos(f) for f in frases[:3]), usados
+        titulo = (principal.titulo or "esse assunto").strip()
+        return TEXTO_NAO_INFORMA.format(titulo=titulo, aspecto=aspecto), [principal]
+    return None
+
+
 def compor_resposta(rec: Recuperacao) -> tuple[str, list[Trecho]]:
     """Devolve (texto da resposta, trechos efetivamente usados)."""
     if rec.abstencao or not rec.trechos:
         texto = TEXTO_FALHA if rec.motivo_abstencao in ("falha_vetorizacao", "falha_busca") else TEXTO_ABSTENCAO
         return texto, []
+    if rec.reescrita:
+        focada = _focar_continuacao(rec)
+        if focada:
+            return focada
     usados = _selecionar(rec.trechos, rec.limiar_aplicado)
     limpos = [(t, _limpar(t)) for t in usados]
     # "Condições: não há condições específicas" não informa nada: sai da resposta

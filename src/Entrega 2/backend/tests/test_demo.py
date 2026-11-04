@@ -69,6 +69,10 @@ def test_continuacao_e_abstencao(demo: TestClient) -> None:
     r2 = demo.post("/chat", json={"mensagem": "e o prazo?", "conversa_id": r1["conversa_id"]}, headers=h).json()
     assert r2["abstencao"] is False
     assert "trancamento" in r2["fontes"][0]["titulo"].lower()
+    assert "15 dias de antecedência" in r2["resposta"] and r2["resposta"] != r1["resposta"]
+    a1 = demo.post("/chat", json={"mensagem": "Como solicito atividades complementares?"}, headers=h).json()
+    a2 = demo.post("/chat", json={"mensagem": "e o prazo?", "conversa_id": a1["conversa_id"]}, headers=h).json()
+    assert a2["resposta"].startswith("Os documentos oficiais sobre") and "não informam o prazo" in a2["resposta"]
     fora = demo.post("/chat", json={"mensagem": "Qual é o cardápio do restaurante hoje?"}, headers=h).json()
     assert fora["abstencao"] is True
     assert fora["encaminhamento"]
