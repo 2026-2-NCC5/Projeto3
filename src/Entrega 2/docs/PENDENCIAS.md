@@ -1,6 +1,6 @@
 # Pendências conhecidas · v0.9.0
 
-Lista honesta do que falta, do que foi contornado e do que não foi testado. Atualizada em 03/11/2026.
+Lista honesta do que falta, do que foi contornado e do que não foi testado. Atualizada em 04/11/2026 (fechamento v0.9.1).
 
 ## Bloqueiam a publicação (dependem da equipe)
 
@@ -11,6 +11,17 @@ Lista honesta do que falta, do que foi contornado e do que não foi testado. Atu
    - o `backup.sh --url` não foi testado contra o Supabase real;
    - o chat com embeddings bge-m3 não foi testado de ponta a ponta pelo backend novo. Localmente ele roda no fallback lexical.
 3. **Dados reais no histórico do Git.** Os CSVs com 12.842 alunos continuam no commit `ee7c027`. A limpeza (`git filter-repo` + force push coordenado) está descrita em `docs/decisoes/0001-fase0.md` e não foi executada.
+
+4. **Nenhum deploy em nuvem foi feito.** Não há CLI do Fly, do gcloud nem do Render nesta máquina. A imagem do container único foi testada localmente (`scripts/smoke.sh` com 8/8 OK e e2e 4/4 contra ela), mas a URL pública não existe ainda. Os passos estão em `DEPLOY.md`.
+5. **O Blueprint do Render exige `git push`,** e a `main` local contém o commit `ee7c027` com os dados reais (ver item 3). Use o caminho A ou B do `DEPLOY.md` (imagem pronta), ou limpe o histórico antes.
+
+## Modo de demonstração
+
+- **As rotas `/demo/*` não estão em `docs/api-contract.yaml`.** São um atalho de apresentação que só existe com `DEMO_MODE=true`. A equipe precisa decidir se documenta no contrato.
+- **O uso do chat que aparece no painel (30 dias) é simulado** e marcado como `sintetico` no repositório em memória. Os números de risco, fila e validações vêm dos seeds e do modelo.
+- **A trajetória de 6 meses do caso de inadimplência foi construída** (parcelas e atraso crescentes) e pontuada mês a mês pelo modelo real. Os outros dois casos do topo são trajetórias dos seeds sem alteração. Também curado: os demais casos "urgentes" do seed aparecem como "alta", para os 3 ficarem no topo.
+- **O estado da demo vive em memória:** reiniciar o processo, ou o Render dormir, volta tudo ao início. Isso é proposital.
+- **No modo demo, o chat usa só o TF-IDF,** mesmo que haja chave da Cloudflare: o snapshot não tem vetores.
 
 ## Produto
 

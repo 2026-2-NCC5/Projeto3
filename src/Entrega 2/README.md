@@ -22,6 +22,24 @@ A stack local não precisa de nenhuma chave externa. Ela inclui o Postgres, o lo
 
 Para parar, use `docker compose down`. Para apagar também o banco local, `docker compose down -v`.
 
+## Modo apresentação (container único, sem banco)
+
+Para demonstrar sem depender de Supabase nem de rede:
+
+```bash
+docker build -t asa-turbo:0.9.1 .
+docker run --rm -p 8080:8080 asa-turbo:0.9.1      # DEMO_MODE=true por padrão
+scripts/smoke.sh http://localhost:8080            # confere os fluxos (OK/FALHA por item)
+scripts/reset_demo.sh http://localhost:8080       # volta ao estado inicial em ~2 s
+```
+
+- Na tela de login aparece **"Acessar como demonstração"**, com os botões Estudante, Atendente e Administrador. Essa seção só existe quando o backend está com `DEMO_MODE=true`.
+- O topo da fila traz 3 casos vermelhos com tendência de alta: queda de notas, inadimplência e sumiço das aulas. Todos os scores são do modelo `risco-2.0.0`.
+- O chat traz 6 perguntas sugeridas, validadas em `backend/tests/test_demo.py`: 5 respondem com fonte e 1 gera abstenção com encaminhamento.
+- O uso do chat no painel (últimos 30 dias) é **simulado** e determinístico, só para os números não abrirem zerados.
+
+Publicação em nuvem (Render ou Fly, com HTTPS grátis): [`DEPLOY.md`](DEPLOY.md).
+
 ## Perfis de demonstração
 
 | Perfil | E-mail | O que ver |

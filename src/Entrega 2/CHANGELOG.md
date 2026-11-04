@@ -2,6 +2,29 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.9.1] · 2026-11-04
+
+Fechamento para a apresentação: integração na `main`, modo de demonstração e container único para a nuvem.
+
+### Adicionado
+- `DEMO_MODE=true`: seeds em memória (`seeds/demo_snapshot.json.gz`), com as mesmas telas e a mesma API, sem Supabase nem rede.
+  - Login de demo emitido pelo backend (`/api/demo/entrar`, `/api/demo/estado`, `/api/demo/reiniciar`).
+  - Botões "Acessar como demonstração" na tela de login.
+- Curadoria da demo:
+  - 3 vermelhos no topo da fila (queda de notas, inadimplência, frequência), com a trajetória de inadimplência pontuada pelo modelo real (`seeds/curar_snapshot_demo.py`);
+  - uso do chat dos últimos 30 dias simulado no painel;
+  - 6 perguntas sugeridas validadas.
+- Container único (`Dockerfile` da raiz):
+  - o FastAPI serve o build do web (`app/web.py`), com os mesmos cabeçalhos de segurança do Caddy;
+  - usuário não-root, `$PORT` e healthcheck.
+- `render.yaml` (na raiz do repositório), `fly.toml` e `DEPLOY.md`.
+- `scripts/smoke.sh <URL>` e `scripts/reset_demo.sh [URL]`.
+- Warm-up no início (índice lexical e embeddings), configurável por `AQUECER_AO_INICIAR`.
+
+### Alterado
+- O repositório em memória passou de `tests/fakes.py` para `app/db/memoria.py`. Os testes herdam dele.
+- No modo demo, o `/health` reporta `busca_lexical` no lugar de `embeddings`.
+
 ## [0.9.0] · 2026-11-03
 
 Primeira versão de ponta a ponta: login por papel, chat com fontes e abstenção, fila de risco com validação humana, painel da administração, deploy containerizado e observabilidade.
