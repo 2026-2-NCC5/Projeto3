@@ -38,16 +38,16 @@ HISTORIAS: list[tuple[str, frozenset[str]]] = [
 
 # Temas mais procurados no chat simulado (busca por trecho do título na base oficial)
 TEMAS_CHAT = [
-    ("trancamento", 9),
-    ("atestado de matr", 8),
-    ("rematr", 7),
-    ("bolsa", 6),
-    ("segunda chamada", 5),
-    ("histórico", 4),
-    ("aproveitamento", 4),
-    ("cancelamento", 3),
-    ("estágio", 3),
-    ("transferência", 2),
+    ("trancamento de matrícula", 9),
+    ("atestado de matrícula", 8),
+    ("rematrícula", 6),
+    ("estágio obrigatório", 5),
+    ("prova substitutiva", 5),
+    ("cadastro de atividade complementar", 4),
+    ("aproveitamento de disciplinas", 4),
+    ("solicitação de boleto", 4),
+    ("cancelamento de matrícula", 3),
+    ("transferência de turno", 2),
 ]
 
 
@@ -309,7 +309,7 @@ class RepoDemo(RepoMemoria):
         donos = sorted(e for e, est in self.estudantes.items() if not est.get("perfil_id"))
         temas: list[tuple[list[dict[str, Any]], int]] = []
         for trecho, peso in TEMAS_CHAT:
-            cs = [c for c in self.chunks if c["ativo"] and trecho in c["titulo_documento"].lower()]
+            cs = [c for c in self.chunks if c["ativo"] and c["titulo_documento"].lower() == trecho]
             if cs:
                 temas.append((cs, peso))
         if not donos or not temas:

@@ -132,7 +132,7 @@ export function estadoDemonstracao() {
 
 function lerTokenDemo() {
   let t = null
-  try { t = sessionStorage.getItem(CHAVE_DEMO) } catch { /* sem storage */ }
+  try { t = localStorage.getItem(CHAVE_DEMO) } catch { /* sem storage */ }
   if (!t) return null
   try {
     const { exp } = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
@@ -148,7 +148,7 @@ async function entrarDemo(corpo) {
   if (r.status === 401) throw new ErroLogin('credenciais', MSG.credenciais)
   if (!r.ok) throw new ErroLogin('desconhecido', MSG.desconhecido)
   const { access_token: token } = await r.json()
-  try { sessionStorage.setItem(CHAVE_DEMO, token) } catch { /* sem storage */ }
+  try { localStorage.setItem(CHAVE_DEMO, token) } catch { /* sem storage */ }
 }
 
 const demoProvedor = {
@@ -156,7 +156,7 @@ const demoProvedor = {
   async temSessao() { return Boolean(lerTokenDemo()) },
   async entrar(email, senha) { await entrarDemo({ email: email.trim().toLowerCase(), senha }) },
   async entrarComo(papel) { await entrarDemo({ papel }) },
-  async sair() { try { sessionStorage.removeItem(CHAVE_DEMO) } catch { /* sem storage */ } },
+  async sair() { try { localStorage.removeItem(CHAVE_DEMO) } catch { /* sem storage */ } },
   async recuperarSenha() { throw new ErroLogin('configuracao', 'Na demonstração não há recuperação de senha. Use um dos acessos abaixo.') },
   async definirSenha() { throw new ErroLogin('configuracao', 'Indisponível na demonstração.') },
   async ouvir() { return () => {} },
