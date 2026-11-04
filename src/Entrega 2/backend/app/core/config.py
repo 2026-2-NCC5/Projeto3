@@ -71,6 +71,16 @@ class Settings(BaseSettings):
     risk_limiar_amarelo: float = 0.30
     risk_limiar_vermelho: float = 0.60
 
+    # --- modo de demonstração (sem Supabase: seeds em memória, login dos 3 perfis demo)
+    demo_mode: bool = False
+    demo_password: SecretStr = SecretStr("AsaTurbo#Demo2026")
+    demo_snapshot_path: str = "seeds/demo_snapshot.json.gz"
+
+    aquecer_ao_iniciar: bool = True  # warm-up do RAG/embeddings no startup
+
+    # --- container único: pasta com o build do web (vazio = só a API)
+    web_dist_dir: str = ""
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _separar_origens(cls, v: object) -> object:

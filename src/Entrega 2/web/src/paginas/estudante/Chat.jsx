@@ -12,12 +12,14 @@ import s from './Chat.module.css'
 
 // Temas reais da base (Cesta de Serviços ASA / Manual do Aluno).
 const SUGESTOES = [
-  { tema: 'Rematrícula', pergunta: 'Como funciona a rematrícula?' },
-  { tema: 'Trancamento', pergunta: 'Posso trancar a matrícula neste semestre?' },
-  { tema: 'TCC', pergunta: 'Quando começo o TCC e até quando defino o orientador?' },
-  { tema: 'Documentos', pergunta: 'Como tiro o atestado de matrícula?' },
-  { tema: 'Faltas', pergunta: 'Como peço abono de faltas com atestado médico?' },
-  { tema: 'Financiamento', pergunta: 'Como renovo o FIES?' },
+  // Validadas contra a base oficial (backend/tests/test_demo.py). A última não está na base:
+  // mostra a abstenção com encaminhamento para o ASA.
+  { tema: 'Trancamento', pergunta: 'Como faço para trancar a matrícula?' },
+  { tema: 'Documentos', pergunta: 'Como emito o atestado de matrícula?' },
+  { tema: 'Estágio', pergunta: 'Como funciona o estágio obrigatório?' },
+  { tema: 'Atividades', pergunta: 'Como solicito atividades complementares?' },
+  { tema: 'Provas', pergunta: 'Perdi uma prova, como faço a prova substitutiva?' },
+  { tema: 'Campus', pergunta: 'Qual é o cardápio do restaurante hoje?' },
 ]
 
 export default function Chat({ conversaId = null }) {

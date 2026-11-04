@@ -25,6 +25,7 @@ def settings_teste(**extra: object) -> Settings:
         log_level="WARNING",
         chat_rate_limit_por_minuto=1000,
         cors_origins="http://localhost:5173",
+        aquecer_ao_iniciar=False,
     )
     base.update(extra)
     return Settings(_env_file=None, **base)  # type: ignore[call-arg]
