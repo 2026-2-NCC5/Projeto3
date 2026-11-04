@@ -66,8 +66,9 @@ export function SessaoProvider({ children }) {
 
   const saindo = useRef(false)
 
-  const entrar = useCallback(async (email, senha) => {
-    await provedor.entrar(email, senha)
+  const entrar = useCallback(async (email, senha, papelDemo = null) => {
+    if (papelDemo) await provedor.entrarComo(papelDemo)
+    else await provedor.entrar(email, senha)
     const anterior = estadoRef.current.me
     const me = await api.me().catch(async (e) => {
       await provedor.sair()

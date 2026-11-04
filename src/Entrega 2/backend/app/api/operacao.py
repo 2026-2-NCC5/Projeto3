@@ -27,7 +27,12 @@ async def health(request: Request) -> Response | Saude:
         deps["banco"] = {"status": "ok", "latencia_ms": int((time.perf_counter() - inicio) * 1000)}
     except ErroRepositorio:
         deps["banco"] = {"status": "falha", "latencia_ms": None}
-    deps["embeddings"] = estado.embeddings.estado()
+    if estado.settings.demo_mode:
+        # Demo: o chat usa só o índice lexical local (sem provedor de embedding por desenho)
+        indice = await run_in_threadpool(estado.indice_lexical.obter)
+        deps["busca_lexical"] = {"status": "ok" if indice is not None and len(indice) else "falha", "latencia_ms": None}
+    else:
+        deps["embeddings"] = estado.embeddings.estado()
     modelo = estado.servico_risco.modelo
     deps["modelo_risco"] = {"status": "ok" if modelo else "falha", "latencia_ms": None}
 

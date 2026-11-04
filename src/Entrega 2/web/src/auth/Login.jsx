@@ -1,11 +1,11 @@
 // Tela de login (/entrar). Depois de entrar, vai para a página pedida (?volta=) ou para a
 // página inicial do papel.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import FormLogin from './FormLogin.jsx'
 import { useSessao } from './SessaoContext.jsx'
 import { navegar, useLocalizacao } from '../rotas/roteador.jsx'
 import { INICIO_POR_PAPEL, MODO_MOCK } from '../config.js'
-import { SENHA_DEMONSTRACAO } from './provedor.js'
+import { SENHA_DEMONSTRACAO, estadoDemonstracao } from './provedor.js'
 import { useTituloPagina } from '../util/hooks.js'
 import { podeAcessar } from '../rotas/permissoes.js'
 import s from './Login.module.css'
@@ -44,6 +44,7 @@ export default function Login() {
               onEsqueci={(email) => { setEmailEsqueci(email); setModo('esqueci') }}
             />
             {MODO_MOCK && <AjudaDemo />}
+            <AcessoDemo onSucesso={(me) => navegar(destinoDepoisDoLogin(me, busca.get('volta')), { substituir: true })} />
           </>
         )}
 
@@ -162,5 +163,41 @@ function AjudaDemo() {
         <li><code>admin.demo@example.com</code> · painel e base</li>
       </ul>
     </details>
+  )
+}
+
+const ROTULO_PAPEL = { estudante: 'Estudante', atendente: 'Atendente', administrador: 'Administrador' }
+const DESCRICAO_PAPEL = { estudante: 'Chat com a base oficial', atendente: 'Fila de risco e casos', administrador: 'Painel e base de conhecimento' }
+
+// Só aparece quando o backend está em DEMO_MODE=true (GET /demo/estado responde).
+function AcessoDemo({ onSucesso }) {
+  const { entrar } = useSessao()
+  const [demo, setDemo] = useState(null)
+  const [entrando, setEntrando] = useState(null)
+  const [erro, setErro] = useState('')
+  useEffect(() => { let vivo = true; estadoDemonstracao().then((d) => vivo && setDemo(d)); return () => { vivo = false } }, [])
+  if (!demo) return null
+
+  async function como(papel) {
+    setErro('')
+    setEntrando(papel)
+    try { onSucesso(await entrar(null, null, papel)) } catch (e) { setErro(e.message || 'Não foi possível entrar agora.') } finally { setEntrando(null) }
+  }
+
+  return (
+    <section className={s.acessoDemo} aria-labelledby="titulo-demo">
+      <h2 id="titulo-demo" className={s.acessoDemoTitulo}>Acessar como demonstração</h2>
+      <p className={s.acessoDemoTexto}>Dados fictícios. Nenhum dado real de estudante é usado.</p>
+      <div className={s.acessoDemoBotoes}>
+        {demo.perfis.map((p) => (
+          <button key={p.papel} type="button" className={`btn btn--secundario ${s.acessoDemoBotao}`}
+            onClick={() => como(p.papel)} disabled={Boolean(entrando)} aria-busy={entrando === p.papel}>
+            <span className={s.acessoDemoPapel}>{ROTULO_PAPEL[p.papel] ?? p.papel}</span>
+            <span className={s.acessoDemoDescricao}>{entrando === p.papel ? 'Entrando…' : DESCRICAO_PAPEL[p.papel]}</span>
+          </button>
+        ))}
+      </div>
+      {erro && <p className={s.erroGeral} role="alert">{erro}</p>}
+    </section>
   )
 }

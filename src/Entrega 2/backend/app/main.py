@@ -76,7 +76,7 @@ def _repo_padrao(s: Settings, modelo: object = None) -> Repositorio:
         from app.db.demo_repo import RepoDemo
 
         log.warning("DEMO_MODE ativo: dados fictícios dos seeds em memória, sem Supabase")
-        return RepoDemo(s.caminho(s.demo_snapshot_path), modelo=modelo)  # type: ignore[return-value]
+        return RepoDemo(s.caminho(s.demo_snapshot_path))  # type: ignore[return-value]
     if not s.supabase_configurado:
         log.error("Supabase não configurado: as rotas que usam o banco vão responder 503")
         return RepositorioIndisponivel()  # type: ignore[return-value]

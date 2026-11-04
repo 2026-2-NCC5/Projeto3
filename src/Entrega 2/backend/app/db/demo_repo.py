@@ -80,11 +80,17 @@ class RepoDemo(RepoMemoria):
             snap = json.load(f)
         with self._trava:
             RepoMemoria.__init__(self)
+            self.historias = []
             self._carregar(snap)
             self._curar_historias()
             self._simular_uso_chat()
 
     def _carregar(self, s: dict[str, list[dict[str, Any]]]) -> None:
+        # Trajetórias pré-calculadas pelo modelo real (seeds/curar_snapshot_demo.py)
+        for sc in s.get("curadoria_scores", []):
+            alvo = next((x for x in s["scores_risco"] if x["id"] == sc["id"]), None)
+            if alvo:
+                alvo.update(sc)
         self.perfis = {p["id"]: p for p in s["perfis"]}
         self.estudantes = {e["id"]: e for e in s["estudantes"]}
         for sc in s["scores_risco"]:

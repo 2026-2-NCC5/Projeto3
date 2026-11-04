@@ -4,7 +4,7 @@
 // Armazenamento: o supabase-js guarda a própria sessão (token) no localStorage, como ele
 // gerencia por padrão. Nada mais de sessão é gravado. No mock, o token falso fica no
 // sessionStorage (some ao fechar a aba).
-import { MODO_MOCK, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config.js'
+import { API_BASE, MODO_MOCK, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config.js'
 
 export class ErroLogin extends Error {
   constructor(codigo, mensagem) {
@@ -116,5 +116,56 @@ const mockProvedor = {
   async ouvir() { return () => {} },
 }
 
-export const provedor = MODO_MOCK ? mockProvedor : supabaseProvedor
+// ------------------------------------------------------------ demo (DEMO_MODE=true)
+// O backend em modo demonstração emite o próprio token (/demo/entrar). Detectado em tempo de
+// execução: o mesmo build funciona com Supabase ou em demonstração.
+const CHAVE_DEMO = 'asa:demo-token'
+let estadoDemo = null
+export function estadoDemonstracao() {
+  if (MODO_MOCK) return Promise.resolve(null)
+  estadoDemo ??= fetch(`${API_BASE}/demo/estado`, { headers: { Accept: 'application/json' } })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => (d?.demo ? d : null))
+    .catch(() => null)
+  return estadoDemo
+}
+
+function lerTokenDemo() {
+  let t = null
+  try { t = sessionStorage.getItem(CHAVE_DEMO) } catch { /* sem storage */ }
+  if (!t) return null
+  try {
+    const { exp } = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return exp * 1000 > Date.now() + 5000 ? t : null
+  } catch { return null }
+}
+
+async function entrarDemo(corpo) {
+  let r
+  try {
+    r = await fetch(`${API_BASE}/demo/entrar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
+  } catch { throw new ErroLogin('rede', MSG.rede) }
+  if (r.status === 401) throw new ErroLogin('credenciais', MSG.credenciais)
+  if (!r.ok) throw new ErroLogin('desconhecido', MSG.desconhecido)
+  const { access_token: token } = await r.json()
+  try { sessionStorage.setItem(CHAVE_DEMO, token) } catch { /* sem storage */ }
+}
+
+const demoProvedor = {
+  async token() { return lerTokenDemo() },
+  async temSessao() { return Boolean(lerTokenDemo()) },
+  async entrar(email, senha) { await entrarDemo({ email: email.trim().toLowerCase(), senha }) },
+  async entrarComo(papel) { await entrarDemo({ papel }) },
+  async sair() { try { sessionStorage.removeItem(CHAVE_DEMO) } catch { /* sem storage */ } },
+  async recuperarSenha() { throw new ErroLogin('configuracao', 'Na demonstração não há recuperação de senha. Use um dos acessos abaixo.') },
+  async definirSenha() { throw new ErroLogin('configuracao', 'Indisponível na demonstração.') },
+  async ouvir() { return () => {} },
+}
+
+const real = async () => ((await estadoDemonstracao()) ? demoProvedor : supabaseProvedor)
+const delegar = (nome) => async (...args) => (await real())[nome](...args)
+
+export const provedor = MODO_MOCK
+  ? mockProvedor
+  : Object.fromEntries(['token', 'temSessao', 'entrar', 'entrarComo', 'sair', 'recuperarSenha', 'definirSenha', 'ouvir'].map((n) => [n, delegar(n)]))
 export const SENHA_DEMONSTRACAO = MODO_MOCK ? SENHA_DEMO : null

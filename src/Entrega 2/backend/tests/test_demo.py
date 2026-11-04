@@ -103,7 +103,9 @@ def test_desativar_documento_tira_da_busca_e_reiniciar_volta(demo: TestClient) -
     ).json()
     assert all("trancamento" not in f["titulo"].lower() for f in resp["fontes"] if not resp["abstencao"])
 
-    assert demo.post("/demo/reiniciar", headers=h).status_code == 200
+    reinicio = demo.post("/demo/reiniciar", headers=h)
+    assert reinicio.status_code == 200
+    assert len(reinicio.json()["historias"]) == 3
     depois = demo.post(
         "/chat", json={"mensagem": "Como faço para trancar a matrícula?"}, headers=_entrar(demo, "estudante")
     ).json()
