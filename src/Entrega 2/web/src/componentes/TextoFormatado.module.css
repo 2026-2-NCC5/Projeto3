@@ -1,0 +1,55 @@
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  line-height: 1.65;
+  overflow-wrap: anywhere; /* URLs longas não estouram a coluna */
+}
+
+.texto ul,
+.texto ol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+.texto li::marker { color: var(--cor-marca-700); }
+
+/* Passo a passo: número em destaque à esquerda, alinhado à primeira linha. */
+.texto ol { list-style: none; padding-left: 0; counter-reset: passo; }
+.texto ol > li { position: relative; padding-left: 2em; counter-increment: passo; }
+.texto ol > li::before {
+  content: counter(passo);
+  position: absolute; left: 0; top: 0.2em;
+  width: 1.45em; height: 1.45em;
+  display: grid; place-items: center;
+  border: 1px solid var(--cor-marca-200);
+  border-radius: var(--raio-sm);
+  background: var(--cor-marca-100);
+  color: var(--cor-marca-700);
+  font-size: var(--texto-xs); font-weight: var(--peso-forte); font-variant-numeric: tabular-nums;
+}
+
+/* Lista com marcadores: check verde em vez de bolinha (lista numerada mantém os números). */
+.texto ul { padding-left: 0; list-style: none; }
+.texto ul > li {
+  position: relative;
+  padding-left: 1.75em;
+}
+.texto ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.32em;
+  width: 1.1em;
+  height: 1.1em;
+  background: var(--cor-marca-700);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8.25' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M6.5 10.3l2.4 2.4 4.6-4.9' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8.25' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M6.5 10.3l2.4 2.4 4.6-4.9' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.texto a {
+  color: var(--cor-marca-700);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+.texto a:hover { color: var(--cor-marca-800); text-decoration-thickness: 2px; }

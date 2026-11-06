@@ -1,0 +1,40 @@
+# Blueprint do Render: ASA Turbo em container único (API + web), plano gratuito, HTTPS automático.
+# O projeto fica em "src/Entrega 2"; o Dockerfile de lá builda tudo (ver src/Entrega 2/DEPLOY.md).
+# ATENÇÃO: o Blueprint lê o repositório do GitHub. NÃO faça push da main antes de limpar o commit
+# ee7c027 (dados reais) do histórico. Alternativa sem push: DEPLOY.md, caminho A (imagem pronta).
+services:
+  - type: web
+    name: asa-turbo
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: src/Entrega 2
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      # Demonstração sem banco externo (seeds em memória). false = Supabase real (preencha abaixo).
+      - key: DEMO_MODE
+        value: "true"
+      - key: APP_ENV
+        value: producao
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DEMO_PASSWORD
+        sync: false
+      # Só com DEMO_MODE=false:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_API_TOKEN
+        sync: false
+      - key: HF_API_TOKEN
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

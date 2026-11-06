@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/logo-asaturbo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" />
+  <link rel="stylesheet" href="/src/styles/base.css" />
+  <title>ASA Turbo · Design system</title>
+  <style>
+    /* Layout só desta página de referência */
+    .ds { max-width: var(--largura-conteudo); margin: 0 auto; padding: var(--esp-6) var(--esp-4) var(--esp-8); }
+    .ds-topo { display: flex; align-items: center; gap: var(--esp-3); padding-bottom: var(--esp-5); border-bottom: var(--borda); margin-bottom: var(--esp-6); }
+    .ds-topo img { width: 40px; height: 40px; border-radius: var(--raio-md); }
+    .ds-topo p { color: var(--cor-texto-2); font-size: var(--texto-sm); }
+    .ds-topo .acoes { margin-left: auto; }
+    .ds section { margin-bottom: var(--esp-7); }
+    .ds section > h2 { margin-bottom: var(--esp-1); }
+    .ds section > .descricao { color: var(--cor-texto-2); font-size: var(--texto-sm); margin-bottom: var(--esp-4); max-width: 60ch; }
+    .ds-linha { display: flex; flex-wrap: wrap; gap: var(--esp-3); align-items: center; }
+    .ds-grade { display: grid; gap: var(--esp-4); grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); }
+    .amostra { display: grid; grid-template-columns: 2.5rem 1fr; gap: var(--esp-2) var(--esp-3); align-items: center; font-size: var(--texto-xs); }
+    .amostra i { width: 2.5rem; height: 2.5rem; border-radius: var(--raio-sm); border: var(--borda); display: block; }
+    .amostra code { font-family: var(--fonte-mono); color: var(--cor-texto-2); }
+    .ds-tipo > * + * { margin-top: var(--esp-2); }
+    .ds-filtros { display: grid; gap: var(--esp-3); grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); align-items: end; margin-bottom: var(--esp-3); }
+    .ds-formulario { display: grid; gap: var(--esp-4); max-width: 30rem; }
+    .ds-esq { display: grid; gap: var(--esp-2); padding: var(--esp-4); }
+    .ds-esq .esqueleto:nth-child(3) { width: 85%; }
+    .ds-esq .esqueleto:nth-child(4) { width: 60%; }
+    .ds-score { display: flex; align-items: baseline; gap: var(--esp-3); padding: var(--esp-4); }
+    .ds-score strong { font-size: var(--texto-2xl); font-weight: var(--peso-titulo); font-variant-numeric: tabular-nums; }
+    .ds-chat { padding: var(--esp-4); max-width: var(--largura-leitura); display: grid; gap: var(--esp-3); }
+    .ds-chat ol { padding-left: var(--esp-5); display: grid; gap: var(--esp-1); }
+    .ds-chat footer { border-top: var(--borda); padding-top: var(--esp-2); font-size: var(--texto-xs); color: var(--cor-texto-2); }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <main class="ds" id="conteudo">
+    <header class="ds-topo">
+      <img src="/logo-asaturbo.png" alt="" />
+      <div>
+        <h1>ASA Turbo · Design system</h1>
+        <p>Tokens em <code>web/src/styles/tokens.css</code>, primitivas em <code>web/src/styles/base.css</code>. Use Tab para conferir o foco.</p>
+      </div>
+      <div class="acoes">
+        <button class="btn btn--secundario btn--sm" type="button" id="alternar-tema" aria-pressed="false">Tema escuro</button>
+      </div>
+    </header>
+
+    <section aria-labelledby="s-cores">
+      <h2 id="s-cores">Cores</h2>
+      <p class="descricao">Uma cor de destaque: o verde institucional. O semáforo é reservado ao risco de evasão e sempre aparece com o nome da categoria.</p>
+      <div class="ds-grade">
+        <div class="amostra"><i style="background:var(--cor-marca-700)"></i><span>Primária<br><code>--cor-marca-700</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-marca-900)"></i><span>Marca escura<br><code>--cor-marca-900</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-marca-100)"></i><span>Realce<br><code>--cor-marca-100</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-fundo)"></i><span>Fundo<br><code>--cor-fundo</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-superficie)"></i><span>Superfície<br><code>--cor-superficie</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-superficie-2)"></i><span>Superfície 2<br><code>--cor-superficie-2</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-texto)"></i><span>Texto<br><code>--cor-texto</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-texto-2)"></i><span>Texto secundário<br><code>--cor-texto-2</code></span></div>
+        <div class="amostra"><i style="background:var(--risco-verde-ponto)"></i><span>Risco verde<br><code>--risco-verde-*</code></span></div>
+        <div class="amostra"><i style="background:var(--risco-amarelo-ponto)"></i><span>Risco amarelo<br><code>--risco-amarelo-*</code></span></div>
+        <div class="amostra"><i style="background:var(--risco-vermelho-ponto)"></i><span>Risco vermelho<br><code>--risco-vermelho-*</code></span></div>
+        <div class="amostra"><i style="background:var(--cor-erro)"></i><span>Erro do sistema<br><code>--cor-erro</code></span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="s-tipo">
+      <h2 id="s-tipo">Tipografia</h2>
+      <p class="descricao">Schibsted Grotesk na interface; Source Serif 4 apenas para trechos citados de documentos oficiais.</p>
+      <div class="ds-tipo">
+        <p style="font-size:var(--texto-3xl);font-weight:var(--peso-titulo);letter-spacing:var(--espacamento-titulo);line-height:1.1">Como posso ajudar hoje?</p>
+        <h1>Fila de acompanhamento</h1>
+        <h2>Fatores que mais pesaram</h2>
+        <h3>Situação financeira</h3>
+        <p>Corpo de texto em 15 px. Respostas curtas, objetivas e com a fonte no rodapé.</p>
+        <p class="texto-meta">Atualizado em 14/10/2026 · modelo rl-baseline-1.0</p>
+        <p class="rotulo-secao">Rótulo de seção</p>
+        <blockquote>“Precisa do atestado de matrícula? É super simples: basta acessar o portal, escolher a opção Relatórios e emitir o documento.”</blockquote>
+      </div>
+    </section>
+
+    <section aria-labelledby="s-botoes">
+      <h2 id="s-botoes">Botões</h2>
+      <p class="descricao">Um primário por tela. Verbos claros: “Confirmar avaliação”, não “OK”.</p>
+      <div class="ds-linha">
+        <button class="btn btn--primario" type="button">Confirmar avaliação</button>
+        <button class="btn btn--secundario" type="button">Ajustar categoria</button>
+        <button class="btn btn--fantasma" type="button">Ver histórico</button>
+        <button class="btn btn--perigo" type="button">Rejeitar alerta</button>
+        <button class="btn btn--primario" type="button" disabled>Desabilitado</button>
+        <button class="btn btn--secundario btn--sm" type="button">Pequeno</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="s-campos">
+      <h2 id="s-campos">Campos</h2>
+      <p class="descricao">Rótulo sempre visível, ajuda abaixo e erro com texto (não só cor).</p>
+      <form class="ds-formulario" onsubmit="return false">
+        <div class="campo">
+          <label class="campo__rotulo" for="ds-email">E-mail institucional</label>
+          <input class="input" id="ds-email" type="email" placeholder="nome@edu.fecap.br" autocomplete="email" />
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" for="ds-decisao">Decisão</label>
+          <select class="select" id="ds-decisao">
+            <option>Confirmar</option><option>Ajustar</option><option>Rejeitar</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" for="ds-just">Justificativa</label>
+          <textarea class="textarea" id="ds-just" aria-invalid="true" aria-describedby="ds-just-ajuda ds-just-erro">Conversei.</textarea>
+          <span class="campo__ajuda" id="ds-just-ajuda">Fica registrada no histórico do caso e na auditoria.</span>
+          <span class="campo__erro" id="ds-just-erro">Escreva pelo menos 20 caracteres explicando a decisão.</span>
+        </div>
+      </form>
+    </section>
+
+    <section aria-labelledby="s-risco">
+      <h2 id="s-risco">Risco</h2>
+      <p class="descricao">Visível só para atendente e administração. Faixas: Verde &lt; 30%, Amarelo 30–60%, Vermelho ≥ 60%.</p>
+      <div class="ds-linha" style="margin-bottom:var(--esp-4)">
+        <span class="badge-risco badge-risco--verde">Verde</span>
+        <span class="badge-risco badge-risco--amarelo">Amarelo</span>
+        <span class="badge-risco badge-risco--vermelho">Vermelho</span>
+        <span class="etiqueta">Em acompanhamento</span>
+        <span class="etiqueta">modelo rl-baseline-1.0</span>
+      </div>
+      <div class="painel ds-score" style="max-width:24rem">
+        <strong>72%</strong>
+        <span class="badge-risco badge-risco--vermelho">Vermelho</span>
+        <span class="texto-meta">+9 p.p. em 3 meses</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="s-tabela">
+      <h2 id="s-tabela">Tabela da fila</h2>
+      <p class="descricao">Densa, com números tabulares e filtros acima. Dados fictícios.</p>
+      <div class="ds-filtros">
+        <div class="campo">
+          <label class="campo__rotulo" for="ds-busca">Buscar</label>
+          <input class="input" id="ds-busca" type="search" placeholder="Nome ou RA" />
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" for="ds-cat">Categoria</label>
+          <select class="select" id="ds-cat"><option>Todas</option><option>Vermelho</option><option>Amarelo</option><option>Verde</option></select>
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" for="ds-pri">Prioridade</label>
+          <select class="select" id="ds-pri"><option>Todas</option><option>Urgente</option><option>Alta</option><option>Média</option><option>Baixa</option></select>
+        </div>
+      </div>
+      <div class="tabela-container">
+        <table class="tabela">
+          <caption class="sr-only">Fila de risco de evasão, ordenada por score</caption>
+          <thead>
+            <tr><th scope="col">Estudante</th><th scope="col">RA</th><th scope="col">Curso</th><th scope="col" class="num">Score</th><th scope="col">Categoria</th><th scope="col">Tendência</th><th scope="col">Status</th><th scope="col">Prazo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><a href="#">Marina Cordeiro</a></td><td class="numero">99001473</td><td>Administração</td><td class="num">78%</td><td><span class="badge-risco badge-risco--vermelho">Vermelho</span></td><td>Subindo</td><td><span class="etiqueta">Novo</span></td><td>05/11</td></tr>
+            <tr><td><a href="#">Tiago Moreira</a></td><td class="numero">99000218</td><td>Ciências Contábeis</td><td class="num">64%</td><td><span class="badge-risco badge-risco--vermelho">Vermelho</span></td><td>Estável</td><td><span class="etiqueta">Contatado</span></td><td>07/11</td></tr>
+            <tr><td><a href="#">Paula Nascimento</a></td><td class="numero">99002901</td><td>Ciência da Computação</td><td class="num">47%</td><td><span class="badge-risco badge-risco--amarelo">Amarelo</span></td><td>Subindo</td><td><span class="etiqueta">Em acompanhamento</span></td><td>12/11</td></tr>
+            <tr><td><a href="#">Rafael Duarte</a></td><td class="numero">99000034</td><td>Economia</td><td class="num">33%</td><td><span class="badge-risco badge-risco--amarelo">Amarelo</span></td><td>Caindo</td><td><span class="etiqueta">Novo</span></td><td>18/11</td></tr>
+            <tr><td><a href="#">Lívia Antunes</a></td><td class="numero">99001190</td><td>Relações Internacionais</td><td class="num">12%</td><td><span class="badge-risco badge-risco--verde">Verde</span></td><td>Estável</td><td><span class="etiqueta">Resolvido</span></td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="s-chat">
+      <h2 id="s-chat">Resposta do chat</h2>
+      <p class="descricao">Curta, passo a passo numerado quando é procedimento, fontes e data no rodapé.</p>
+      <article class="painel ds-chat">
+        <p>Para emitir o atestado de matrícula:</p>
+        <ol>
+          <li>Acesse o portal.</li>
+          <li>Escolha a opção Relatórios.</li>
+          <li>Emita o documento.</li>
+        </ol>
+        <footer>Fonte: Cesta de Serviços ASA · Atestado de matrícula · atualizado em 15/10/2026</footer>
+      </article>
+    </section>
+
+    <section aria-labelledby="s-estados">
+      <h2 id="s-estados">Estados</h2>
+      <p class="descricao">Toda tela trata carregando, vazio, erro e offline. Sempre com o que fazer a seguir.</p>
+      <div class="ds-grade" style="grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))">
+        <div class="painel ds-esq" aria-busy="true" aria-live="polite">
+          <span class="sr-only">Carregando fila de casos</span>
+          <span class="esqueleto esqueleto--titulo"></span>
+          <span class="esqueleto"></span>
+          <span class="esqueleto"></span>
+          <span class="esqueleto"></span>
+        </div>
+        <div class="estado" role="status">
+          <p class="estado__titulo">Nenhum caso com esses filtros</p>
+          <p class="estado__texto">Tente incluir a categoria Amarelo ou limpar a busca.</p>
+          <div class="estado__acoes"><button class="btn btn--secundario btn--sm" type="button">Limpar filtros</button></div>
+        </div>
+        <div class="estado estado--erro" role="alert">
+          <p class="estado__titulo">Não foi possível carregar a fila</p>
+          <p class="estado__texto">O servidor não respondeu. Seus filtros foram mantidos.</p>
+          <div class="estado__acoes"><button class="btn btn--primario btn--sm" type="button">Tentar de novo</button></div>
+        </div>
+        <div class="estado estado--offline" role="status">
+          <p class="estado__titulo">Você está offline</p>
+          <p class="estado__texto">Mostrando a última versão salva. As ações ficam disponíveis quando a conexão voltar.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script type="module">
+    const botao = document.getElementById('alternar-tema')
+    botao.addEventListener('click', () => {
+      const escuro = document.documentElement.dataset.theme !== 'dark'
+      document.documentElement.dataset.theme = escuro ? 'dark' : 'light'
+      botao.setAttribute('aria-pressed', String(escuro))
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+{
+  "versao": "risco-2.0.0",
+  "artefato": "ml/artifacts/risco_v2.joblib",
+  "sha256": "c98263417baaec72e18a01e23b6e8c17b5134785e2bb4c68bc0fb291dc7ed66e",
+  "treinado_em": "2026-11-02T21:42:42+00:00",
+  "algoritmo": "XGBoost monotônico",
+  "hiperparametros": {
+    "subsample": 0.8,
+    "reg_lambda": 5.0,
+    "n_estimators": 500,
+    "min_child_weight": 1,
+    "max_depth": 6,
+    "learning_rate": 0.03,
+    "colsample_bytree": 0.7
+  },
+  "calibracao": "isotonic",
+  "conjunto_features": "sem_sensiveis_sem_contatos+derivadas",
+  "features": [
+    "tempo_de_curso",
+    "Idade",
+    "mora_sp_capital",
+    "total_parcelas",
+    "pct_parcelas_em_aberto",
+    "pct_parcelas_acordo",
+    "atraso_medio_dias",
+    "valor_total_periodo",
+    "media_notas",
+    "media_assiduidade",
+    "pct_reprovacao",
+    "tendencia_notas",
+    "tendencia_assiduidade",
+    "total_semestres",
+    "tem_bolsa",
+    "sem_historico_academico",
+    "Forma de Ingresso",
+    "Grau Acadêmico",
+    "Turno"
+  ],
+  "features_removidas": [
+    "Sexo",
+    "Estado Civil",
+    "total_contatos",
+    "dias_desde_ultimo_contato"
+  ],
+  "nunca_exibidos_como_fator": [
+    "Estado Civil",
+    "Idade",
+    "Sexo"
+  ],
+  "limiares_ativos": {
+    "amarelo": 0.3,
+    "vermelho": 0.6
+  },
+  "limiares_recomendados": {
+    "amarelo": 0.1,
+    "vermelho": 0.6
+  },
+  "metricas_teste_limiar_ativo": {
+    "auc": 0.9129,
+    "pr_auc": 0.755,
+    "brier": 0.083,
+    "recall": 0.758,
+    "precisao": 0.6355,
+    "f1": 0.6914,
+    "pct_sinalizados": 0.2334
+  },
+  "metricas_teste_limiar_recomendado": {
+    "auc": 0.9129,
+    "pr_auc": 0.755,
+    "brier": 0.083,
+    "recall": 0.8869,
+    "precisao": 0.4528,
+    "f1": 0.5996,
+    "pct_sinalizados": 0.3833
+  },
+  "cv_auc": {
+    "logistica": {
+      "media": 0.8347,
+      "dp": 0.0105
+    },
+    "random_forest": {
+      "media": 0.9383,
+      "dp": 0.0061
+    },
+    "xgboost": {
+      "media": 0.9346,
+      "dp": 0.0072
+    }
+  },
+  "baseline_e1": {
+    "pct_sinalizados": 0.3609,
+    "recall": 0.7707,
+    "precisao": 0.418,
+    "auc": 0.82
+  },
+  "justificativa": [
+    "Na validação cruzada do treino (5 folds), as árvores superam a logística por ~0,10 de AUC (RL 0.835, RF 0.938, XGBoost 0.935). RF e XGBoost empatam (diferença < 0,005); fica o XGBoost, que explica cada aluno de forma exata (TreeSHAP nativo) e gera um artefato muito menor. O teste não foi usado para escolher.",
+    "Restrições monotônicas (mais parcelas em aberto/atraso/reprovação → mais risco; mais nota/frequência → menos risco) custam 0.014 de AUC na CV (0.929 → 0.915). Sem elas, o modelo aprende artefatos do retrato pós-desfecho (ex.: 0% de parcelas em aberto associado a mais evasão) e mostraria ao atendente fatores contraditórios. Aceitas por custarem menos que o limite definido (0,03).",
+    "Sexo e Estado Civil retirados: perda de AUC < 0,01 na CV e as lacunas de recall/FPR entre grupos não pioram.",
+    "total_contatos e dias_desde_ultimo_contato retirados (regra 5): a base não separa pedidos do estudante de contatos ativos do ASA, então procurar o ASA poderia mudar o score.",
+    "Probabilidade calibrada (isotonic, Brier 0.083 no teste): o score se lê como chance de evasão."
+  ],
+  "uso": "from risco.modelo import RiskModel; RiskModel.carregar(caminho).predict(features)",
+  "aviso": "Apoio à decisão. Nenhuma ação deve ser tomada sem avaliação humana."
+}

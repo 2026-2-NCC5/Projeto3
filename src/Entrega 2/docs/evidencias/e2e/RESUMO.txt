@@ -1,0 +1,21 @@
+E2E (Playwright 1.49.1, Chromium) contra a stack local `docker compose up` em http://localhost:8080
+Data: 03/11/2026 · comando: e2e/rodar.sh · relatório HTML: index.html (nesta pasta)
+
+Resultado: 4/4 passando
+
+1. estudante: login → pergunta "Como tiro o atestado de matrícula?" → resposta com fonte e
+   "atualizado em dd/mm/aaaa" → feedback Útil (aria-pressed) → "receita de bolo" → abstenção →
+   "Falar com o ASA" mostra protocolo do encaminhamento → conversa aparece em "Conversas anteriores"
+   e reabre com as duas perguntas.
+2. estudante em /fila: tela "Sem acesso" (título "Sem acesso · ASA Turbo") e GET /api/casos = 403.
+3. atendente: filtro Vermelho (todas as linhas Vermelho) → busca por RA (1 linha) → detalhe com
+   score, versão do modelo e data, tendência de 6 meses, fatores, recomendação → validação
+   "Ajustar" com justificativa → "Avaliação registrada." → justificativa no histórico do caso.
+4. admin: painel (distribuição, abstenção, úteis) → base de conhecimento → cadastrar documento →
+   publicar versão 2 → desativar (diálogo com motivo).
+
+Observações
+- Os testes escrevem no banco de demonstração: a cada execução um caso vermelho é ajustado e um
+  documento "Plantão de dúvidas de teste e2e <data>" é criado e desativado.
+- Um único navegador/viewport (1280px). As telas em 390px são cobertas por e2e/telas.mjs
+  (screenshots + axe), não por fluxo completo.

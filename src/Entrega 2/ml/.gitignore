@@ -1,0 +1,6 @@
+# Ambiente local
+.venv/
+
+# O artefato final é liberado de propósito: só objetos ajustados + estatísticas agregadas
+# (auditado em treinar.auditar_artefato). candidatos.joblib continua fora (local, ~130 MB).
+!artifacts/risco_v2.joblib

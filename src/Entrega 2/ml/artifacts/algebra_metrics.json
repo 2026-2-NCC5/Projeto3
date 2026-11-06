@@ -1,0 +1,68 @@
+{
+  "p_colunas": 33,
+  "n_treino": 9626,
+  "variancia_pc1": 0.2491,
+  "variancia_pc1_pc2": 0.3374,
+  "componentes_80_90_95": [
+    15,
+    19,
+    22
+  ],
+  "kaiser": 11,
+  "numpy_igual_sklearn": true,
+  "mq_auc_teste": 0.8033,
+  "logistica_auc_teste": 0.8206,
+  "mq_previsoes_fora_0_1": 0.1362,
+  "auc_por_k": {
+    "1": {
+      "logistica": 0.669,
+      "xgboost": 0.7308,
+      "variancia": 0.2491
+    },
+    "2": {
+      "logistica": 0.6552,
+      "xgboost": 0.7556,
+      "variancia": 0.3374
+    },
+    "3": {
+      "logistica": 0.6979,
+      "xgboost": 0.7702,
+      "variancia": 0.4014
+    },
+    "5": {
+      "logistica": 0.6899,
+      "xgboost": 0.7938,
+      "variancia": 0.4951
+    },
+    "8": {
+      "logistica": 0.738,
+      "xgboost": 0.8252,
+      "variancia": 0.6004
+    },
+    "10": {
+      "logistica": 0.748,
+      "xgboost": 0.8319,
+      "variancia": 0.6648
+    },
+    "15": {
+      "logistica": 0.748,
+      "xgboost": 0.8314,
+      "variancia": 0.8111
+    },
+    "20": {
+      "logistica": 0.7521,
+      "xgboost": 0.8445,
+      "variancia": 0.9237
+    },
+    "25": {
+      "logistica": 0.7671,
+      "xgboost": 0.8491,
+      "variancia": 0.9871
+    },
+    "33": {
+      "logistica": 0.8206,
+      "xgboost": 0.8908,
+      "variancia": 1.0
+    }
+  }
+}

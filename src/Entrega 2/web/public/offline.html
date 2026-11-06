@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#062d1f" />
+  <title>Sem conexão · ASA Turbo</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px;
+      background: #f7f5ef; color: #1e1c18;
+      font: 15px/1.55 "Schibsted Grotesk", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    }
+    main { max-width: 26rem; display: grid; gap: 16px; }
+    .marca { width: 48px; height: 48px; border-radius: 6px; background: #062d1f; padding: 4px; }
+    h1 { font-size: 1.375rem; line-height: 1.25; letter-spacing: -0.01em; }
+    p { color: #57524a; }
+    button {
+      justify-self: start; min-height: 40px; padding: 0 16px;
+      background: #0f5c3f; color: #fffdf8; border: 0; border-radius: 6px;
+      font: inherit; font-size: 0.8125rem; font-weight: 650; cursor: pointer;
+    }
+    button:hover { background: #0b4430; }
+    button:focus-visible { outline: 2px solid #0f5c3f; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="marca" src="/marca.png" alt="" />
+    <h1>Você está sem conexão</h1>
+    <p>O ASA Turbo precisa da internet para consultar os documentos oficiais. Assim que a conexão voltar, é só tentar de novo.</p>
+    <button type="button" onclick="location.reload()">Tentar de novo</button>
+  </main>
+  <script>window.addEventListener('online', () => location.reload())</script>
+</body>
+</html>

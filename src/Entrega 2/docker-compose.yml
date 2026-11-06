@@ -1,0 +1,255 @@
+# =============================================================================
+# ASA Turbo · docker compose
+#
+#   Local (stack completa, sem nenhuma chave externa):
+#     python3 infra/local/preparar_env.py   # gera .env com COMPOSE_PROFILES=local
+#     docker compose up -d --build
+#     http://localhost:8080
+#
+#   Produção (Supabase gerenciado): .env sem o profile "local". Ver infra/deploy/README.md.
+#
+# Profiles:
+#   local       Postgres (imagem Supabase) + PostgREST + GoTrue + gateway + job de init
+#   monitoring  Prometheus + Grafana + cAdvisor (painel pronto)
+# =============================================================================
+name: asa-turbo
+
+x-logs: &logs
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+x-seguranca: &seguranca
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  # ------------------------------------------------------------------ app
+  backend:
+    build:
+      context: .
+      dockerfile: infra/backend.Dockerfile
+    image: asa-turbo-backend:0.9.0
+    env_file: .env
+    environment:
+      LOG_DIR: /var/log/asa
+    volumes:
+      - logs-backend:/var/log/asa
+    expose:
+      - "8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+        required: false
+    <<: [*logs, *seguranca]
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:-}
+        VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+        VITE_API_BASE_URL: /api
+    image: asa-turbo-web:0.9.0
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+      CSP_CONNECT_EXTRA: ${CSP_CONNECT_EXTRA:-}
+      SUPABASE_GW: ${SUPABASE_GW:-supabase-gw:8000}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT_HTTPS:-8443}:443"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+      - logs-web:/var/log/caddy
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    <<: [*logs, *seguranca]
+
+  # ------------------------------------------------------- Supabase local
+  db:
+    profiles: [local]
+    image: supabase/postgres:15.8.1.020
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      JWT_EXP: 3600
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./infra/local/99-roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    <<: *logs
+
+  gotrue:
+    profiles: [local]
+    image: supabase/gotrue:v2.164.0
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${PUBLIC_SUPABASE_URL:-http://localhost:8080}/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${PUBLIC_URL:-http://localhost:8080}
+      GOTRUE_URI_ALLOW_LIST: ${PUBLIC_URL:-http://localhost:8080}/*
+      GOTRUE_DISABLE_SIGNUP: "true"
+      GOTRUE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_RATE_LIMIT_TOKEN_REFRESH: 150
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9999/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    <<: *logs
+
+  postgrest:
+    profiles: [local]
+    image: postgrest/postgrest:v12.2.3
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      # igual ao Supabase gerenciado: uuid-ossp, vector e unaccent vivem no schema extensions
+      PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
+      PGRST_DB_POOL: 20
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    <<: *logs
+
+  supabase-gw:
+    profiles: [local]
+    image: caddy:2.8.4-alpine
+    volumes:
+      - ./infra/local/supabase-gw.Caddyfile:/etc/caddy/Caddyfile:ro
+    expose:
+      - "8000"
+    depends_on:
+      - postgrest
+      - gotrue
+    restart: unless-stopped
+    <<: *logs
+
+  db-init:
+    profiles: [local]
+    image: supabase/postgres:15.8.1.020
+    entrypoint: ["sh", "/init-db.sh"]
+    environment:
+      PGHOST: db
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-AsaTurbo#Demo2026}
+    volumes:
+      - ./infra/local/init-db.sh:/init-db.sh:ro
+      - ./infra/sql:/sql:ro
+      - ./seeds:/seeds:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      gotrue:
+        condition: service_healthy
+    restart: "no"
+
+  # ------------------------------------------------------- monitoramento
+  # docker compose --profile monitoring up -d   (ou COMPOSE_PROFILES=monitoring no .env)
+  # Grafana: http://127.0.0.1:3000 (na VM, por túnel SSH: ssh -L 3000:127.0.0.1:3000 ...)
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+      # só leitura, para o docker_sd nomear os containers (rede interna, sem porta publicada)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    user: "0:0"
+    expose:
+      - "9090"
+    restart: unless-stopped
+    <<: [*logs, *seguranca]
+
+  cadvisor:
+    profiles: [monitoring]
+    image: ghcr.io/google/cadvisor:v0.53.0
+    # Lê CPU/memória direto dos cgroups (id=/system.slice/docker-<id>.scope). O handler
+    # "docker" do cAdvisor fica desligado de propósito (socket inexistente): ele não
+    # reconhece containers com o image store do containerd (padrão no Docker 29) e
+    # esconderia essas séries. O nome do serviço vem do job docker-nomes do Prometheus.
+    command:
+      - --docker=unix:///nao/existe.sock
+      - --containerd=/nao/existe.sock
+      - --housekeeping_interval=15s
+      - --store_container_labels=false
+      - --disable_metrics=disk,diskIO,network,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl,cpuset,advtcp,memory_numa
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /sys:/sys:ro
+    expose:
+      - "8080"
+    restart: unless-stopped
+    <<: *logs
+
+  grafana:
+    profiles: [monitoring]
+    image: grafana/grafana:11.3.1
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?defina GRAFANA_ADMIN_PASSWORD no .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/asa-turbo.json
+    volumes:
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    <<: [*logs, *seguranca]
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
+  logs-backend:
+  logs-web:
+  prometheus-data:
+  grafana-data:

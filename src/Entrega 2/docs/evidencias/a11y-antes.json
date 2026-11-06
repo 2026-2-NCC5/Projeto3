@@ -1,0 +1,164 @@
+[
+  {
+    "tela": "login",
+    "largura": 390,
+    "titulo": "Entrar · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "chat-inicio",
+    "largura": 390,
+    "titulo": "Nova conversa · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "chat-conversa",
+    "largura": 390,
+    "titulo": "Como tiro o atestado de matrícula? · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": [
+      {
+        "id": "listitem",
+        "impacto": "serious",
+        "n": 2,
+        "ajuda": "<li> elements must be contained in a <ul> or <ol>",
+        "alvos": [
+          "._linhaEstudante_1xh6x_187",
+          "._linhaAgente_1xh6x_198"
+        ]
+      }
+    ]
+  },
+  {
+    "tela": "fila",
+    "largura": 390,
+    "titulo": "Fila de risco · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "caso",
+    "largura": 390,
+    "titulo": "Fernanda Soares Duarte · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "modelo",
+    "largura": 390,
+    "titulo": "Modelo de risco · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "painel",
+    "largura": 390,
+    "titulo": "Painel · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "documentos",
+    "largura": 390,
+    "titulo": "Base de conhecimento · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "documento",
+    "largura": 390,
+    "titulo": "Abatimento de valores de Disciplinas em Inglês · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "novo-documento",
+    "largura": 390,
+    "titulo": "Cadastrar documento · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "login",
+    "largura": 1280,
+    "titulo": "Entrar · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "chat-inicio",
+    "largura": 1280,
+    "titulo": "Nova conversa · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "chat-conversa",
+    "largura": 1280,
+    "titulo": "Como tiro o atestado de matrícula? · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": [
+      {
+        "id": "listitem",
+        "impacto": "serious",
+        "n": 2,
+        "ajuda": "<li> elements must be contained in a <ul> or <ol>",
+        "alvos": [
+          "._linhaEstudante_1xh6x_187",
+          "._linhaAgente_1xh6x_198"
+        ]
+      }
+    ]
+  },
+  {
+    "tela": "fila",
+    "largura": 1280,
+    "titulo": "Fila de risco · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "caso",
+    "largura": 1280,
+    "titulo": "Fernanda Soares Duarte · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "modelo",
+    "largura": 1280,
+    "titulo": "Modelo de risco · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "painel",
+    "largura": 1280,
+    "titulo": "Painel · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "documentos",
+    "largura": 1280,
+    "titulo": "Base de conhecimento · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "documento",
+    "largura": 1280,
+    "titulo": "Abatimento de valores de Disciplinas em Inglês · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  },
+  {
+    "tela": "novo-documento",
+    "largura": 1280,
+    "titulo": "Cadastrar documento · ASA Turbo",
+    "overflow_px": 0,
+    "violacoes": []
+  }
+]

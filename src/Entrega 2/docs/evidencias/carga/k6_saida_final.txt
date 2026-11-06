@@ -1,0 +1,31 @@
+
+     ✓ login 200
+     ✓ chat 200
+     ✓ tem fontes ou abstenção
+     ✓ fila 200
+     ✓ detalhe 200
+
+     abstencoes.....................: 42.22%  410 out of 971
+     checks.........................: 100.00% 2802 out of 2802
+     data_received..................: 9.7 MB  56 kB/s
+     data_sent......................: 1.4 MB  8.4 kB/s
+   ✓ erros_5xx......................: 0.00%   0 out of 1781
+     http_req_blocked...............: avg=14.72µs min=2.27µs  med=5.93µs  max=555.61µs p(90)=10.87µs  p(95)=14.01µs 
+     http_req_connecting............: avg=6.45µs  min=0s      med=0s      max=483.28µs p(90)=0s       p(95)=0s      
+     http_req_duration..............: avg=23.27ms min=9.91ms  med=20.7ms  max=111.2ms  p(90)=38.26ms  p(95)=41.04ms 
+       { expected_response:true }...: avg=23.27ms min=9.91ms  med=20.7ms  max=111.2ms  p(90)=38.26ms  p(95)=41.04ms 
+     http_req_failed................: 0.00%   0 out of 1831
+     ✓ { tipo:api }.................: 0.00%   0 out of 1781
+     http_req_receiving.............: avg=97.71µs min=30.28µs med=91.28µs max=546.13µs p(90)=145.22µs p(95)=167.93µs
+     http_req_sending...............: avg=28.68µs min=8.33µs  med=25.08µs max=260.72µs p(90)=44.81µs  p(95)=53.6µs  
+     http_req_tls_handshaking.......: avg=0s      min=0s      med=0s      max=0s       p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=23.15ms min=9.83ms  med=20.58ms max=111.11ms p(90)=38.13ms  p(95)=40.89ms 
+     http_reqs......................: 1831    10.650747/s
+     iteration_duration.............: avg=5.27s   min=2.05s   med=5.18s   max=8s       p(90)=7.39s    p(95)=7.69s   
+     iterations.....................: 1376    8.004057/s
+     lat_caso.......................: avg=14.34ms min=9.91ms  med=13.98ms max=32.35ms  p(90)=17.74ms  p(95)=19.5ms  
+   ✓ lat_chat.......................: avg=21.69ms min=13.66ms med=20.83ms max=86.99ms  p(90)=26.52ms  p(95)=28.73ms 
+   ✓ lat_fila.......................: avg=36.99ms min=28.78ms med=37.45ms max=111.2ms  p(90)=42.94ms  p(95)=44.5ms  
+     vus............................: 1       min=1            max=50
+     vus_max........................: 50      min=50           max=50
+

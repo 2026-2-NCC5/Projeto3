@@ -1,0 +1,14 @@
+# Lista de PERMISSÃO do Dockerfile da raiz (container único). data/ e .env NUNCA entram.
+*
+!backend/requirements.txt
+!backend/app/**
+!ml/artifacts/**
+!ml/risco/**
+!seeds/estudantes_sinteticos.csv
+!seeds/demo_snapshot.json.gz
+!web/**
+web/node_modules
+web/dist
+web/.env*
+**/__pycache__
+**/*.pyc

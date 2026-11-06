@@ -1,0 +1,10 @@
+# Varredura de segredos (gitleaks v8.21.2) - 2026-11-02T23:45:59-03:00
+## Histórico do Git (todos os commits)
+2:46AM INF 62 commits scanned.
+2:46AM INF scan completed in 9.25s
+2:46AM INF no leaks found
+
+## Arquivos versionados (árvore de trabalho, sem .env local e node_modules)
+achados: 0
+
+Observação: o .env local (gerado por infra/local/preparar_env.py, ignorado pelo Git) contém as chaves aleatórias da stack local; é esperado que apareça numa varredura de diretório e não é versionado.

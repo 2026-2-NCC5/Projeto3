@@ -1,0 +1,33 @@
+# Fly.io: ASA Turbo em container único. Deploy a partir desta pasta, sem git push:
+#   fly launch --no-deploy --copy-config --name asa-turbo-<sufixo>   (só na 1ª vez)
+#   fly deploy
+app = "asa-turbo"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  DEMO_MODE = "true"
+  APP_ENV = "producao"
+  LOG_LEVEL = "INFO"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Sempre 1 máquina ligada: o estado da demo fica em memória e a 1ª resposta não fica lenta.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

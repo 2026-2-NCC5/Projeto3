@@ -1,0 +1,10 @@
+# Lista de PERMISSÃO: tudo fora daqui fica fora do contexto de build
+# (inclui data/ com dados reais e qualquer .env). Usado pelo BuildKit para infra/backend.Dockerfile.
+*
+!backend/requirements.txt
+!backend/app/**
+!ml/artifacts/**
+!ml/risco/**
+!seeds/estudantes_sinteticos.csv
+**/__pycache__
+**/*.pyc
