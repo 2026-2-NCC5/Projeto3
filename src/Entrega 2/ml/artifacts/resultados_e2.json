@@ -1,0 +1,1933 @@
+{
+  "gerado_em": "2026-11-06T18:42:11+00:00",
+  "versao_relatorio": "2.0.0",
+  "artefatos": {
+    "modelo_joblib": "/home/ericbittu/Projeto3/src/Entrega 2/ml/artifacts/risco_v2.joblib",
+    "sha256_modelo": "c98263417baaec72e18a01e23b6e8c17b5134785e2bb4c68bc0fb291dc7ed66e",
+    "MODEL_VERSION_json": "/home/ericbittu/Projeto3/src/Entrega 2/ml/artifacts/MODEL_VERSION.json",
+    "metrics_json": "/home/ericbittu/Projeto3/src/Entrega 2/ml/artifacts/metrics.json",
+    "rag_metrics_json": "/home/ericbittu/Projeto3/src/Entrega 2/ml/artifacts/rag_metrics.json"
+  },
+  "dados": {
+    "linhas_brutas": 12842,
+    "duplicados_removidos": 7,
+    "outliers_atraso_sinalizado": 32,
+    "linhas_finais": 12835,
+    "n_treino": 9626,
+    "n_teste": 3209,
+    "taxa_evasao_treino": 0.1956,
+    "taxa_evasao_teste": 0.1957,
+    "semente": 42
+  },
+  "comparacao_cv": {
+    "logistica": {
+      "auc": 0.8347,
+      "pr_auc": 0.5988,
+      "recall": 0.7939,
+      "precisao": 0.4196,
+      "f1": 0.549,
+      "brier": 0.1673
+    },
+    "random_forest": {
+      "auc": 0.9383,
+      "pr_auc": 0.8611,
+      "recall": 0.6474,
+      "precisao": 0.9021,
+      "f1": 0.7535,
+      "brier": 0.0648
+    },
+    "xgboost": {
+      "auc": 0.9346,
+      "pr_auc": 0.8548,
+      "recall": 0.7907,
+      "precisao": 0.7461,
+      "f1": 0.7676,
+      "brier": 0.0729
+    }
+  },
+  "comparacao_teste_calibrado": {
+    "logistica": {
+      "auc": 0,
+      "pr_auc": 0,
+      "recall": 0,
+      "precisao": 0,
+      "f1": 0,
+      "brier": 0
+    },
+    "random_forest": {
+      "auc": 0,
+      "pr_auc": 0,
+      "recall": 0,
+      "precisao": 0,
+      "f1": 0,
+      "brier": 0
+    },
+    "xgboost": {
+      "auc": 0,
+      "pr_auc": 0,
+      "recall": 0,
+      "precisao": 0,
+      "f1": 0,
+      "brier": 0
+    },
+    "xgboost_monotonico": {
+      "auc": 0,
+      "pr_auc": 0,
+      "recall": 0,
+      "precisao": 0,
+      "f1": 0,
+      "brier": 0
+    }
+  },
+  "modelo_escolhido": {
+    "algoritmo": "XGBoost monotônico",
+    "versao": "risco-2.0.0",
+    "calibracao": "isotonic",
+    "conjunto_features": "sem_sensiveis_sem_contatos+derivadas",
+    "features": [
+      "tempo_de_curso",
+      "Idade",
+      "mora_sp_capital",
+      "total_parcelas",
+      "pct_parcelas_em_aberto",
+      "pct_parcelas_acordo",
+      "atraso_medio_dias",
+      "valor_total_periodo",
+      "media_notas",
+      "media_assiduidade",
+      "pct_reprovacao",
+      "tendencia_notas",
+      "tendencia_assiduidade",
+      "total_semestres",
+      "tem_bolsa",
+      "sem_historico_academico",
+      "Forma de Ingresso",
+      "Grau Acadêmico",
+      "Turno"
+    ],
+    "features_removidas": [
+      "Sexo",
+      "Estado Civil",
+      "total_contatos",
+      "dias_desde_ultimo_contato"
+    ],
+    "limiares_ativos": {
+      "amarelo": 0.3,
+      "vermelho": 0.6
+    },
+    "limiares_recomendados": {
+      "amarelo": 0.1,
+      "vermelho": 0.6
+    },
+    "sha256": "c98263417baaec72e18a01e23b6e8c17b5134785e2bb4c68bc0fb291dc7ed66e",
+    "treinado_em": "2026-11-02T21:42:42+00:00",
+    "justificativa": [
+      "Na validação cruzada do treino (5 folds), as árvores superam a logística por ~0,10 de AUC (RL 0.835, RF 0.938, XGBoost 0.935). RF e XGBoost empatam (diferença < 0,005); fica o XGBoost, que explica cada aluno de forma exata (TreeSHAP nativo) e gera um artefato muito menor. O teste não foi usado para escolher.",
+      "Restrições monotônicas (mais parcelas em aberto/atraso/reprovação → mais risco; mais nota/frequência → menos risco) custam 0.014 de AUC na CV (0.929 → 0.915). Sem elas, o modelo aprende artefatos do retrato pós-desfecho (ex.: 0% de parcelas em aberto associado a mais evasão) e mostraria ao atendente fatores contraditórios. Aceitas por custarem menos que o limite definido (0,03).",
+      "Sexo e Estado Civil retirados: perda de AUC < 0,01 na CV e as lacunas de recall/FPR entre grupos não pioram.",
+      "total_contatos e dias_desde_ultimo_contato retirados (regra 5): a base não separa pedidos do estudante de contatos ativos do ASA, então procurar o ASA poderia mudar o score.",
+      "Probabilidade calibrada (isotonic, Brier 0.083 no teste): o score se lê como chance de evasão."
+    ]
+  },
+  "metricas_teste": {
+    "limiar_contrato_0_30": {
+      "limiar": 0.3,
+      "auc": 0.9129,
+      "pr_auc": 0.755,
+      "brier": 0.083,
+      "recall": 0.758,
+      "precisao": 0.6355,
+      "f1": 0.6914,
+      "pct_sinalizados": 0.2334,
+      "matriz_confusao": {
+        "vn": 2308,
+        "fp": 273,
+        "fn": 152,
+        "vp": 476
+      }
+    },
+    "limiar_recomendado_0_10": {
+      "limiar": 0.1,
+      "auc": 0.9129,
+      "pr_auc": 0.755,
+      "brier": 0.083,
+      "recall": 0.8869,
+      "precisao": 0.4528,
+      "f1": 0.5996,
+      "pct_sinalizados": 0.3833,
+      "matriz_confusao": {
+        "vn": 1908,
+        "fp": 673,
+        "fn": 71,
+        "vp": 557
+      }
+    },
+    "limiar_vermelho_0_60": {
+      "limiar": 0.6,
+      "auc": 0.9129,
+      "pr_auc": 0.755,
+      "brier": 0.083,
+      "recall": 0.578,
+      "precisao": 0.8194,
+      "f1": 0.6779,
+      "pct_sinalizados": 0.138,
+      "matriz_confusao": {
+        "vn": 2501,
+        "fp": 80,
+        "fn": 265,
+        "vp": 363
+      }
+    },
+    "sem_calibrar": {
+      "limiar": 0.5,
+      "auc": 0.9144,
+      "pr_auc": 0.7549,
+      "brier": 0.1044,
+      "recall": 0.7818,
+      "precisao": 0.5909,
+      "f1": 0.6731,
+      "pct_sinalizados": 0.259,
+      "matriz_confusao": {
+        "vn": 2241,
+        "fp": 340,
+        "fn": 137,
+        "vp": 491
+      }
+    }
+  },
+  "capacidade_cobertura": [
+    {
+      "pct_contatados": 0.05,
+      "n_contatados": 161,
+      "limiar_equivalente": 0.8606,
+      "recall": 0.2293,
+      "precisao": 0.8944,
+      "lift": 4.57
+    },
+    {
+      "pct_contatados": 0.1,
+      "n_contatados": 321,
+      "limiar_equivalente": 0.7168,
+      "recall": 0.4411,
+      "precisao": 0.8629,
+      "lift": 4.41
+    },
+    {
+      "pct_contatados": 0.15,
+      "n_contatados": 482,
+      "limiar_equivalente": 0.5745,
+      "recall": 0.6146,
+      "precisao": 0.8008,
+      "lift": 4.09
+    },
+    {
+      "pct_contatados": 0.2,
+      "n_contatados": 642,
+      "limiar_equivalente": 0.3888,
+      "recall": 0.707,
+      "precisao": 0.6916,
+      "lift": 3.53
+    },
+    {
+      "pct_contatados": 0.3,
+      "n_contatados": 963,
+      "limiar_equivalente": 0.1715,
+      "recall": 0.8248,
+      "precisao": 0.5379,
+      "lift": 2.75
+    },
+    {
+      "pct_contatados": 0.4,
+      "n_contatados": 1284,
+      "limiar_equivalente": 0.089,
+      "recall": 0.8997,
+      "precisao": 0.44,
+      "lift": 2.25
+    }
+  ],
+  "faixas_risco": {
+    "Contrato (≥0.30 / ≥0.60)": {
+      "verde": {
+        "n": 2460,
+        "pct_alunos": 0.7666,
+        "taxa_evasao_real": 0.0618,
+        "prob_media_prevista": 0.0581
+      },
+      "amarelo": {
+        "n": 306,
+        "pct_alunos": 0.0954,
+        "taxa_evasao_real": 0.3693,
+        "prob_media_prevista": 0.4479
+      },
+      "vermelho": {
+        "n": 443,
+        "pct_alunos": 0.138,
+        "taxa_evasao_real": 0.8194,
+        "prob_media_prevista": 0.7965
+      },
+      "monotonica": true
+    },
+    "Recomendado (≥0.10 / ≥0.60)": {
+      "verde": {
+        "n": 1979,
+        "pct_alunos": 0.6167,
+        "taxa_evasao_real": 0.0359,
+        "prob_media_prevista": 0.0297
+      },
+      "amarelo": {
+        "n": 787,
+        "pct_alunos": 0.2452,
+        "taxa_evasao_real": 0.2465,
+        "prob_media_prevista": 0.281
+      },
+      "vermelho": {
+        "n": 443,
+        "pct_alunos": 0.138,
+        "taxa_evasao_real": 0.8194,
+        "prob_media_prevista": 0.7965
+      },
+      "monotonica": true
+    }
+  },
+  "calibracao": {
+    "Sem calibrar (pesos balanceados)": {
+      "brier": 0.1044,
+      "ece": 0.1047,
+      "curva": [
+        {
+          "prevista": 0.0101,
+          "observada": 0.0
+        },
+        {
+          "prevista": 0.0216,
+          "observada": 0.0031
+        },
+        {
+          "prevista": 0.0386,
+          "observada": 0.0187
+        },
+        {
+          "prevista": 0.0658,
+          "observada": 0.028
+        },
+        {
+          "prevista": 0.1069,
+          "observada": 0.0592
+        },
+        {
+          "prevista": 0.1745,
+          "observada": 0.0875
+        },
+        {
+          "prevista": 0.3058,
+          "observada": 0.1371
+        },
+        {
+          "prevista": 0.5334,
+          "observada": 0.2243
+        },
+        {
+          "prevista": 0.8056,
+          "observada": 0.5354
+        },
+        {
+          "prevista": 0.9453,
+          "observada": 0.8675
+        }
+      ]
+    },
+    "Calibrado (isotonic)": {
+      "brier": 0.083,
+      "ece": 0.0153,
+      "curva": [
+        {
+          "prevista": 0.0044,
+          "observada": 0.0031
+        },
+        {
+          "prevista": 0.0102,
+          "observada": 0.0062
+        },
+        {
+          "prevista": 0.0139,
+          "observada": 0.0219
+        },
+        {
+          "prevista": 0.0234,
+          "observada": 0.0218
+        },
+        {
+          "prevista": 0.0429,
+          "observada": 0.0464
+        },
+        {
+          "prevista": 0.0727,
+          "observada": 0.0975
+        },
+        {
+          "prevista": 0.1248,
+          "observada": 0.1464
+        },
+        {
+          "prevista": 0.2652,
+          "observada": 0.2305
+        },
+        {
+          "prevista": 0.5622,
+          "observada": 0.5202
+        },
+        {
+          "prevista": 0.8517,
+          "observada": 0.8629
+        }
+      ]
+    }
+  },
+  "abstencao": {
+    "regra": "Registros com atraso_medio_dias > 365 ou NaN em todos os campos financeiros recebem categoria 'dados_insuficientes' e recomendação de revisão manual.",
+    "n_outliers_atraso_detectados_treino": 32,
+    "politica": "contrato"
+  },
+  "analise_erros": {
+    "corte": 0.1,
+    "perfil": {
+      "n": {
+        "VP": 557,
+        "FN": 71,
+        "FP": 673,
+        "VN": 1908
+      },
+      "medianas": {
+        "FN": {
+          "media_notas": 65.04,
+          "media_assiduidade": 91.07,
+          "pct_reprovacao": 0.0,
+          "pct_parcelas_em_aberto": 0.0,
+          "atraso_medio_dias": -0.7,
+          "total_parcelas": 35.0,
+          "valor_total_periodo": 38298.0,
+          "tempo_de_curso": 1.0,
+          "total_semestres": 3.0,
+          "tendencia_assiduidade": 0.0,
+          "Idade": 28.0
+        },
+        "FP": {
+          "media_notas": 0.0,
+          "media_assiduidade": 0.0,
+          "pct_reprovacao": 0.0,
+          "pct_parcelas_em_aberto": 0.02,
+          "atraso_medio_dias": 0.0,
+          "total_parcelas": 18.0,
+          "valor_total_periodo": 12800.1,
+          "tempo_de_curso": 0.0,
+          "total_semestres": 0.0,
+          "tendencia_assiduidade": 0.0,
+          "Idade": 27.0
+        },
+        "VN": {
+          "media_notas": 66.12,
+          "media_assiduidade": 92.24,
+          "pct_reprovacao": 0.0,
+          "pct_parcelas_em_aberto": 0.0,
+          "atraso_medio_dias": -0.67,
+          "total_parcelas": 31.0,
+          "valor_total_periodo": 43566.66,
+          "tempo_de_curso": 3.0,
+          "total_semestres": 3.0,
+          "tendencia_assiduidade": 0.0,
+          "Idade": 24.0
+        },
+        "VP": {
+          "media_notas": 0.0,
+          "media_assiduidade": 0.0,
+          "pct_reprovacao": 0.0,
+          "pct_parcelas_em_aberto": 0.0,
+          "atraso_medio_dias": -0.71,
+          "total_parcelas": 18.0,
+          "valor_total_periodo": 5131.99,
+          "tempo_de_curso": 0.0,
+          "total_semestres": 0.0,
+          "tendencia_assiduidade": 0.0,
+          "Idade": 28.0
+        }
+      },
+      "pct_sem_notas_e_frequencia": {
+        "FN": 0.394,
+        "FP": 0.584,
+        "VN": 0.279,
+        "VP": 0.691
+      },
+      "categorias": {
+        "Grau Acadêmico": {
+          "FN": {
+            "Bacharelado": 0.592,
+            "Outros": 0.028,
+            "Pós-Graduação": 0.366,
+            "Tecnólogo": 0.014
+          },
+          "FP": {
+            "Bacharelado": 0.566,
+            "Outros": 0.012,
+            "Pós-Graduação": 0.389,
+            "Tecnólogo": 0.033
+          },
+          "VN": {
+            "Bacharelado": 0.708,
+            "Outros": 0.006,
+            "Pós-Graduação": 0.261,
+            "Tecnólogo": 0.025
+          },
+          "VP": {
+            "Bacharelado": 0.515,
+            "Outros": 0.013,
+            "Pós-Graduação": 0.429,
+            "Tecnólogo": 0.043
+          }
+        },
+        "Turno": {
+          "FN": {
+            "Integral": 0.07,
+            "Manhã": 0.549,
+            "Noite": 0.38
+          },
+          "FP": {
+            "Integral": 0.033,
+            "Manhã": 0.559,
+            "Noite": 0.409
+          },
+          "VN": {
+            "Integral": 0.028,
+            "Manhã": 0.719,
+            "Noite": 0.253
+          },
+          "VP": {
+            "Integral": 0.029,
+            "Manhã": 0.524,
+            "Noite": 0.447
+          }
+        },
+        "Forma de Ingresso": {
+          "FN": {
+            "Disciplina Isolada": 0.0,
+            "Enem": 0.239,
+            "Matricula Inicial": 0.338,
+            "Segunda Graduação": 0.085,
+            "Transferência": 0.042,
+            "Transferência Mesma Rede": 0.085,
+            "Vestibular": 0.211
+          },
+          "FP": {
+            "Disciplina Isolada": 0.004,
+            "Enem": 0.241,
+            "Matricula Inicial": 0.376,
+            "Segunda Graduação": 0.055,
+            "Transferência": 0.028,
+            "Transferência Mesma Rede": 0.055,
+            "Vestibular": 0.241
+          },
+          "VN": {
+            "Disciplina Isolada": 0.019,
+            "Enem": 0.362,
+            "Matricula Inicial": 0.238,
+            "Segunda Graduação": 0.02,
+            "Transferência": 0.036,
+            "Transferência Mesma Rede": 0.03,
+            "Vestibular": 0.295
+          },
+          "VP": {
+            "Disciplina Isolada": 0.0,
+            "Enem": 0.255,
+            "Matricula Inicial": 0.422,
+            "Segunda Graduação": 0.039,
+            "Transferência": 0.025,
+            "Transferência Mesma Rede": 0.031,
+            "Vestibular": 0.228
+          }
+        }
+      },
+      "dimensao_do_fator_dominante": {
+        "FN": {
+          "academica": 0.211,
+          "financeira": 0.718,
+          "perfil": 0.07
+        },
+        "FP": {
+          "academica": 0.208,
+          "financeira": 0.718,
+          "perfil": 0.074
+        },
+        "VN": {
+          "academica": 0.233,
+          "financeira": 0.653,
+          "perfil": 0.115
+        },
+        "VP": {
+          "academica": 0.169,
+          "financeira": 0.808,
+          "perfil": 0.023
+        }
+      }
+    },
+    "observacoes": [
+      "Falsos negativos (evadiram sem ser sinalizados) parecem alunos que ficam: nota mediana 65 (VN 66), frequência 91% (VN 92%), 3 semestres cursados (VN 3). É a evasão de quem estava bem: os dados disponíveis não têm sinal para ela.",
+      "Falsos positivos parecem os verdadeiros positivos: 58% deles não têm nenhuma nota nem frequência lançadas (VP 69%, VN 28%), tempo de curso mediano 0 e valor do período mediano R$ 12.800 (VP R$ 5.132, VN R$ 43.567). São sobretudo ingressantes sem histórico; para eles, um contato de acolhimento tem custo baixo e não é perdido.",
+      "Pós-Graduação responde por 37% dos falsos negativos. Recall por grau: Bacharelado 87%, Pós-Graduação 90%, Tecnólogo 96%. Onde o recall é menor, vale uma rotina própria (ex.: contato no 1º mês), independente do score.",
+      "Veteranos escapam mais: os FN têm mediana de 35 parcelas contra 18 dos VP. Recalcular o score todo mês, com notas e frequência do mês corrente, é o caminho para pegar quem piora no meio do curso.",
+      "A base é um retrato tirado depois do desfecho: quem evadiu tem mediana 0 de parcelas em aberto (as parcelas são encerradas) e 69% dos VP não têm notas lançadas. Isso infla a AUC e foi o motivo das restrições monotônicas. Antes de confiar no número absoluto, a v3 precisa de features com data de corte anterior à evasão."
+    ]
+  },
+  "explicabilidade": {
+    "media_abs_contribuicao": {
+      "valor_total_periodo": 1.2224,
+      "tempo_de_curso": 0.4977,
+      "Idade": 0.4075,
+      "total_parcelas": 0.3983,
+      "total_semestres": 0.3493,
+      "media_notas": 0.2723,
+      "Grau Acadêmico": 0.2433,
+      "Forma de Ingresso": 0.1853,
+      "tendencia_notas": 0.1571,
+      "atraso_medio_dias": 0.1519,
+      "tem_bolsa": 0.1166,
+      "pct_reprovacao": 0.0886,
+      "pct_parcelas_em_aberto": 0.0811,
+      "media_assiduidade": 0.0683,
+      "tendencia_assiduidade": 0.0607,
+      "sem_historico_academico": 0.049,
+      "Turno": 0.0409,
+      "mora_sp_capital": 0.0259,
+      "pct_parcelas_acordo": 0.0229
+    },
+    "importancia_permutacao_auc": {
+      "valor_total_periodo": 0.2539,
+      "tempo_de_curso": 0.0536,
+      "total_parcelas": 0.0376,
+      "Idade": 0.0361,
+      "total_semestres": 0.024,
+      "Grau Acadêmico": 0.0144,
+      "tem_bolsa": 0.0089,
+      "Forma de Ingresso": 0.0076,
+      "tendencia_notas": 0.0068,
+      "Turno": 0.0047,
+      "media_notas": 0.0044,
+      "atraso_medio_dias": 0.0038,
+      "pct_parcelas_em_aberto": 0.002,
+      "media_assiduidade": 0.002,
+      "sem_historico_academico": 0.0014,
+      "pct_reprovacao": 0.0008,
+      "tendencia_assiduidade": 0.0006,
+      "mora_sp_capital": 0.0006,
+      "pct_parcelas_acordo": 0.0005
+    },
+    "exemplo_sintetico": {
+      "entrada": {
+        "tempo_de_curso": 1,
+        "idade": 23,
+        "mora_sp_capital": false,
+        "total_parcelas": 12,
+        "pct_parcelas_em_aberto": 0.42,
+        "pct_parcelas_acordo": 0.1,
+        "atraso_medio_dias": 21,
+        "valor_total_periodo": 5200,
+        "media_notas": 41,
+        "media_assiduidade": 63,
+        "pct_reprovacao": 0.4,
+        "tendencia_notas": -12,
+        "tendencia_assiduidade": -15,
+        "total_semestres": 2,
+        "forma_ingresso": "Vestibular",
+        "grau_academico": "Bacharelado",
+        "turno": "Noite",
+        "tem_bolsa": false
+      },
+      "saida": {
+        "probabilidade": 0.912,
+        "categoria": "vermelho",
+        "score": {
+          "geral": 0.912,
+          "financeiro": 0.4287,
+          "academico": 0.5801,
+          "relacionamento": 0.203
+        },
+        "fatores": [
+          {
+            "codigo": "valor_periodo",
+            "descricao": "Valor do período abaixo da mediana dos alunos",
+            "dimensao": "financeira",
+            "direcao": "aumenta",
+            "peso": 0.364
+          },
+          {
+            "codigo": "media_notas",
+            "descricao": "Média de notas 41/100",
+            "dimensao": "academica",
+            "direcao": "aumenta",
+            "peso": 0.206
+          },
+          {
+            "codigo": "semestres_cursados",
+            "descricao": "2 semestres cursados",
+            "dimensao": "academica",
+            "direcao": "reduz",
+            "peso": 0.126
+          },
+          {
+            "codigo": "total_parcelas",
+            "descricao": "12 parcelas no contrato",
+            "dimensao": "financeira",
+            "direcao": "reduz",
+            "peso": 0.119
+          },
+          {
+            "codigo": "frequencia",
+            "descricao": "Frequência média de 63%",
+            "dimensao": "academica",
+            "direcao": "aumenta",
+            "peso": 0.105
+          },
+          {
+            "codigo": "atraso_pagamentos",
+            "descricao": "Atraso médio de 21 dias nos pagamentos",
+            "dimensao": "financeira",
+            "direcao": "aumenta",
+            "peso": 0.08
+          }
+        ],
+        "recomendacao": "Contato prioritário. Oferecer conversa sobre opções de apoio financeiro (bolsas, renegociação, auxílio emergencial).",
+        "versao_modelo": "risco-2.0.0",
+        "calculado_em": "2026-11-02T21:42:56+00:00",
+        "aviso": "Apoio à decisão. Nenhuma ação deve ser tomada sem avaliação humana."
+      }
+    }
+  },
+  "equidade": {
+    "final": {
+      "limiar_contrato": {
+        "Turno": {
+          "Integral": {
+            "n": 97,
+            "taxa_evasao_real": 0.2165,
+            "taxa_sinalizacao": 0.2062,
+            "recall": 0.7143,
+            "taxa_falsos_positivos": 0.0658,
+            "precisao": 0.75
+          },
+          "Manhã": {
+            "n": 2078,
+            "taxa_evasao_real": 0.1593,
+            "taxa_sinalizacao": 0.1949,
+            "recall": 0.7523,
+            "taxa_falsos_positivos": 0.0893,
+            "precisao": 0.6148
+          },
+          "Noite": {
+            "n": 1034,
+            "taxa_evasao_real": 0.2669,
+            "taxa_sinalizacao": 0.3133,
+            "recall": 0.7681,
+            "taxa_falsos_positivos": 0.1478,
+            "precisao": 0.6543
+          }
+        },
+        "Forma de Ingresso": {
+          "Disciplina Isolada": {
+            "n": 39,
+            "taxa_evasao_real": 0.0,
+            "taxa_sinalizacao": 0.0,
+            "recall": null,
+            "taxa_falsos_positivos": 0.0,
+            "precisao": null
+          },
+          "Enem": {
+            "n": 1012,
+            "taxa_evasao_real": 0.1571,
+            "taxa_sinalizacao": 0.1976,
+            "recall": 0.7925,
+            "taxa_falsos_positivos": 0.0868,
+            "precisao": 0.63
+          },
+          "Matricula Inicial": {
+            "n": 966,
+            "taxa_evasao_real": 0.2681,
+            "taxa_sinalizacao": 0.3209,
+            "recall": 0.7954,
+            "taxa_falsos_positivos": 0.1471,
+            "precisao": 0.6645
+          },
+          "Segunda Graduação": {
+            "n": 104,
+            "taxa_evasao_real": 0.2692,
+            "taxa_sinalizacao": 0.3077,
+            "recall": 0.7143,
+            "taxa_falsos_positivos": 0.1579,
+            "precisao": 0.625
+          },
+          "Transferência": {
+            "n": 105,
+            "taxa_evasao_real": 0.1619,
+            "taxa_sinalizacao": 0.1333,
+            "recall": 0.5294,
+            "taxa_falsos_positivos": 0.0568,
+            "precisao": 0.6429
+          },
+          "Transferência Mesma Rede": {
+            "n": 117,
+            "taxa_evasao_real": 0.1966,
+            "taxa_sinalizacao": 0.1709,
+            "recall": 0.3478,
+            "taxa_falsos_positivos": 0.1277,
+            "precisao": 0.4
+          },
+          "Vestibular": {
+            "n": 866,
+            "taxa_evasao_real": 0.164,
+            "taxa_sinalizacao": 0.1998,
+            "recall": 0.7535,
+            "taxa_falsos_positivos": 0.0912,
+            "precisao": 0.6185
+          }
+        },
+        "Grau Acadêmico": {
+          "Bacharelado": {
+            "n": 2061,
+            "taxa_evasao_real": 0.1596,
+            "taxa_sinalizacao": 0.1917,
+            "recall": 0.7295,
+            "taxa_falsos_positivos": 0.0895,
+            "precisao": 0.6076
+          },
+          "Outros": {
+            "n": "<30 (suprimido)"
+          },
+          "Pós-Graduação": {
+            "n": 1025,
+            "taxa_evasao_real": 0.2585,
+            "taxa_sinalizacao": 0.3054,
+            "recall": 0.7811,
+            "taxa_falsos_positivos": 0.1395,
+            "precisao": 0.6613
+          },
+          "Tecnólogo": {
+            "n": 94,
+            "taxa_evasao_real": 0.266,
+            "taxa_sinalizacao": 0.3617,
+            "recall": 0.96,
+            "taxa_falsos_positivos": 0.1449,
+            "precisao": 0.7059
+          }
+        },
+        "Faixa etária": {
+          "25–29": {
+            "n": 736,
+            "taxa_evasao_real": 0.2038,
+            "taxa_sinalizacao": 0.2337,
+            "recall": 0.7333,
+            "taxa_falsos_positivos": 0.1058,
+            "precisao": 0.6395
+          },
+          "30–39": {
+            "n": 634,
+            "taxa_evasao_real": 0.2366,
+            "taxa_sinalizacao": 0.2792,
+            "recall": 0.74,
+            "taxa_falsos_positivos": 0.1364,
+            "precisao": 0.6271
+          },
+          "40+": {
+            "n": 393,
+            "taxa_evasao_real": 0.3308,
+            "taxa_sinalizacao": 0.3562,
+            "recall": 0.7846,
+            "taxa_falsos_positivos": 0.1445,
+            "precisao": 0.7286
+          },
+          "até 24": {
+            "n": 1446,
+            "taxa_evasao_real": 0.1369,
+            "taxa_sinalizacao": 0.1798,
+            "recall": 0.7727,
+            "taxa_falsos_positivos": 0.0857,
+            "precisao": 0.5885
+          }
+        },
+        "Sexo": {
+          "Feminino": {
+            "n": 1683,
+            "taxa_evasao_real": 0.186,
+            "taxa_sinalizacao": 0.2121,
+            "recall": 0.7827,
+            "taxa_falsos_positivos": 0.0818,
+            "precisao": 0.6863
+          },
+          "Masculino": {
+            "n": 1407,
+            "taxa_evasao_real": 0.2068,
+            "taxa_sinalizacao": 0.2552,
+            "recall": 0.7354,
+            "taxa_falsos_positivos": 0.1299,
+            "precisao": 0.5961
+          },
+          "Nao informado": {
+            "n": 119,
+            "taxa_evasao_real": 0.2017,
+            "taxa_sinalizacao": 0.2773,
+            "recall": 0.7083,
+            "taxa_falsos_positivos": 0.1684,
+            "precisao": 0.5152
+          }
+        }
+      },
+      "limiar_recomendado": {
+        "Turno": {
+          "Integral": {
+            "n": 97,
+            "taxa_evasao_real": 0.2165,
+            "taxa_sinalizacao": 0.3918,
+            "recall": 0.7619,
+            "taxa_falsos_positivos": 0.2895,
+            "precisao": 0.4211
+          },
+          "Manhã": {
+            "n": 2078,
+            "taxa_evasao_real": 0.1593,
+            "taxa_sinalizacao": 0.3215,
+            "recall": 0.8822,
+            "taxa_falsos_positivos": 0.2152,
+            "precisao": 0.4371
+          },
+          "Noite": {
+            "n": 1034,
+            "taxa_evasao_real": 0.2669,
+            "taxa_sinalizacao": 0.5068,
+            "recall": 0.9022,
+            "taxa_falsos_positivos": 0.3628,
+            "precisao": 0.4752
+          }
+        },
+        "Forma de Ingresso": {
+          "Disciplina Isolada": {
+            "n": 39,
+            "taxa_evasao_real": 0.0,
+            "taxa_sinalizacao": 0.0769,
+            "recall": null,
+            "taxa_falsos_positivos": 0.0769,
+            "precisao": null
+          },
+          "Enem": {
+            "n": 1012,
+            "taxa_evasao_real": 0.1571,
+            "taxa_sinalizacao": 0.3004,
+            "recall": 0.8931,
+            "taxa_falsos_positivos": 0.1899,
+            "precisao": 0.4671
+          },
+          "Matricula Inicial": {
+            "n": 966,
+            "taxa_evasao_real": 0.2681,
+            "taxa_sinalizacao": 0.5052,
+            "recall": 0.9073,
+            "taxa_falsos_positivos": 0.3579,
+            "precisao": 0.4816
+          },
+          "Segunda Graduação": {
+            "n": 104,
+            "taxa_evasao_real": 0.2692,
+            "taxa_sinalizacao": 0.5673,
+            "recall": 0.7857,
+            "taxa_falsos_positivos": 0.4868,
+            "precisao": 0.3729
+          },
+          "Transferência": {
+            "n": 105,
+            "taxa_evasao_real": 0.1619,
+            "taxa_sinalizacao": 0.3143,
+            "recall": 0.8235,
+            "taxa_falsos_positivos": 0.2159,
+            "precisao": 0.4242
+          },
+          "Transferência Mesma Rede": {
+            "n": 117,
+            "taxa_evasao_real": 0.1966,
+            "taxa_sinalizacao": 0.4615,
+            "recall": 0.7391,
+            "taxa_falsos_positivos": 0.3936,
+            "precisao": 0.3148
+          },
+          "Vestibular": {
+            "n": 866,
+            "taxa_evasao_real": 0.164,
+            "taxa_sinalizacao": 0.3337,
+            "recall": 0.8944,
+            "taxa_falsos_positivos": 0.2238,
+            "precisao": 0.4394
+          }
+        },
+        "Grau Acadêmico": {
+          "Bacharelado": {
+            "n": 2061,
+            "taxa_evasao_real": 0.1596,
+            "taxa_sinalizacao": 0.3241,
+            "recall": 0.8723,
+            "taxa_falsos_positivos": 0.22,
+            "precisao": 0.4296
+          },
+          "Outros": {
+            "n": "<30 (suprimido)"
+          },
+          "Pós-Graduação": {
+            "n": 1025,
+            "taxa_evasao_real": 0.2585,
+            "taxa_sinalizacao": 0.4888,
+            "recall": 0.9019,
+            "taxa_falsos_positivos": 0.3447,
+            "precisao": 0.477
+          },
+          "Tecnólogo": {
+            "n": 94,
+            "taxa_evasao_real": 0.266,
+            "taxa_sinalizacao": 0.4894,
+            "recall": 0.96,
+            "taxa_falsos_positivos": 0.3188,
+            "precisao": 0.5217
+          }
+        },
+        "Faixa etária": {
+          "25–29": {
+            "n": 736,
+            "taxa_evasao_real": 0.2038,
+            "taxa_sinalizacao": 0.3709,
+            "recall": 0.84,
+            "taxa_falsos_positivos": 0.2509,
+            "precisao": 0.4615
+          },
+          "30–39": {
+            "n": 634,
+            "taxa_evasao_real": 0.2366,
+            "taxa_sinalizacao": 0.4669,
+            "recall": 0.8867,
+            "taxa_falsos_positivos": 0.3368,
+            "precisao": 0.4493
+          },
+          "40+": {
+            "n": 393,
+            "taxa_evasao_real": 0.3308,
+            "taxa_sinalizacao": 0.57,
+            "recall": 0.9308,
+            "taxa_falsos_positivos": 0.3916,
+            "precisao": 0.5402
+          },
+          "até 24": {
+            "n": 1446,
+            "taxa_evasao_real": 0.1369,
+            "taxa_sinalizacao": 0.3022,
+            "recall": 0.8939,
+            "taxa_falsos_positivos": 0.2083,
+            "precisao": 0.405
+          }
+        },
+        "Sexo": {
+          "Feminino": {
+            "n": 1683,
+            "taxa_evasao_real": 0.186,
+            "taxa_sinalizacao": 0.3518,
+            "recall": 0.885,
+            "taxa_falsos_positivos": 0.2299,
+            "precisao": 0.4679
+          },
+          "Masculino": {
+            "n": 1407,
+            "taxa_evasao_real": 0.2068,
+            "taxa_sinalizacao": 0.4151,
+            "recall": 0.8866,
+            "taxa_falsos_positivos": 0.2921,
+            "precisao": 0.4418
+          },
+          "Nao informado": {
+            "n": 119,
+            "taxa_evasao_real": 0.2017,
+            "taxa_sinalizacao": 0.4538,
+            "recall": 0.9167,
+            "taxa_falsos_positivos": 0.3368,
+            "precisao": 0.4074
+          }
+        }
+      }
+    },
+    "variantes_mesma_carga": {
+      "completo_e1": {
+        "geral": {
+          "auc": 0.9321,
+          "pr_auc": 0.8388,
+          "recall": 0.9156,
+          "precisao": 0.4675,
+          "carga": 0.3833
+        },
+        "lacunas_entre_grupos": {
+          "Turno": {
+            "recall": 0.1217,
+            "taxa_falsos_positivos": 0.2185,
+            "taxa_sinalizacao": 0.2437
+          },
+          "Forma de Ingresso": {
+            "recall": 0.1031,
+            "taxa_falsos_positivos": 0.4092,
+            "taxa_sinalizacao": 0.516
+          },
+          "Grau Acadêmico": {
+            "recall": 0.1003,
+            "taxa_falsos_positivos": 0.2037,
+            "taxa_sinalizacao": 0.2519
+          },
+          "Faixa etária": {
+            "recall": 0.0805,
+            "taxa_falsos_positivos": 0.306,
+            "taxa_sinalizacao": 0.3588
+          },
+          "Sexo": {
+            "recall": 0.0094,
+            "taxa_falsos_positivos": 0.0787,
+            "taxa_sinalizacao": 0.075
+          }
+        },
+        "por_grupo": {
+          "Turno": {
+            "Integral": {
+              "n": 97,
+              "taxa_evasao_real": 0.2165,
+              "taxa_sinalizacao": 0.3711,
+              "recall": 0.8095,
+              "taxa_falsos_positivos": 0.25,
+              "precisao": 0.4722
+            },
+            "Manhã": {
+              "n": 2078,
+              "taxa_evasao_real": 0.1593,
+              "taxa_sinalizacao": 0.3027,
+              "recall": 0.9094,
+              "taxa_falsos_positivos": 0.1878,
+              "precisao": 0.4785
+            },
+            "Noite": {
+              "n": 1034,
+              "taxa_evasao_real": 0.2669,
+              "taxa_sinalizacao": 0.5464,
+              "recall": 0.9312,
+              "taxa_falsos_positivos": 0.4063,
+              "precisao": 0.4549
+            }
+          },
+          "Forma de Ingresso": {
+            "Disciplina Isolada": {
+              "n": 39,
+              "taxa_evasao_real": 0.0,
+              "taxa_sinalizacao": 0.0513,
+              "recall": null,
+              "taxa_falsos_positivos": 0.0513,
+              "precisao": null
+            },
+            "Enem": {
+              "n": 1012,
+              "taxa_evasao_real": 0.1571,
+              "taxa_sinalizacao": 0.2866,
+              "recall": 0.9245,
+              "taxa_falsos_positivos": 0.1676,
+              "precisao": 0.5069
+            },
+            "Matricula Inicial": {
+              "n": 966,
+              "taxa_evasao_real": 0.2681,
+              "taxa_sinalizacao": 0.5476,
+              "recall": 0.9266,
+              "taxa_falsos_positivos": 0.4088,
+              "precisao": 0.4537
+            },
+            "Segunda Graduação": {
+              "n": 104,
+              "taxa_evasao_real": 0.2692,
+              "taxa_sinalizacao": 0.5673,
+              "recall": 0.8571,
+              "taxa_falsos_positivos": 0.4605,
+              "precisao": 0.4068
+            },
+            "Transferência": {
+              "n": 105,
+              "taxa_evasao_real": 0.1619,
+              "taxa_sinalizacao": 0.3238,
+              "recall": 0.8235,
+              "taxa_falsos_positivos": 0.2273,
+              "precisao": 0.4118
+            },
+            "Transferência Mesma Rede": {
+              "n": 117,
+              "taxa_evasao_real": 0.1966,
+              "taxa_sinalizacao": 0.5128,
+              "recall": 0.913,
+              "taxa_falsos_positivos": 0.4149,
+              "precisao": 0.35
+            },
+            "Vestibular": {
+              "n": 866,
+              "taxa_evasao_real": 0.164,
+              "taxa_sinalizacao": 0.2956,
+              "recall": 0.9085,
+              "taxa_falsos_positivos": 0.1754,
+              "precisao": 0.5039
+            }
+          },
+          "Grau Acadêmico": {
+            "Bacharelado": {
+              "n": 2061,
+              "taxa_evasao_real": 0.1596,
+              "taxa_sinalizacao": 0.3013,
+              "recall": 0.8997,
+              "taxa_falsos_positivos": 0.1876,
+              "precisao": 0.4767
+            },
+            "Outros": {
+              "n": "<30 (suprimido)"
+            },
+            "Pós-Graduação": {
+              "n": 1025,
+              "taxa_evasao_real": 0.2585,
+              "taxa_sinalizacao": 0.5229,
+              "recall": 0.9283,
+              "taxa_falsos_positivos": 0.3816,
+              "precisao": 0.459
+            },
+            "Tecnólogo": {
+              "n": 94,
+              "taxa_evasao_real": 0.266,
+              "taxa_sinalizacao": 0.5532,
+              "recall": 1.0,
+              "taxa_falsos_positivos": 0.3913,
+              "precisao": 0.4808
+            }
+          },
+          "Faixa etária": {
+            "25–29": {
+              "n": 736,
+              "taxa_evasao_real": 0.2038,
+              "taxa_sinalizacao": 0.3505,
+              "recall": 0.8733,
+              "taxa_falsos_positivos": 0.2167,
+              "precisao": 0.5078
+            },
+            "30–39": {
+              "n": 634,
+              "taxa_evasao_real": 0.2366,
+              "taxa_sinalizacao": 0.5063,
+              "recall": 0.9,
+              "taxa_falsos_positivos": 0.3843,
+              "precisao": 0.4206
+            },
+            "40+": {
+              "n": 393,
+              "taxa_evasao_real": 0.3308,
+              "taxa_sinalizacao": 0.6361,
+              "recall": 0.9538,
+              "taxa_falsos_positivos": 0.4791,
+              "precisao": 0.496
+            },
+            "até 24": {
+              "n": 1446,
+              "taxa_evasao_real": 0.1369,
+              "taxa_sinalizacao": 0.2773,
+              "recall": 0.9343,
+              "taxa_falsos_positivos": 0.1731,
+              "precisao": 0.4613
+            }
+          },
+          "Sexo": {
+            "Feminino": {
+              "n": 1683,
+              "taxa_evasao_real": 0.186,
+              "taxa_sinalizacao": 0.35,
+              "recall": 0.9201,
+              "taxa_falsos_positivos": 0.2197,
+              "precisao": 0.489
+            },
+            "Masculino": {
+              "n": 1407,
+              "taxa_evasao_real": 0.2068,
+              "taxa_sinalizacao": 0.425,
+              "recall": 0.9107,
+              "taxa_falsos_positivos": 0.2984,
+              "precisao": 0.4431
+            },
+            "Nao informado": {
+              "n": 119,
+              "taxa_evasao_real": 0.2017,
+              "taxa_sinalizacao": 0.3613,
+              "recall": 0.9167,
+              "taxa_falsos_positivos": 0.2211,
+              "precisao": 0.5116
+            }
+          }
+        }
+      },
+      "sem_sensiveis": {
+        "geral": {
+          "auc": 0.932,
+          "pr_auc": 0.8432,
+          "recall": 0.9092,
+          "precisao": 0.4642,
+          "carga": 0.3833
+        },
+        "lacunas_entre_grupos": {
+          "Turno": {
+            "recall": 0.1072,
+            "taxa_falsos_positivos": 0.2225,
+            "taxa_sinalizacao": 0.2428
+          },
+          "Forma de Ingresso": {
+            "recall": 0.0954,
+            "taxa_falsos_positivos": 0.4092,
+            "taxa_sinalizacao": 0.516
+          },
+          "Grau Acadêmico": {
+            "recall": 0.1003,
+            "taxa_falsos_positivos": 0.2031,
+            "taxa_sinalizacao": 0.2514
+          },
+          "Faixa etária": {
+            "recall": 0.0795,
+            "taxa_falsos_positivos": 0.3244,
+            "taxa_sinalizacao": 0.3692
+          },
+          "Sexo": {
+            "recall": 0.0232,
+            "taxa_falsos_positivos": 0.0617,
+            "taxa_sinalizacao": 0.0586
+          }
+        },
+        "por_grupo": {
+          "Turno": {
+            "Integral": {
+              "n": 97,
+              "taxa_evasao_real": 0.2165,
+              "taxa_sinalizacao": 0.3814,
+              "recall": 0.8095,
+              "taxa_falsos_positivos": 0.2632,
+              "precisao": 0.4595
+            },
+            "Manhã": {
+              "n": 2078,
+              "taxa_evasao_real": 0.1593,
+              "taxa_sinalizacao": 0.3027,
+              "recall": 0.9094,
+              "taxa_falsos_positivos": 0.1878,
+              "precisao": 0.4785
+            },
+            "Noite": {
+              "n": 1034,
+              "taxa_evasao_real": 0.2669,
+              "taxa_sinalizacao": 0.5455,
+              "recall": 0.9167,
+              "taxa_falsos_positivos": 0.4103,
+              "precisao": 0.4486
+            }
+          },
+          "Forma de Ingresso": {
+            "Disciplina Isolada": {
+              "n": 39,
+              "taxa_evasao_real": 0.0,
+              "taxa_sinalizacao": 0.0513,
+              "recall": null,
+              "taxa_falsos_positivos": 0.0513,
+              "precisao": null
+            },
+            "Enem": {
+              "n": 1012,
+              "taxa_evasao_real": 0.1571,
+              "taxa_sinalizacao": 0.2895,
+              "recall": 0.9182,
+              "taxa_falsos_positivos": 0.1723,
+              "precisao": 0.4983
+            },
+            "Matricula Inicial": {
+              "n": 966,
+              "taxa_evasao_real": 0.2681,
+              "taxa_sinalizacao": 0.5455,
+              "recall": 0.9189,
+              "taxa_falsos_positivos": 0.4088,
+              "precisao": 0.4516
+            },
+            "Segunda Graduação": {
+              "n": 104,
+              "taxa_evasao_real": 0.2692,
+              "taxa_sinalizacao": 0.5673,
+              "recall": 0.8571,
+              "taxa_falsos_positivos": 0.4605,
+              "precisao": 0.4068
+            },
+            "Transferência": {
+              "n": 105,
+              "taxa_evasao_real": 0.1619,
+              "taxa_sinalizacao": 0.3524,
+              "recall": 0.8235,
+              "taxa_falsos_positivos": 0.2614,
+              "precisao": 0.3784
+            },
+            "Transferência Mesma Rede": {
+              "n": 117,
+              "taxa_evasao_real": 0.1966,
+              "taxa_sinalizacao": 0.5214,
+              "recall": 0.8261,
+              "taxa_falsos_positivos": 0.4468,
+              "precisao": 0.3115
+            },
+            "Vestibular": {
+              "n": 866,
+              "taxa_evasao_real": 0.164,
+              "taxa_sinalizacao": 0.2898,
+              "recall": 0.9155,
+              "taxa_falsos_positivos": 0.1671,
+              "precisao": 0.5179
+            }
+          },
+          "Grau Acadêmico": {
+            "Bacharelado": {
+              "n": 2061,
+              "taxa_evasao_real": 0.1596,
+              "taxa_sinalizacao": 0.3018,
+              "recall": 0.8997,
+              "taxa_falsos_positivos": 0.1882,
+              "precisao": 0.4759
+            },
+            "Outros": {
+              "n": "<30 (suprimido)"
+            },
+            "Pós-Graduação": {
+              "n": 1025,
+              "taxa_evasao_real": 0.2585,
+              "taxa_sinalizacao": 0.5249,
+              "recall": 0.917,
+              "taxa_falsos_positivos": 0.3882,
+              "precisao": 0.4517
+            },
+            "Tecnólogo": {
+              "n": 94,
+              "taxa_evasao_real": 0.266,
+              "taxa_sinalizacao": 0.5532,
+              "recall": 1.0,
+              "taxa_falsos_positivos": 0.3913,
+              "precisao": 0.4808
+            }
+          },
+          "Faixa etária": {
+            "25–29": {
+              "n": 736,
+              "taxa_evasao_real": 0.2038,
+              "taxa_sinalizacao": 0.3601,
+              "recall": 0.8667,
+              "taxa_falsos_positivos": 0.2304,
+              "precisao": 0.4906
+            },
+            "30–39": {
+              "n": 634,
+              "taxa_evasao_real": 0.2366,
+              "taxa_sinalizacao": 0.4968,
+              "recall": 0.8867,
+              "taxa_falsos_positivos": 0.376,
+              "precisao": 0.4222
+            },
+            "40+": {
+              "n": 393,
+              "taxa_evasao_real": 0.3308,
+              "taxa_sinalizacao": 0.6438,
+              "recall": 0.9462,
+              "taxa_falsos_positivos": 0.4943,
+              "precisao": 0.4862
+            },
+            "até 24": {
+              "n": 1446,
+              "taxa_evasao_real": 0.1369,
+              "taxa_sinalizacao": 0.2746,
+              "recall": 0.9343,
+              "taxa_falsos_positivos": 0.1699,
+              "precisao": 0.466
+            }
+          },
+          "Sexo": {
+            "Feminino": {
+              "n": 1683,
+              "taxa_evasao_real": 0.186,
+              "taxa_sinalizacao": 0.3565,
+              "recall": 0.9201,
+              "taxa_falsos_positivos": 0.2277,
+              "precisao": 0.48
+            },
+            "Masculino": {
+              "n": 1407,
+              "taxa_evasao_real": 0.2068,
+              "taxa_sinalizacao": 0.4151,
+              "recall": 0.8969,
+              "taxa_falsos_positivos": 0.2894,
+              "precisao": 0.4469
+            },
+            "Nao informado": {
+              "n": 119,
+              "taxa_evasao_real": 0.2017,
+              "taxa_sinalizacao": 0.3866,
+              "recall": 0.9167,
+              "taxa_falsos_positivos": 0.2526,
+              "precisao": 0.4783
+            }
+          }
+        }
+      },
+      "sem_sensiveis_sem_contatos": {
+        "geral": {
+          "auc": 0.9274,
+          "pr_auc": 0.8138,
+          "recall": 0.9092,
+          "precisao": 0.4642,
+          "carga": 0.3833
+        },
+        "lacunas_entre_grupos": {
+          "Turno": {
+            "recall": 0.0632,
+            "taxa_falsos_positivos": 0.2137,
+            "taxa_sinalizacao": 0.2379
+          },
+          "Forma de Ingresso": {
+            "recall": 0.0954,
+            "taxa_falsos_positivos": 0.4487,
+            "taxa_sinalizacao": 0.5545
+          },
+          "Grau Acadêmico": {
+            "recall": 0.0603,
+            "taxa_falsos_positivos": 0.1895,
+            "taxa_sinalizacao": 0.2158
+          },
+          "Faixa etária": {
+            "recall": 0.0862,
+            "taxa_falsos_positivos": 0.3096,
+            "taxa_sinalizacao": 0.3579
+          },
+          "Sexo": {
+            "recall": 0.0648,
+            "taxa_falsos_positivos": 0.0671,
+            "taxa_sinalizacao": 0.0667
+          }
+        },
+        "por_grupo": {
+          "Turno": {
+            "Integral": {
+              "n": 97,
+              "taxa_evasao_real": 0.2165,
+              "taxa_sinalizacao": 0.4021,
+              "recall": 0.8571,
+              "taxa_falsos_positivos": 0.2763,
+              "precisao": 0.4615
+            },
+            "Manhã": {
+              "n": 2078,
+              "taxa_evasao_real": 0.1593,
+              "taxa_sinalizacao": 0.3037,
+              "recall": 0.9033,
+              "taxa_falsos_positivos": 0.19,
+              "precisao": 0.4739
+            },
+            "Noite": {
+              "n": 1034,
+              "taxa_evasao_real": 0.2669,
+              "taxa_sinalizacao": 0.5416,
+              "recall": 0.9203,
+              "taxa_falsos_positivos": 0.4037,
+              "precisao": 0.4536
+            }
+          },
+          "Forma de Ingresso": {
+            "Disciplina Isolada": {
+              "n": 39,
+              "taxa_evasao_real": 0.0,
+              "taxa_sinalizacao": 0.0513,
+              "recall": null,
+              "taxa_falsos_positivos": 0.0513,
+              "precisao": null
+            },
+            "Enem": {
+              "n": 1012,
+              "taxa_evasao_real": 0.1571,
+              "taxa_sinalizacao": 0.2856,
+              "recall": 0.9057,
+              "taxa_falsos_positivos": 0.17,
+              "precisao": 0.4983
+            },
+            "Matricula Inicial": {
+              "n": 966,
+              "taxa_evasao_real": 0.2681,
+              "taxa_sinalizacao": 0.5435,
+              "recall": 0.9189,
+              "taxa_falsos_positivos": 0.4059,
+              "precisao": 0.4533
+            },
+            "Segunda Graduação": {
+              "n": 104,
+              "taxa_evasao_real": 0.2692,
+              "taxa_sinalizacao": 0.6058,
+              "recall": 0.8929,
+              "taxa_falsos_positivos": 0.5,
+              "precisao": 0.3968
+            },
+            "Transferência": {
+              "n": 105,
+              "taxa_evasao_real": 0.1619,
+              "taxa_sinalizacao": 0.3238,
+              "recall": 0.8235,
+              "taxa_falsos_positivos": 0.2273,
+              "precisao": 0.4118
+            },
+            "Transferência Mesma Rede": {
+              "n": 117,
+              "taxa_evasao_real": 0.1966,
+              "taxa_sinalizacao": 0.5299,
+              "recall": 0.8696,
+              "taxa_falsos_positivos": 0.4468,
+              "precisao": 0.3226
+            },
+            "Vestibular": {
+              "n": 866,
+              "taxa_evasao_real": 0.164,
+              "taxa_sinalizacao": 0.2945,
+              "recall": 0.9155,
+              "taxa_falsos_positivos": 0.1727,
+              "precisao": 0.5098
+            }
+          },
+          "Grau Acadêmico": {
+            "Bacharelado": {
+              "n": 2061,
+              "taxa_evasao_real": 0.1596,
+              "taxa_sinalizacao": 0.3062,
+              "recall": 0.8997,
+              "taxa_falsos_positivos": 0.1934,
+              "precisao": 0.4691
+            },
+            "Outros": {
+              "n": "<30 (suprimido)"
+            },
+            "Pós-Graduação": {
+              "n": 1025,
+              "taxa_evasao_real": 0.2585,
+              "taxa_sinalizacao": 0.522,
+              "recall": 0.9208,
+              "taxa_falsos_positivos": 0.3829,
+              "precisao": 0.4561
+            },
+            "Tecnólogo": {
+              "n": 94,
+              "taxa_evasao_real": 0.266,
+              "taxa_sinalizacao": 0.5,
+              "recall": 0.96,
+              "taxa_falsos_positivos": 0.3333,
+              "precisao": 0.5106
+            }
+          },
+          "Faixa etária": {
+            "25–29": {
+              "n": 736,
+              "taxa_evasao_real": 0.2038,
+              "taxa_sinalizacao": 0.3546,
+              "recall": 0.86,
+              "taxa_falsos_positivos": 0.2253,
+              "precisao": 0.4943
+            },
+            "30–39": {
+              "n": 634,
+              "taxa_evasao_real": 0.2366,
+              "taxa_sinalizacao": 0.4921,
+              "recall": 0.8933,
+              "taxa_falsos_positivos": 0.3678,
+              "precisao": 0.4295
+            },
+            "40+": {
+              "n": 393,
+              "taxa_evasao_real": 0.3308,
+              "taxa_sinalizacao": 0.6387,
+              "recall": 0.9462,
+              "taxa_falsos_positivos": 0.4867,
+              "precisao": 0.49
+            },
+            "até 24": {
+              "n": 1446,
+              "taxa_evasao_real": 0.1369,
+              "taxa_sinalizacao": 0.2808,
+              "recall": 0.9343,
+              "taxa_falsos_positivos": 0.1771,
+              "precisao": 0.4557
+            }
+          },
+          "Sexo": {
+            "Feminino": {
+              "n": 1683,
+              "taxa_evasao_real": 0.186,
+              "taxa_sinalizacao": 0.3535,
+              "recall": 0.9201,
+              "taxa_falsos_positivos": 0.2241,
+              "precisao": 0.484
+            },
+            "Masculino": {
+              "n": 1407,
+              "taxa_evasao_real": 0.2068,
+              "taxa_sinalizacao": 0.4158,
+              "recall": 0.8935,
+              "taxa_falsos_positivos": 0.2912,
+              "precisao": 0.4444
+            },
+            "Nao informado": {
+              "n": 119,
+              "taxa_evasao_real": 0.2017,
+              "taxa_sinalizacao": 0.4202,
+              "recall": 0.9583,
+              "taxa_falsos_positivos": 0.2842,
+              "precisao": 0.46
+            }
+          }
+        }
+      }
+    },
+    "lacunas_final_recomendado": {
+      "Turno": {
+        "recall": 0.1403,
+        "taxa_falsos_positivos": 0.1476,
+        "taxa_sinalizacao": 0.1853
+      },
+      "Forma de Ingresso": {
+        "recall": 0.1682,
+        "taxa_falsos_positivos": 0.4099,
+        "taxa_sinalizacao": 0.4904
+      },
+      "Grau Acadêmico": {
+        "recall": 0.0877,
+        "taxa_falsos_positivos": 0.1247,
+        "taxa_sinalizacao": 0.1653
+      },
+      "Faixa etária": {
+        "recall": 0.0908,
+        "taxa_falsos_positivos": 0.1833,
+        "taxa_sinalizacao": 0.2678
+      },
+      "Sexo": {
+        "recall": 0.0317,
+        "taxa_falsos_positivos": 0.1069,
+        "taxa_sinalizacao": 0.102
+      }
+    }
+  },
+  "variante_sem_sensiveis": {
+    "logistica": {
+      "cv_auc": 0.8327,
+      "cv_pr_auc": 0.595,
+      "teste": {
+        "auc": 0.8198,
+        "pr_auc": 0.5911,
+        "brier": 0.1691,
+        "recall": 0.7691,
+        "precisao": 0.4164,
+        "f1": 0.5403,
+        "pct_sinalizados": 0.3615,
+        "limiar": 0.5
+      }
+    },
+    "random_forest": {
+      "cv_auc": 0.9388,
+      "cv_pr_auc": 0.8615,
+      "teste": {
+        "auc": 0.9354,
+        "pr_auc": 0.8498,
+        "brier": 0.0667,
+        "recall": 0.6146,
+        "precisao": 0.8935,
+        "f1": 0.7283,
+        "pct_sinalizados": 0.1346,
+        "limiar": 0.5
+      }
+    },
+    "xgboost": {
+      "cv_auc": 0.9343,
+      "cv_pr_auc": 0.8536,
+      "teste": {
+        "auc": 0.932,
+        "pr_auc": 0.8432,
+        "brier": 0.0749,
+        "recall": 0.7818,
+        "precisao": 0.7439,
+        "f1": 0.7624,
+        "pct_sinalizados": 0.2057,
+        "limiar": 0.5
+      }
+    }
+  },
+  "rag": {
+    "corpus": {
+      "fonte": "src/Entrega 1/seed_v2.sql",
+      "documentos": 20,
+      "chunks": 20,
+      "observacao": "documentos fictícios da Entrega 1; a base real (230 documentos) não foi usada aqui"
+    },
+    "perguntas": {
+      "total": 60,
+      "por_tipo": {
+        "direta": 20,
+        "reformulada": 20,
+        "continuacao": 8,
+        "fora_escopo_proxima": 6,
+        "fora_escopo": 6
+      }
+    },
+    "comparacao_metodos": {
+      "tfidf_hashing": {
+        "nome": "TF-IDF (hashing, sem IDF)",
+        "recall_at_1": 0.7292,
+        "recall_at_3": 0.9375,
+        "mrr": 0.8333,
+        "limiar_otimo": 0.1965,
+        "acerto_do_agente": 0.6333,
+        "abstencao_correta": 0.5833,
+        "abstencao_indevida": 0.1458,
+        "acerto_cv": 0.5833
+      },
+      "tfidf_idf": {
+        "nome": "TF-IDF + tabela IDF",
+        "recall_at_1": 0.7292,
+        "recall_at_3": 0.9167,
+        "mrr": 0.8365,
+        "limiar_otimo": 0.1874,
+        "acerto_do_agente": 0.6833,
+        "abstencao_correta": 0.8333,
+        "abstencao_indevida": 0.2292,
+        "acerto_cv": 0.6333
+      },
+      "minilm": {
+        "nome": "MiniLM-L6 (all-MiniLM-L6-v2)",
+        "recall_at_1": 0.5208,
+        "recall_at_3": 0.6875,
+        "mrr": 0.6249,
+        "limiar_otimo": 0.508,
+        "acerto_do_agente": 0.5333,
+        "abstencao_correta": 0.5833,
+        "abstencao_indevida": 0.2083,
+        "acerto_cv": 0.5333
+      },
+      "minilm_multi": {
+        "nome": "MiniLM-L12 multilíngue",
+        "recall_at_1": 0.7083,
+        "recall_at_3": 0.8542,
+        "mrr": 0.8002,
+        "limiar_otimo": 0.3547,
+        "acerto_do_agente": 0.7,
+        "abstencao_correta": 0.6667,
+        "abstencao_indevida": 0.0833,
+        "acerto_cv": 0.65
+      },
+      "bge_m3": {
+        "nome": "bge-m3 (modelo de produção)",
+        "recall_at_1": 0.9375,
+        "recall_at_3": 0.9583,
+        "mrr": 0.9509,
+        "limiar_otimo": 0.5511,
+        "acerto_do_agente": 0.9,
+        "abstencao_correta": 1.0,
+        "abstencao_indevida": 0.1042,
+        "acerto_cv": 0.8667
+      }
+    },
+    "escolhido": {
+      "metodo": "bge_m3",
+      "nome": "bge-m3 (modelo de produção)",
+      "limiar": 0.5511
+    },
+    "groundedness": {
+      "respostas_avaliadas": 43,
+      "groundedness_media": 1.0,
+      "respostas_100pct_fundamentadas": 1.0,
+      "fundamentadas_mas_documento_errado": 1,
+      "metodo": "bge_m3",
+      "observacao": "a resposta atual é extrativa (trecho top-1), por isso é sempre fundamentada; o risco real é responder com o trecho de outro documento"
+    },
+    "revisao_amostra": {
+      "arquivo": "ml/rag_eval/revisao_amostra.jsonl",
+      "n": 13,
+      "revisadas": 13,
+      "responde_a_pergunta": 0.9231,
+      "fundamentada": 1.0,
+      "revisor": "sessão de IA (Claude), 02/11/2026 — pendente de confirmação por um membro da equipe"
+    }
+  },
+  "baseline_e1": {
+    "pct_sinalizados": 0.3609,
+    "recall": 0.7707,
+    "precisao": 0.418,
+    "auc": 0.82
+  },
+  "algebra_linear": {
+    "p_colunas": 33,
+    "n_treino": 9626,
+    "variancia_pc1": 0.2491,
+    "variancia_pc1_pc2": 0.3374,
+    "componentes_80_90_95": [
+      15,
+      19,
+      22
+    ],
+    "kaiser": 11,
+    "numpy_igual_sklearn": true,
+    "mq_auc_teste": 0.8033,
+    "logistica_auc_teste": 0.8206,
+    "mq_previsoes_fora_0_1": 0.1362,
+    "auc_por_k": {
+      "1": {
+        "logistica": 0.669,
+        "xgboost": 0.7308,
+        "variancia": 0.2491
+      },
+      "2": {
+        "logistica": 0.6552,
+        "xgboost": 0.7556,
+        "variancia": 0.3374
+      },
+      "3": {
+        "logistica": 0.6979,
+        "xgboost": 0.7702,
+        "variancia": 0.4014
+      },
+      "5": {
+        "logistica": 0.6899,
+        "xgboost": 0.7938,
+        "variancia": 0.4951
+      },
+      "8": {
+        "logistica": 0.738,
+        "xgboost": 0.8252,
+        "variancia": 0.6004
+      },
+      "10": {
+        "logistica": 0.748,
+        "xgboost": 0.8319,
+        "variancia": 0.6648
+      },
+      "15": {
+        "logistica": 0.748,
+        "xgboost": 0.8314,
+        "variancia": 0.8111
+      },
+      "20": {
+        "logistica": 0.7521,
+        "xgboost": 0.8445,
+        "variancia": 0.9237
+      },
+      "25": {
+        "logistica": 0.7671,
+        "xgboost": 0.8491,
+        "variancia": 0.9871
+      },
+      "33": {
+        "logistica": 0.8206,
+        "xgboost": 0.8908,
+        "variancia": 1.0
+      }
+    }
+  }
+}
