@@ -7,24 +7,22 @@
     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0">
   </a>
 </p>
-<h1 align="center">ASA · Agentes Inteligentes para o Sucesso do Estudante</h1>
+<h1 align="center">ASA Turbo · Agentes Inteligentes para o Sucesso do Estudante</h1>
 
 <p align="center">
-  Agente para o Estudante: respostas curtas, confiáveis e com fonte, sobre serviços e procedimentos da FECAP.
+  Uma pergunta, uma resposta. E nenhum aluno esquecido.
 </p>
 
 <p align="center">
-  <b>🚀 Acesse a aplicação publicada: <a href="https://projeto-ia-rho.vercel.app/">https://projeto-ia-rho.vercel.app/</a></b>
+  <b>🚀 Acesse a aplicação: <a href="https://asa-turbo.onrender.com">https://asa-turbo.onrender.com</a></b><br>
+  <sub>Modo demonstração: entre como Estudante, Atendente ou Administrador sem precisar de conta.</sub>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow" alt="Status">
-  <img src="https://img.shields.io/badge/agente-Agente%20para%20o%20Estudante-green" alt="Agente">
-  <img src="https://img.shields.io/badge/integração-TOTVS-orange" alt="Integração">
+  <img src="https://img.shields.io/badge/status-Entrega%202-green" alt="Status">
+  <img src="https://img.shields.io/badge/agentes-Estudante%20%2B%20Monitoramento-green" alt="Agentes">
   <img src="https://img.shields.io/badge/turma-5º%20CCOMP%20·%202º%20sem%202026-blue" alt="Turma">
-  <img src="https://img.shields.io/badge/licença-CC%20BY--SA%204.0-lightgrey" alt="Licença">
-  <a href="https://projeto-ia-rho.vercel.app/"><img src="https://img.shields.io/badge/demo-Vercel-black" alt="Demo no Vercel"></a>
-</p>
+  <img src="https://img.shields.io/badge/licença-CC%20BY--SA%204.0-lightgrey" alt="Licença"></p>
 
 ---
 
@@ -54,11 +52,17 @@
 
 A **Área do Sucesso Alvarista (ASA)** acolhe e acompanha os estudantes ao longo da jornada na FECAP, com uma equipe multidisciplinar e serviços que vão de biblioteca e financiamento a empregabilidade e carreira.
 
-**O problema.** A informação existe, mas não resolve. Regulamentos, manual do aluno, Moodle e documentos de várias áreas ficam espalhados na rede, e o estudante não quer ler dez páginas para descobrir um prazo. O atendimento acontece em canais que não se conversam (presencial, e-mail, WhatsApp e portal do aluno), então quem não recebe resposta imediata vai trocando de canal e entrando em nova fila. Pior: a mesma pergunta pode receber **respostas diferentes de dois atendentes**, e essa inconsistência mina a confiança do estudante na informação oficial.
+**O problema.** A informação existe, mas está espalhada em regulamentos, manual do aluno, Moodle e documentos de várias áreas, e o atendimento acontece em canais que não se conversam (presencial, e-mail, WhatsApp e portal). O estudante enfrenta fila, troca de canal e às vezes recebe **respostas diferentes para a mesma pergunta**. Ao mesmo tempo, o risco de evasão costuma ser percebido tarde demais: o contato preventivo é manual e o sistema preditivo atual cobre poucos alunos.
 
-**A solução.** Um **Agente para o Estudante** que consome as fontes oficiais do ASA e da FECAP, cruza com os dados acadêmicos do estudante vindos do **TOTVS** e devolve uma resposta curta, com passo a passo, canal correto, fonte citada e data de atualização. Uma pergunta, uma resposta, sem fila e sem depender de qual atendente atendeu.
+**A solução.** O **ASA Turbo** é uma plataforma de IA com dois agentes e três perfis de acesso:
 
-**Referência de sucesso.** Uma resposta é boa quando é **curta** (o estudante quer duas linhas, não o documento), **fundamentada** (sai da base oficial, com fonte e data), **personalizada** (considera a situação real de quem perguntou), **consistente** (a mesma pergunta gera a mesma resposta) e **honesta** (quando não há base suficiente, o agente se abstém e transfere para atendimento humano em vez de inventar).
+| Perfil | O que faz |
+|---|---|
+| 🎓 **Estudante** | Chat que responde em segundos a partir **somente de documentos oficiais**, com fonte e data de atualização em cada resposta. Sem base suficiente, não inventa: encaminha para uma pessoa da equipe do ASA. |
+| 🧑‍💼 **Atendente** | **Fila de risco de evasão** (Verde, Amarelo, Vermelho) ordenada por prioridade. Mostra o score, a tendência dos últimos meses, os fatores que mais pesaram e uma recomendação sugerida. O atendente confirma, ajusta ou rejeita a faixa, com justificativa registrada. |
+| 🛠️ **Administrador** | **Painel** de uso com números agregados (perguntas, abstenção, avaliações, tempo de resposta) e gestão da **base de conhecimento** (cadastro, versão e desativação de documentos). |
+
+> **O score é apoio, não veredito.** Nenhuma ação com impacto acadêmico, financeiro ou disciplinar é tomada pela IA. O estudante nunca vê a tela de risco.
 
 ---
 
@@ -66,100 +70,112 @@ A **Área do Sucesso Alvarista (ASA)** acolhe e acompanha os estudantes ao longo
 
 Levantamento feito junto à equipe do ASA. Um ponto importante de contexto: **o ASA não é uma área de atendimento**, mas acaba precisando responder o estudante e acompanhar sua trajetória.
 
-### Dores que o nosso agente ataca
-
-| Dor levantada | Situação hoje |
+| Dor levantada | Como o ASA Turbo responde |
 |---|---|
-| Canais fragmentados | Presencial, e-mail, WhatsApp e portal do aluno não se conversam; sem plataforma integrada. |
-| Filas e espera | Sem resposta imediata, o estudante troca de canal e recomeça a espera. |
-| Informação espalhada | Regulamentos, manual do aluno, Moodle e documentos de várias áreas salvos na rede. |
-| Documentos longos demais | O estudante quer a resposta em duas linhas, não um PDF de dez páginas. |
-| **Inconsistência de informação** | Dois atendentes respondem a mesma pergunta de formas diferentes. |
-| Busca difícil também para quem atende | A própria equipe quer facilitar a localização da informação correta. |
-| Resposta genérica não resolve | Sem saber a situação do estudante, a orientação não chega ao caso concreto dele. |
-
-O ASA já está trabalhando na **centralização dessas fontes**, o que conversa diretamente com a base de conhecimento do agente.
-
-### Dores registradas, mas fora do escopo principal
-
-O enunciado permite **um agente como escopo principal**, então o que segue fica documentado como contexto e possível extensão:
-
-- Acompanhamento preventivo e predição de evasão. Hoje o contato é manual e o sistema preditivo em uso tem baixa acurácia, cobre cerca de 150 estudantes e sinaliza o risco tarde demais.
-- Painel para atendentes e coordenadores com acesso rápido à vida do estudante.
-- Integração entre o sistema acadêmico e o CRM que concentra WhatsApp, e-mail e senhas de atendimento.
+| Canais fragmentados, filas e espera | Chat único, disponível a qualquer hora, com encaminhamento para humano quando necessário. |
+| Informação espalhada e documentos longos | Base de conhecimento centralizada; resposta curta com o trecho relevante. |
+| **Inconsistência de informação** | A mesma pergunta recupera o mesmo documento oficial, com fonte e data visíveis. |
+| Busca difícil também para quem atende | A equipe mantém a base pelo perfil Administrador. |
+| Risco de evasão percebido tarde | Fila de risco com fatores explicáveis e tendência, para priorizar o contato. |
 
 ---
 
-## 🤖 Como o agente funciona
+## 🤖 Como funciona
+
+### Agente para o Estudante (chat RAG)
 
 ```text
 Pergunta do estudante
         ↓
-Perfil de acesso + contexto acadêmico (TOTVS)
+Embedding da pergunta (bge-m3, 1024 dimensões)
         ↓
-Busca na base de conhecimento oficial (RAG)
+Busca vetorial na base de conhecimento oficial (pgvector)
         ↓
-Resposta curta + passo a passo + canal/link + fonte + data
-        ↓
-Sem base suficiente?  →  abstenção e transferência para atendimento humano
+Similaridade acima do limiar?
+   ├── sim → resposta com o trecho recuperado + fonte + data
+   └── não → abstenção e encaminhamento para a equipe do ASA
 ```
 
-| Entrada | O que é |
-|---|---|
-| 📚 Base de conhecimento | Conteúdo institucional autorizado: regulamentos, manual do aluno, procedimentos, FAQs e materiais das áreas do ASA. |
-| 🔗 Dados do TOTVS | Situação acadêmica e administrativa autorizada do estudante, usada para interpretar a dúvida e personalizar a orientação. |
-| 👤 Perfil de acesso | Define o que aquele usuário pode ver e receber. |
-| 🧭 Contexto da solicitação | Canal, histórico da conversa e o que o estudante já tentou. |
+- Resposta **extrativa**: o texto vem do documento oficial, não é gerado por um modelo de linguagem.
+- Perguntas de continuação ("e o prazo?") são reescritas com o contexto da conversa.
+- Embeddings com fallback: Cloudflare Workers AI → Hugging Face → TF-IDF local → abstenção.
+
+### Agente de Monitoramento (risco de evasão)
+
+```text
+Dados acadêmicos e financeiros
+        ↓
+Modelo XGBoost monotônico calibrado
+        ↓
+Score + faixa (Amarelo ≥ 30%, Vermelho ≥ 60%) + fatores que mais pesaram
+        ↓
+Recomendação sugerida por regra
+        ↓
+Avaliação humana obrigatória (confirmar / ajustar / rejeitar + justificativa)
+```
+
+- Restrições de monotonia garantem direções coerentes (por exemplo, mais parcelas em aberto nunca reduz o risco).
+- Sexo, estado civil e contatos com o ASA **não entram no modelo**: procurar ajuda nunca piora o score.
 
 ### Princípios inegociáveis
 
-1. **Conhecimento oficial.** O agente responde a partir de conteúdo institucional autorizado. Nunca inventa procedimento, prazo ou regra.
-2. **Fonte e data sempre.** Toda resposta mostra de onde veio e quando aquele conteúdo foi atualizado.
-3. **Abstenção é resposta válida.** Sem evidência suficiente, o agente não arrisca: encaminha para atendimento humano.
-4. **Decisão assistida.** Nada com impacto acadêmico, financeiro ou disciplinar é decidido pelo agente.
-5. **Privacidade e LGPD.** Dados anonimizados, agregados ou fictícios; minimização, controle de acesso e nenhum dado pessoal, credencial ou token versionado no repositório.
+1. **Conhecimento oficial.** O agente nunca inventa procedimento, prazo ou regra.
+2. **Fonte e data sempre.** Toda resposta mostra de onde veio e quando foi atualizada.
+3. **Abstenção é resposta válida.** Sem evidência suficiente, encaminha para atendimento humano.
+4. **Decisão assistida.** O score é apoio, não veredito; toda decisão é humana e auditada.
+5. **Privacidade e LGPD.** Minimização de dados; controle de acesso por perfil; nenhum dado pessoal, credencial ou token versionado.
 6. **Acessibilidade.** Linguagem clara, contraste adequado, navegação por teclado e compatibilidade com leitores de tela.
 
-O projeto integra as Unidades Curriculares de **Inteligência Artificial e Aprendizado de Máquina**, **Álgebra Linear, Vetores e Geometria Analítica**, **Sistemas Operacionais e Computação em Nuvem**, **Psicologia, Liderança e Soft Skills** e **Projeto Interdisciplinar**.
+---
+
+## 📊 Resultados (Entrega 2)
+
+Números extraídos do [relatório de resultados](src/Entrega%202/docs/entrega_ia/relatorio_resultados.md) e do [Model Card v2](src/Entrega%202/docs/entrega_ia/model_card_v2.md).
+
+**Chat do estudante (RAG, 60 perguntas de avaliação)**
+
+| Métrica | bge-m3 (produção) |
+|---|---|
+| Recall@1 / Recall@3 | 93,8% / 95,8% |
+| Acerto do agente | 90% |
+| Abstenção correta (fora do escopo) | 100% |
+| Groundedness | 100% (resposta extrativa) |
+
+**Modelo de risco (XGBoost monotônico, conjunto de teste)**
+
+| Métrica | Valor |
+|---|---|
+| AUC-ROC | 0,913 |
+| Recall | 76% (de cada 100 alunos que evadiram, 76 teriam sido sinalizados) |
+| Precisão | 64% |
+| F1 | 0,691 |
+
+> **Limitações:** a avaliação do RAG usa 20 documentos fictícios e precisa ser refeita com a base real do ASA. O rótulo de evasão não teve o período de referência confirmado formalmente com o parceiro.
 
 ---
 
 ## 🔗 Integração com o TOTVS
 
-O TOTVS é o sistema acadêmico da FECAP e a fonte da informação que hoje o estudante só consegue depois de abrir requisição no portal ou entrar em uma fila. Trazer esse contexto para dentro do agente é o que separa uma resposta genérica de uma resposta útil: em vez de explicar como funciona a rematrícula em tese, o agente explica o que **aquele** estudante precisa fazer, na situação em que ele está.
-
-**O que a integração habilita**
-
-- Interpretar a dúvida a partir da situação real do estudante, e não só do texto da pergunta.
-- Responder sobre prazos, requisitos e pendências já aplicados ao caso concreto.
-- Indicar o próximo passo certo e o canal correto, evitando o vaivém entre canais.
-
-**Como a integração é desenhada**
-
-| Decisão | Abordagem |
-|---|---|
-| Acoplamento | Camada de integração isolada atrás de uma interface própria. O agente consome um contrato interno, não o TOTVS diretamente. |
-| Desenvolvimento e demo | **Mock com dados fictícios** implementando o mesmo contrato, para o projeto rodar e ser demonstrado sem depender de acesso ao ambiente real. |
-| Escopo dos dados | Somente os campos autorizados e necessários para responder à dúvida, aplicando minimização. |
-| Segurança | Credenciais e tokens em variáveis de ambiente e gestão de segredos da nuvem. Nada versionado no repositório. |
-| Rastreabilidade | Registro de origem, versão e data dos dados consultados, respeitando o nível de acesso. |
-
-> **Status:** por decisão do grupo, **a API real do TOTVS não será utilizada por enquanto**. O projeto funciona inteiramente com o mock de dados fictícios. Como a integração fica isolada atrás de um contrato próprio, a troca pela API real continua possível no futuro, caso a FECAP/ASA autorize o acesso, sem mudanças no agente.
+O TOTVS é o sistema acadêmico da FECAP. A integração fica isolada atrás de um contrato próprio, então a troca pela API real é possível, caso a FECAP/ASA autorize o acesso, sem mudanças nos agentes.
 
 ---
 
 ## 🏗 Arquitetura
 
 ```text
-Aplicação  ->  API  ->  Base de conhecimento versionada
-                     ->  Índice vetorial (embeddings)
-                     ->  Camada de integração  ->  TOTVS (dados acadêmicos autorizados)
-                                               ->  Mock com dados fictícios
-                     ->  Agente RAG  ->  Resposta com fontes
-                                     ->  Encaminhamento humano
-                                     ->  Feedback, histórico e auditoria
-                     tudo executado em infraestrutura de nuvem
+Navegador (React + Vite, PWA)
+        ↓  /api
+API FastAPI (container único no Render, também serve o frontend)
+   ├── Autenticação e perfis (Supabase Auth / modo demonstração)
+   ├── Chat RAG  ──→ Embeddings (Cloudflare → Hugging Face → TF-IDF)
+   │             ──→ Supabase Postgres + pgvector
+   ├── Risco     ──→ Modelo XGBoost (artefato versionado em ml/artifacts)
+   ├── Casos, validação humana e auditoria
+   ├── Painel e base de conhecimento
+   └── /health e /metrics (Prometheus + Grafana)
 ```
+
+Em modo demonstração (`DEMO_MODE=true`), a API sobe sem banco externo, com os dados carregados em memória.
 
 ---
 
@@ -167,35 +183,41 @@ Aplicação  ->  API  ->  Base de conhecimento versionada
 
 | Camada | Ferramentas |
 |---|---|
-| Aplicação | web |
-| Backend e API | Python com FastAPI ou Flask |
-| Agente e RAG | Embeddings, busca vetorial, LangChain ou LlamaIndex, modelo de linguagem autorizado |
-| Base de conhecimento | Ingestão e versionamento de documentos oficiais |
-| Integração | Mock de dados fictícios do TOTVS (API real fora do escopo por enquanto, mantida como possível extensão) |
-| Álgebra Linear | Python: vetores, matrizes, similaridade e redução de dimensionalidade |
-| Banco de dados | Relacional + banco vetorial *(a definir)* |
-| Nuvem | Docker + provedor a definir (AWS, Azure ou GCP); aplicação publicada no Vercel |
-| Observabilidade | Logs estruturados e métricas de aplicação e de qualidade das respostas |
-| Versionamento | Git, GitHub e GitHub Projects |
-| Documentação | OpenAPI/Swagger, Model Card, relatório técnico |
+| Frontend | React 18, Vite, CSS Modules, PWA |
+| Backend e API | Python 3.12, FastAPI, Pydantic, contrato OpenAPI (`docs/api-contract.yaml`) |
+| Agente RAG | Embeddings bge-m3 (Cloudflare Workers AI / Hugging Face), fallback TF-IDF |
+| Modelo de risco | XGBoost, scikit-learn, pandas, SHAP |
+| Banco de dados | Supabase (Postgres 16 + pgvector, RLS por perfil) |
+| Nuvem e infraestrutura | Docker (multi-stage, usuário não-root), Render; alternativas Fly.io e Caddy documentadas |
+| Observabilidade | Logs JSON, Prometheus, Grafana |
+| Qualidade | pytest, ruff, Playwright (e2e), testes de carga e acessibilidade |
+| Álgebra Linear | Python: vetores, similaridade de cosseno, PCA e redução de dimensionalidade |
+| Versionamento | Git e GitHub |
 
 ---
 
 ## 📂 Estrutura de pastas
 
 ```text
-📁 Documentos
- ├── 📁 Entrega_1        # documentação da Entrega 1
- └── 📁 Entrega_2        # documentação da Entrega 2
+📁 documentos
+ ├── 📁 Entrega1             # entregáveis acadêmicos da Entrega 1
+ └── 📁 Entrega 2            # entregáveis acadêmicos da Entrega 2
 📁 src
- ├── 📁 backend          # API, banco, autenticação, integração TOTVS e auditoria
- ├── 📁 web              # aplicação
- └── 📁 notebooks        # ingestão, embeddings, Álgebra Linear e avaliação
-📄 .gitignore
+ ├── 📁 Entrega 1            # protótipo da Entrega 1 (HTML + função serverless no Vercel)
+ └── 📁 Entrega 2            # ASA Turbo (versão atual)
+      ├── 📁 backend         # API FastAPI, RAG, risco, autenticação e testes
+      ├── 📁 web             # frontend React + Vite
+      ├── 📁 ml              # treino e avaliação (risco e RAG), notebooks e artefatos
+      ├── 📁 infra           # SQL, Docker, deploy, monitoramento e testes de carga
+      ├── 📁 e2e             # testes ponta a ponta (Playwright)
+      ├── 📁 seeds           # dados para demonstração
+      ├── 📁 docs            # contrato da API, decisões, relatório e evidências
+      └── 📄 Dockerfile      # container único (API + web)
+📄 render.yaml               # blueprint de deploy no Render
 📄 README.md
 ```
 
-> Dados pessoais, credenciais e arquivos restritos não são versionados. O repositório usa apenas **amostras fictícias** para execução e demonstração.
+> Dados pessoais, credenciais e arquivos restritos não são versionados.
 
 ---
 
@@ -203,11 +225,32 @@ Aplicação  ->  API  ->  Base de conhecimento versionada
 
 ### 🌐 Acessar a aplicação publicada
 
-A aplicação já está no ar e **não precisa de instalação**. Basta abrir:
+**👉 [https://asa-turbo.onrender.com](https://asa-turbo.onrender.com)**
 
-**👉 [https://projeto-ia-rho.vercel.app/](https://projeto-ia-rho.vercel.app/)**
+Na tela de entrada, use **Acessar como demonstração** e escolha um perfil:
 
-Os dados acadêmicos do TOTVS são simulados por um **mock**, com dados fictícios, então nenhum dado real de estudante é exposto na demonstração.
+| Perfil | O que explorar |
+|---|---|
+| Estudante | Chat com a base oficial e perguntas frequentes |
+| Atendente | Fila de risco, detalhe do caso e modelo |
+| Administrador | Painel, fila de risco, base de conhecimento e modelo |
+
+> O Render, no plano gratuito, desliga o serviço quando fica ocioso. O primeiro acesso pode levar até um minuto para carregar.
+
+### 🐳 Rodar localmente com Docker
+
+```bash
+cd "src/Entrega 2"
+docker build -t asa-turbo .
+docker run --rm -p 8080:8080 -e PORT=8080 asa-turbo   # DEMO_MODE=true por padrão
+# abra http://localhost:8080
+```
+
+Para rodar backend e frontend separados, ou usar o Supabase real, veja [backend/README.md](src/Entrega%202/backend/README.md) e [infra/README.md](src/Entrega%202/infra/README.md).
+
+### 🕰️ Versão da Entrega 1
+
+O protótipo da Entrega 1 continua publicado em [projeto-ia-rho.vercel.app](https://projeto-ia-rho.vercel.app/) e o código está em `src/Entrega 1/`.
 
 ---
 
@@ -218,6 +261,8 @@ Os dados acadêmicos do TOTVS são simulados por um **mock**, com dados fictíci
 **Entrega 1.** Definição do problema, usuários e jornadas; requisitos e critérios de aceitação; riscos éticos e plano de proteção de dados; arquitetura preliminar; catálogo de fontes e base de conhecimento inicial; contrato da integração com o TOTVS e mock funcionando; recuperação de documentos funcionando, com avaliação de relevância e respostas com fontes; notebook de Álgebra Linear com pelo menos duas operações; ambiente Linux/nuvem documentado; primeira versão do Model Card; prova de conceito e protótipo.
 
 **Entrega 2.** MVP integrado e publicado na nuvem; fluxo completo de pergunta, resposta com evidências, próxima ação, encaminhamento humano e histórico; dashboard gerencial; comparação de configurações, métricas de qualidade do ranking, cobertura, groundedness e taxa de resposta correta; casos de abstenção, limitações e análise de viés; versionamento da base de conhecimento e endpoint de inferência; Model Card final e relatório de extensão.
+
+O projeto integra as Unidades Curriculares de **Inteligência Artificial e Aprendizado de Máquina**, **Álgebra Linear, Vetores e Geometria Analítica**, **Sistemas Operacionais e Computação em Nuvem**, **Psicologia, Liderança e Soft Skills** e **Projeto Interdisciplinar**.
 
 ---
 
