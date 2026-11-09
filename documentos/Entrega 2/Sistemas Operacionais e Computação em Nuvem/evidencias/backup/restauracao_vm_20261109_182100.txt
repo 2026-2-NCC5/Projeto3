@@ -1,0 +1,33 @@
+# Teste de restauração · ASA Turbo · 2026-11-09 18:21:00 -03 · host ip-172-31-17-67
+# backup: asa_20261109_182044.dump (12M) · destino: projeto compose 'asa-restore' (Postgres limpo)
+  sha256 asa_20261109_182044.dump: OK
+  sha256 asa_20261109_182044_auth.sql.gz: OK
+  sha256 asa_20261109_182044_config.tar.gz: OK
+  sha256 asa_20261109_182044.contagens: OK
+1. Postgres limpo no ar (db + GoTrue, schema auth vazio): 11.7 s
+   tabelas em public antes: 0
+   auth.users restaurados: 113
+2. restauração (auth + public): 3.4 s (pg_restore do public: 2.6 s)
+3. contagem de linhas: backup x restaurado
+   tabela                     backup   restaurado  ok
+   perfis                        113          113  sim
+   estudantes                    401          401  sim
+   estudante_features           1800         1800  sim
+   scores_risco                 1800         1800  sim
+   casos_risco                   126          126  sim
+   validacoes_caso                42           42  sim
+   eventos_caso                  221          221  sim
+   contatos_asa                  364          364  sim
+   conversas                   25901        25901  sim
+   mensagens                   51802        51802  sim
+   respostas_agente            25901        25901  sim
+   feedback_respostas              1            1  sim
+   encaminhamentos              1086         1086  sim
+   documentos_oficiais           230          230  sim
+   documentos_chunks             693          693  sim
+   documentos_versoes            230          230  sim
+   auditoria_logs              25986        25986  sim
+   checagens extras: 0 chunks com embedding (pgvector) · 42 policies RLS
+
+RESULTADO: OK, todas as tabelas conferem
+TEMPO TOTAL (Postgres limpo -> dados conferidos): 17.2 s

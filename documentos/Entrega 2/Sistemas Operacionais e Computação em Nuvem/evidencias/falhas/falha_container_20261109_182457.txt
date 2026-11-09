@@ -1,0 +1,13 @@
+# Simulação de falha: container · 2026-11-09 18:24:57 -03 · https://54-207-148-68.sslip.io
+[18:24:57.343] estado inicial: asa-turbo-backend-1 Up 13 seconds (healthy) · /api/health=200
+[18:24:57.669] kill -9 no processo principal do backend (simula crash: OOM, segfault...)
+[18:24:57.931] /api/health=502 (fora do ar)
+[18:25:01.149] /api/health=200 de novo após 3.2 s
+RestartCount=1 Status=running Health=starting StartedAt=2026-11-09T21:24:58.059651683Z
+1794259488 exec_create: python -c import os,sys,urllib.request as u; sys.exit(0 if u.urlopen(f"http://127.0.0.1:{os.environ.get('PORT','8000')}/health", timeout=4).status == 200 else 1)
+1794259488 exec_start: python -c import os,sys,urllib.request as u; sys.exit(0 if u.urlopen(f"http://127.0.0.1:{os.environ.get('PORT','8000')}/health", timeout=4).status == 200 else 1)
+1794259489 exec_die
+1794259489 health_status: healthy
+1794259498 die
+1794259498 start
+# evidência: falha_container_20261109_182457.txt

@@ -1,0 +1,9 @@
+# gitleaks v8.21.2 · 2026-11-09 18:30:31 -03 · branch entrega2/nuvem @ 01bc2ca
+## histórico Git inteiro
+9:30PM INF 134 commits scanned.
+9:30PM INF scan completed in 10s
+9:30PM INF no leaks found
+
+## arquivos versionados (diretório de trabalho, sem .gitignore'd)
+9:30PM INF scan completed in 649ms
+9:30PM INF no leaks found

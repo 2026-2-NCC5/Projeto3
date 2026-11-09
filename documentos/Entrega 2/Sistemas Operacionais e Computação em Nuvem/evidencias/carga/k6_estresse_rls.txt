@@ -1,0 +1,9 @@
+início: 2026-11-09 17:54:11  config da VM: 
+time="2026-11-09T20:55:24Z" level=warning msg="Insufficient VUs, reached 400 active VUs and cannot initialize more" executor=ramping-arrival-rate scenario=fila
+
+=== k6 · estresse_rls · https://54-207-148-68.sslip.io ===
+requisições: 11751 (53.39/s) · falhas: 0.04% · 5xx/timeout: 0.00% · iterações descartadas: 9690
+lat_chat  n=3029  p50=8730.9 ms  p95=12184.6 ms  p99=12806.0 ms  max=22237.3 ms
+lat_fila  n=4306  p50=9216.0 ms  p95=11952.6 ms  p99=12864.4 ms  max=14087.1 ms
+lat_caso  n=4306  p50=8571.7 ms  p95=10239.4 ms  p99=12086.9 ms  max=13310.4 ms
+fim: 2026-11-09 17:57:53

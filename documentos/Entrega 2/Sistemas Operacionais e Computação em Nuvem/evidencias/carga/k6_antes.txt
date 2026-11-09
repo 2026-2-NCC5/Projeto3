@@ -1,0 +1,11 @@
+início: 2026-11-09 17:29:51  config da VM: 
+
+=== k6 · antes · https://54-207-148-68.sslip.io ===
+requisições: 13095 (22.84/s) · falhas: 0.16% · 5xx: 0.00%
+lat_health  n=2851  p50=8.6 ms  p95=13.7 ms  p99=20.4 ms  max=181.9 ms
+lat_login   n=100  p50=14.6 ms  p95=23.1 ms  p99=82.6 ms  max=223.4 ms
+lat_chat    n=5476  p50=17.6 ms  p95=32.3 ms  p99=51.3 ms  max=286.1 ms
+lat_fila    n=2334  p50=43.3 ms  p95=73.5 ms  p99=102.7 ms  max=334.0 ms
+lat_caso    n=2334  p50=19.6 ms  p95=36.8 ms  p99=54.4 ms  max=233.0 ms
+abstenção: 10.3% · 429: 21
+fim: 2026-11-09 17:39:25

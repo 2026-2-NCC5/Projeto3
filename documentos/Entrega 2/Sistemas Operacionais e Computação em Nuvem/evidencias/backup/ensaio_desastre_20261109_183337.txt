@@ -1,0 +1,127 @@
+# Ensaio de desastre (VM perdida) · 2026-11-09 18:33:37 -03 · https://54-207-148-68.sslip.io
+
+[18:33:37] ===== 0. preparação: cópia externa dos backups
+    serviço FORA do ar: usando a última cópia externa já existente (como num desastre real)
+    backup escolhido: asa_20261109_182927
+perfis|113 casos_risco|126 eventos_caso|221 documentos_oficiais|230 contatos_asa|364 estudantes|401 validacoes_caso|42 feedback_respostas|1 documentos_versoes|230 documentos_chunks|693 scores_risco|1800 encaminhamentos|1086 estudante_features|1800 conversas|25901 auditoria_logs|25986 mensagens|51802 respostas_agente|25901 
+
+[18:33:38] ===== 1. DESASTRE: apagando Docker, volumes, /opt/asa, clone, unidades e configs
+    docker: ausente · /opt/asa: ausente
+    site: HTTP 000 (000 = fora do ar)
+
+[18:33:42] ===== 2. provisionar (atualizar.sh + provision.sh, direto do GitHub)
+[atualizar] entrega2/nuvem @ 22b927e
+[provision] pronto. Próximo: código em /opt/asa, .env (600) e 'systemctl start asa' (infra/deploy/README.md).
+Docker version 29.9.3, build 5457199
+    -> provisionamento (Docker incluso): 18.9 s
+
+[18:34:01] ===== 3. devolver .env e backup a partir da cópia externa
+-rw------- 1 asa asa 2171 Nov  9 18:09 /opt/asa/.env
+    -> cópia do .env e do backup: 0.7 s
+
+[18:34:02] ===== 4. build das imagens + db e GoTrue (banco novo, vazio)
+ Image asa-turbo-web:0.9.0 Built 
+ Image asa-turbo-backend:0.9.0 Built 
+ Container asa-turbo-gotrue-1 Healthy 
+    -> build + banco no ar: 130.2 s
+
+[18:36:12] ===== 5. restaurar auth + public
+Unable to find image 'postgres:17.2-alpine' locally
+17.2-alpine: Pulling from library/postgres
+a2220bc1b389: Pulling fs layer
+655763f76ff2: Pulling fs layer
+e63043639b3e: Pulling fs layer
+4d216e15bb89: Pulling fs layer
+1f3e46996e29: Pulling fs layer
+4814e8dd2bb0: Pulling fs layer
+6ab64bc3e7b1: Pulling fs layer
+28bb078c5f92: Pulling fs layer
+84625ef528bf: Pulling fs layer
+07f3d5609354: Pulling fs layer
+84625ef528bf: Download complete
+655763f76ff2: Download complete
+4d216e15bb89: Download complete
+07f3d5609354: Download complete
+e63043639b3e: Download complete
+6ab64bc3e7b1: Download complete
+1f3e46996e29: Download complete
+28bb078c5f92: Download complete
+a2220bc1b389: Download complete
+791c886bb710: Download complete
+1f3e46996e29: Pull complete
+0a238ffa2ea8: Download complete
+4814e8dd2bb0: Download complete
+655763f76ff2: Pull complete
+4d216e15bb89: Pull complete
+e63043639b3e: Pull complete
+84625ef528bf: Pull complete
+07f3d5609354: Pull complete
+6ab64bc3e7b1: Pull complete
+28bb078c5f92: Pull complete
+a2220bc1b389: Pull complete
+4814e8dd2bb0: Pull complete
+Digest: sha256:7e5df973a74872482e320dcbdeb055e178d6f42de0558b083892c50cda833c96
+Status: Downloaded newer image for postgres:17.2-alpine
+    # Teste de restauração · ASA Turbo · 2026-11-09 18:36:13 -03 · host ip-172-31-17-67
+    # backup: asa_20261109_182927.dump (12M) · destino: projeto compose 'asa-turbo' (Postgres limpo)
+      sha256 asa_20261109_182927.dump: OK
+      sha256 asa_20261109_182927_auth.sql.gz: OK
+      sha256 asa_20261109_182927_config.tar.gz: OK
+      sha256 asa_20261109_182927.contagens: OK
+    1. Postgres limpo no ar (db + GoTrue, schema auth vazio): 0.8 s
+       tabelas em public antes: 0
+       auth.users restaurados: 113
+    2. restauração (auth + public): 8.6 s (pg_restore do public: 7.8 s)
+    3. contagem de linhas: backup x restaurado
+       tabela                     backup   restaurado  ok
+       perfis                        113          113  sim
+       estudantes                    401          401  sim
+       estudante_features           1800         1800  sim
+       scores_risco                 1800         1800  sim
+       casos_risco                   126          126  sim
+       validacoes_caso                42           42  sim
+       eventos_caso                  221          221  sim
+       contatos_asa                  364          364  sim
+       conversas                   25901        25901  sim
+       mensagens                   51802        51802  sim
+       respostas_agente            25901        25901  sim
+       feedback_respostas              1            1  sim
+       encaminhamentos              1086         1086  sim
+       documentos_oficiais           230          230  sim
+       documentos_chunks             693          693  sim
+       documentos_versoes            230          230  sim
+       auditoria_logs              25986        25986  sim
+       checagens extras: 0 chunks com embedding (pgvector) · 42 policies RLS
+    
+    RESULTADO: OK, todas as tabelas conferem
+    TEMPO TOTAL (Postgres limpo -> dados conferidos): 11.5 s
+    -> restauração: 12.2 s
+
+[18:36:24] ===== 6. subir o resto (systemctl start asa) e esperar o HTTPS
+active
+    -> serviço + certificado novo: 45.8 s
+    issuer=C=US, O=Let's Encrypt, CN=YE2
+    notBefore=Nov  9 20:38:19 2026 GMT
+    notAfter=Feb  7 20:38:18 2027 GMT
+
+[18:37:10] ===== 7. validar com smoke.sh
+    ASA Turbo · smoke em https://54-207-148-68.sslip.io
+      OK     /health (degradado · modelo risco-2.0.0)
+      OK     página inicial (web)
+      OK     login dos 3 perfis (estudante, atendente, administrador)
+      OK     /chat responde com fonte (Trancamento de Matrícula)
+      OK     /chat se abstém fora do escopo
+      OK     /casos (300 na fila; topo: vermelho)
+      OK     estudante não acessa /casos (403)
+      OK     /admin/dashboard (25903 perguntas no período)
+    
+    Resultado: tudo OK
+
+===== RESUMO
+  provisionamento (Docker incluso)         18.9 s
+  cópia do .env e do backup                0.7 s
+  build + banco no ar                     130.2 s
+  restauração                            12.2 s
+  serviço + certificado novo              45.8 s
+  RTO medido (VM 'nova' -> smoke OK)      209.3 s (3.5 min)
+  RPO deste ensaio: backup feito imediatamente antes (em operação normal: até 24 h)

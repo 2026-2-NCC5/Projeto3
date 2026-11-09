@@ -1,0 +1,1 @@
+[2026-11-09 18:37:53] asa-vm -> /home/ericbittu/asa-backups-vm em 1 s · conjuntos íntegros: 3 · falhas: 0 · total: 45M

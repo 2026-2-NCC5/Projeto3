@@ -1,0 +1,415 @@
+# Evidências da VM · ASA Turbo
+# Coletado em: 2026-11-09 18:37:54 -03 · host: ip-172-31-17-67 · via SSH por ubuntu
+
+==============================================================================
+## Sistema operacional
+$ uname -a
+------------------------------------------------------------------------------
+Linux ip-172-31-17-67 7.0.0-1014-aws #14~24.04.1-Ubuntu SMP PREEMPT Fri Sep 18 21:24:59 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+
+==============================================================================
+## Distribuição
+$ lsb_release -a
+------------------------------------------------------------------------------
+Distributor ID:	Ubuntu
+Description:	Ubuntu 24.04.5 LTS
+Release:	24.04
+Codename:	noble
+
+==============================================================================
+## Tempo ligado e carga
+$ uptime
+------------------------------------------------------------------------------
+ 18:37:54 up 10 min,  1 user,  load average: 0.93, 0.94, 0.45
+
+==============================================================================
+## Usuário de serviço (sem senha, sem sudo, shell nologin)
+$ id asa; getent passwd asa; passwd -S asa; sudo -l -U asa | tail -n 2
+------------------------------------------------------------------------------
+uid=999(asa) gid=987(asa) groups=987(asa),988(docker)
+asa:x:999:987::/home/asa:/usr/sbin/nologin
+asa L 2026-11-09 -1 -1 -1 -1
+User asa is not allowed to run sudo on ip-172-31-17-67.
+
+==============================================================================
+## Diretório da aplicação e permissões
+$ ls -ld /opt/asa /opt/asa/backups; ls -l /opt/asa/.env; stat -c 'modo=%a dono=%U grupo=%G %n' /opt/asa/.env
+------------------------------------------------------------------------------
+drwxr-x--- 11 asa asa 4096 Nov  9 18:34 /opt/asa
+drwx------  2 asa asa 4096 Nov  9 18:37 /opt/asa/backups
+-rw------- 1 asa asa 2171 Nov  9 18:09 /opt/asa/.env
+modo=600 dono=asa grupo=asa /opt/asa/.env
+
+==============================================================================
+## Firewall (ufw)
+$ ufw status verbose
+------------------------------------------------------------------------------
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere                  
+80/tcp                     ALLOW IN    Anywhere                  
+443/tcp                    ALLOW IN    Anywhere                  
+9100/tcp                   ALLOW IN    172.16.0.0/12              # node-exporter (Docker)
+22/tcp (v6)                ALLOW IN    Anywhere (v6)             
+80/tcp (v6)                ALLOW IN    Anywhere (v6)             
+443/tcp (v6)               ALLOW IN    Anywhere (v6)             
+
+
+==============================================================================
+## Portas em escuta
+$ ss -tlnp
+------------------------------------------------------------------------------
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess                                                
+LISTEN 0      4096       127.0.0.1:9090      0.0.0.0:*    users:(("docker-proxy",pid=15096,fd=8))               
+LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*    users:(("systemd-resolve",pid=374,fd=17))             
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*    users:(("systemd-resolve",pid=374,fd=15))             
+LISTEN 0      4096         0.0.0.0:80        0.0.0.0:*    users:(("docker-proxy",pid=15677,fd=8))               
+LISTEN 0      4096         0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=931,fd=3),("systemd",pid=1,fd=215))
+LISTEN 0      4096         0.0.0.0:443       0.0.0.0:*    users:(("docker-proxy",pid=15698,fd=8))               
+LISTEN 0      4096       127.0.0.1:3000      0.0.0.0:*    users:(("docker-proxy",pid=15334,fd=8))               
+LISTEN 0      4096            [::]:80           [::]:*    users:(("docker-proxy",pid=15682,fd=8))               
+LISTEN 0      4096            [::]:22           [::]:*    users:(("sshd",pid=931,fd=4),("systemd",pid=1,fd=216))
+LISTEN 0      4096            [::]:443          [::]:*    users:(("docker-proxy",pid=15703,fd=8))               
+LISTEN 0      4096               *:9100            *:*    users:(("node_exporter",pid=15015,fd=3))              
+
+==============================================================================
+## SSH efetivo (só chave, sem root)
+$ sshd -T | grep -Ei '^(permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication|maxauthtries) '
+------------------------------------------------------------------------------
+maxauthtries 3
+permitrootlogin no
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+
+==============================================================================
+## fail2ban
+$ fail2ban-client status; fail2ban-client status sshd
+------------------------------------------------------------------------------
+Status
+|- Number of jail:	1
+`- Jail list:	sshd
+Status for the jail: sshd
+|- Filter
+|  |- Currently failed:	0
+|  |- Total failed:	0
+|  `- Journal matches:	_SYSTEMD_UNIT=sshd.service + _COMM=sshd
+`- Actions
+   |- Currently banned:	0
+   |- Total banned:	0
+   `- Banned IP list:	
+
+==============================================================================
+## Atualizações automáticas
+$ systemctl is-enabled unattended-upgrades; cat /etc/apt/apt.conf.d/20auto-upgrades
+------------------------------------------------------------------------------
+enabled
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+
+==============================================================================
+## Containers
+$ docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+------------------------------------------------------------------------------
+NAMES                       IMAGE                             STATUS                        PORTS
+asa-turbo-web-1             asa-turbo-web:0.9.0               Up About a minute (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp, 2019/tcp
+asa-turbo-backend-1         asa-turbo-backend:0.9.0           Up About a minute (healthy)   8000/tcp
+asa-turbo-grafana-1         grafana/grafana:11.3.1            Up About a minute (healthy)   127.0.0.1:3000->3000/tcp
+asa-turbo-supabase-gw-1     caddy:2.8.4-alpine                Up About a minute             80/tcp, 443/tcp, 2019/tcp, 8000/tcp, 443/udp
+asa-turbo-prometheus-1      prom/prometheus:v2.55.1           Up About a minute (healthy)   127.0.0.1:9090->9090/tcp
+asa-turbo-cadvisor-1        ghcr.io/google/cadvisor:v0.53.0   Up About a minute (healthy)   8080/tcp
+asa-turbo-node-exporter-1   prom/node-exporter:v1.8.2         Up About a minute             
+asa-turbo-postgrest-1       postgrest/postgrest:v12.2.3       Up About a minute             3000/tcp
+asa-turbo-gotrue-1          supabase/gotrue:v2.164.0          Up About a minute (healthy)   
+asa-turbo-db-1              supabase/postgres:15.8.1.020      Up About a minute (healthy)   5432/tcp
+
+==============================================================================
+## Uso de recursos por container
+$ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.PIDs}}'
+------------------------------------------------------------------------------
+NAME                        CPU %     MEM USAGE / LIMIT   MEM %     PIDS
+asa-turbo-web-1             0.01%     15.45MiB / 256MiB   6.03%     7
+asa-turbo-backend-1         0.15%     172MiB / 1GiB       16.80%    9
+asa-turbo-grafana-1         0.25%     57.61MiB / 384MiB   15.00%    10
+asa-turbo-supabase-gw-1     0.00%     12.13MiB / 128MiB   9.48%     7
+asa-turbo-prometheus-1      0.06%     31.01MiB / 512MiB   6.06%     8
+asa-turbo-cadvisor-1        0.06%     15.17MiB / 256MiB   5.92%     10
+asa-turbo-node-exporter-1   0.00%     7.789MiB / 128MiB   6.09%     5
+asa-turbo-postgrest-1       0.13%     13.7MiB / 256MiB    5.35%     10
+asa-turbo-gotrue-1          0.00%     8.172MiB / 256MiB   3.19%     8
+asa-turbo-db-1              0.03%     171.9MiB / 1GiB     16.79%    12
+
+==============================================================================
+## Limites de CPU/memória por container
+$ for c in $(docker ps -q); do docker inspect --format '{{.Name}} cpus={{.HostConfig.NanoCpus}} mem={{.HostConfig.Memory}} restart={{.HostConfig.RestartPolicy.Name}} user={{.Config.User}}' $c; done
+------------------------------------------------------------------------------
+/asa-turbo-web-1 cpus=500000000 mem=268435456 restart=unless-stopped user=web
+/asa-turbo-backend-1 cpus=1500000000 mem=1073741824 restart=unless-stopped user=asa
+/asa-turbo-grafana-1 cpus=500000000 mem=402653184 restart=unless-stopped user=472
+/asa-turbo-supabase-gw-1 cpus=250000000 mem=134217728 restart=unless-stopped user=
+/asa-turbo-prometheus-1 cpus=500000000 mem=536870912 restart=unless-stopped user=0:0
+/asa-turbo-cadvisor-1 cpus=500000000 mem=268435456 restart=unless-stopped user=
+/asa-turbo-node-exporter-1 cpus=250000000 mem=134217728 restart=unless-stopped user=nobody
+/asa-turbo-postgrest-1 cpus=500000000 mem=268435456 restart=unless-stopped user=1000
+/asa-turbo-gotrue-1 cpus=500000000 mem=268435456 restart=unless-stopped user=supabase
+/asa-turbo-db-1 cpus=1000000000 mem=1073741824 restart=unless-stopped user=
+
+==============================================================================
+## Serviço systemd
+$ systemctl status asa --no-pager
+------------------------------------------------------------------------------
+● asa.service - ASA Turbo (docker compose)
+     Loaded: loaded (/etc/systemd/system/asa.service; enabled; preset: enabled)
+     Active: active (exited) since Mon 2026-11-09 18:37:09 -03; 46s ago
+       Docs: file:///opt/asa/infra/deploy/README.md
+    Process: 14631 ExecStartPre=/usr/bin/docker compose config -q (code=exited, status=0/SUCCESS)
+    Process: 14653 ExecStart=/usr/bin/docker compose up -d --remove-orphans --wait --wait-timeout 300 (code=exited, status=0/SUCCESS)
+   Main PID: 14653 (code=exited, status=0/SUCCESS)
+        CPU: 375ms
+
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-gotrue-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-supabase-gw-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-postgrest-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-backend-1 Healthy
+Nov 09 18:36:50 ip-172-31-17-67 docker[14665]:  Container asa-turbo-web-1 Healthy
+Nov 09 18:37:08 ip-172-31-17-67 docker[14665]:  Container asa-turbo-cadvisor-1 Healthy
+Nov 09 18:37:09 ip-172-31-17-67 docker[14665]:  Container asa-turbo-prometheus-1 Healthy
+Nov 09 18:37:09 ip-172-31-17-67 docker[14665]:  Container asa-turbo-grafana-1 Healthy
+Nov 09 18:37:09 ip-172-31-17-67 systemd[1]: Finished asa.service - ASA Turbo (docker compose).
+
+==============================================================================
+## Timer de backup
+$ systemctl list-timers asa-backup.timer --no-pager; systemctl status asa-backup.service --no-pager | head -n 8
+------------------------------------------------------------------------------
+NEXT                        LEFT LAST                        PASSED UNIT             ACTIVATES
+Tue 2026-11-10 03:18:38 -03   8h Mon 2026-11-09 17:18:44 -03      - asa-backup.timer asa-backup.service
+
+1 timers listed.
+Pass --all to see loaded but inactive timers, too.
+○ asa-backup.service - ASA Turbo: backup do banco, da configuração e dos artefatos do modelo
+     Loaded: loaded (/etc/systemd/system/asa-backup.service; static)
+     Active: inactive (dead) since Mon 2026-11-09 18:37:52 -03; 3s ago
+TriggeredBy: ● asa-backup.timer
+    Process: 17045 ExecStart=/opt/asa/infra/scripts/backup.sh (code=exited, status=0/SUCCESS)
+   Main PID: 17045 (code=exited, status=0/SUCCESS)
+        CPU: 630ms
+
+
+==============================================================================
+## Journal do serviço (últimas 40)
+$ journalctl -u asa --no-pager -n 40
+------------------------------------------------------------------------------
+Nov 09 18:36:38 ip-172-31-17-67 docker[14665]:  Container asa-turbo-cadvisor-1 Started
+Nov 09 18:36:38 ip-172-31-17-67 docker[14665]:  Container asa-turbo-node-exporter-1 Started
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-prometheus-1 Started
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-grafana-1 Starting
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-postgrest-1 Started
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-supabase-gw-1 Starting
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-init-1 Started
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-init-1 Waiting
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-grafana-1 Started
+Nov 09 18:36:39 ip-172-31-17-67 docker[14665]:  Container asa-turbo-supabase-gw-1 Started
+Nov 09 18:36:40 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-init-1 Exited
+Nov 09 18:36:40 ip-172-31-17-67 docker[14665]:  Container asa-turbo-backend-1 Starting
+Nov 09 18:36:40 ip-172-31-17-67 docker[14665]:  Container asa-turbo-backend-1 Started
+Nov 09 18:36:40 ip-172-31-17-67 docker[14665]:  Container asa-turbo-backend-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-backend-1 Healthy
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-web-1 Starting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-web-1 Started
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-node-exporter-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-postgrest-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-supabase-gw-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-prometheus-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-grafana-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-gotrue-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-backend-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-cadvisor-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-init-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-web-1 Waiting
+Nov 09 18:36:45 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-init-1 Exited
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-node-exporter-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-gotrue-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-supabase-gw-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-db-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-postgrest-1 Healthy
+Nov 09 18:36:46 ip-172-31-17-67 docker[14665]:  Container asa-turbo-backend-1 Healthy
+Nov 09 18:36:50 ip-172-31-17-67 docker[14665]:  Container asa-turbo-web-1 Healthy
+Nov 09 18:37:08 ip-172-31-17-67 docker[14665]:  Container asa-turbo-cadvisor-1 Healthy
+Nov 09 18:37:09 ip-172-31-17-67 docker[14665]:  Container asa-turbo-prometheus-1 Healthy
+Nov 09 18:37:09 ip-172-31-17-67 docker[14665]:  Container asa-turbo-grafana-1 Healthy
+Nov 09 18:37:09 ip-172-31-17-67 systemd[1]: Finished asa.service - ASA Turbo (docker compose).
+
+==============================================================================
+## Disco
+$ df -h -x tmpfs -x devtmpfs -x overlay
+------------------------------------------------------------------------------
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/root         29G   12G   17G  40% /
+efivarfs         128K  3.3K  120K   3% /sys/firmware/efi/efivars
+/dev/nvme0n1p16  881M  114M  706M  14% /boot
+/dev/nvme0n1p15  105M  6.2M   99M   6% /boot/efi
+
+==============================================================================
+## Memória
+$ free -h
+------------------------------------------------------------------------------
+               total        used        free      shared  buff/cache   available
+Mem:           7.6Gi       1.3Gi       231Mi       131Mi       6.5Gi       6.3Gi
+Swap:             0B          0B          0B
+
+==============================================================================
+## top (instantâneo)
+$ top -b -n 1 | head -n 25
+------------------------------------------------------------------------------
+top - 18:37:56 up 10 min,  1 user,  load average: 0.93, 0.94, 0.45
+Tasks: 212 total,   1 running, 211 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  4.8 sy,  0.0 ni, 95.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :   7776.2 total,    231.4 free,   1318.5 used,   6678.9 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.   6457.8 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+      1 root      20   0   22916  14068   9584 S   0.0   0.2   0:06.37 systemd
+      2 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kthreadd
+      3 root      20   0       0      0      0 S   0.0   0.0   0:00.00 pool_wo+
+      4 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      5 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      6 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      7 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      8 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      9 root      20   0       0      0      0 I   0.0   0.0   0:00.11 kworker+
+     10 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     11 root      20   0       0      0      0 I   0.0   0.0   0:00.13 kworker+
+     13 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     14 root      20   0       0      0      0 S   0.0   0.0   0:00.06 ksoftir+
+     15 root       0 -20       0      0      0 S   0.0   0.0   0:00.89 pr/ttyS0
+     16 root      20   0       0      0      0 I   0.0   0.0   0:00.38 rcu_sch+
+     17 root      20   0       0      0      0 S   0.0   0.0   0:00.00 rcu_exp+
+     18 root      20   0       0      0      0 S   0.0   0.0   0:00.01 rcu_exp+
+     19 root      rt   0       0      0      0 S   0.0   0.0   0:00.00 migrati+
+
+==============================================================================
+## Processos por memória
+$ ps aux --sort=-%mem | head -n 15
+------------------------------------------------------------------------------
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+10001      15509  4.3  3.0 801136 241124 ?       Ssl  18:36   0:03 /opt/venv/bin/python /opt/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=* --no-server-header
+472        15293  3.1  2.1 1495672 174388 ?      Ssl  18:36   0:02 grafana server --homepath=/usr/share/grafana --config=/etc/grafana/grafana.ini --packaging=docker cfg:default.log.mode=console cfg:default.paths.data=/var/lib/grafana cfg:default.paths.logs=/var/log/grafana cfg:default.paths.plugins=/var/lib/grafana/plugins cfg:default.paths.provisioning=/etc/grafana/provisioning
+root        9843 14.6  2.0 2642708 162268 ?      Ssl  18:33   0:35 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+sshd       15441  0.4  1.2 271808 99660 ?        Ss   18:36   0:00 postgres: main: authenticator postgres 172.19.0.6(44342) idle
+root       15063  0.2  1.0 1330220 86936 ?       Ssl  18:36   0:00 /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=15d --storage.tsdb.retention.size=2GB --web.external-url=https://54-207-148-68.sslip.io/prometheus/ --web.route-prefix=/
+sshd       12696  0.1  0.7 252068 62208 ?        SLs  18:36   0:00 /usr/bin/postgres -c config_file=/etc/postgresql/postgresql.conf -c log_min_messages=fatal
+root        9441 19.6  0.6 2552160 54480 ?       Ssl  18:33   0:47 /usr/bin/containerd
+10002      15644  0.2  0.5 1267764 43672 ?       Ssl  18:36   0:00 caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+root         637  0.0  0.5 1854412 41384 ?       Ssl  18:27   0:00 /usr/lib/snapd/snapd
+root       15398  0.1  0.5 1267508 41200 ?       Ssl  18:36   0:00 caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+root       14944  0.4  0.4 1265708 38100 ?       Ssl  18:36   0:00 /usr/bin/cadvisor -logtostderr --docker=unix:///nao/existe.sock --containerd=/nao/existe.sock --housekeeping_interval=15s --store_container_labels=false --disable_metrics=disk,diskIO,network,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,cpu_topology,resctrl,cpuset,advtcp,memory_numa
+root         627  0.1  0.4 437296 35548 ?        Ssl  18:27   0:00 /usr/bin/python3 /usr/bin/fail2ban-server -xf start
+ubuntu     12950  0.1  0.3 1252448 28856 ?       Ssl  18:36   0:00 auth
+root         224  0.0  0.3 288968 27300 ?        SLsl 18:27   0:00 /sbin/multipathd -d -s
+
+==============================================================================
+## Backups (sem conteúdo)
+$ ls -l /opt/asa/backups | tail -n 12; tail -n 8 /opt/asa/backups/backup.log
+------------------------------------------------------------------------------
+total 30272
+-rw------- 1 asa asa      324 Nov  9 18:29 asa_20261109_182927.contagens
+-rw------- 1 asa asa 11990720 Nov  9 18:29 asa_20261109_182927.dump
+-rw------- 1 asa asa      385 Nov  9 18:29 asa_20261109_182927.sha256
+-rw------- 1 asa asa    13865 Nov  9 18:29 asa_20261109_182927_auth.sql.gz
+-rw------- 1 asa asa  3474758 Nov  9 18:29 asa_20261109_182927_config.tar.gz
+-rw------- 1 asa asa      324 Nov  9 18:37 asa_20261109_183749.contagens
+-rw------- 1 asa asa 11993478 Nov  9 18:37 asa_20261109_183749.dump
+-rw------- 1 asa asa      385 Nov  9 18:37 asa_20261109_183749.sha256
+-rw------- 1 asa asa    13758 Nov  9 18:37 asa_20261109_183749_auth.sql.gz
+-rw------- 1 asa asa  3474779 Nov  9 18:37 asa_20261109_183749_config.tar.gz
+-rw------- 1 asa asa      524 Nov  9 18:37 backup.log
+[2026-11-09 18:37:49] backup (modo local) -> /opt/asa/backups/asa_20261109_183749.dump
+[2026-11-09 18:37:52] dump ok: 12M, 291 itens no sumário
+[2026-11-09 18:37:52] auth ok: 16K
+[2026-11-09 18:37:52] config ok: 3.4M
+[2026-11-09 18:37:52] ok em 3 s: asa_20261109_183749.dump asa_20261109_183749_auth.sql.gz asa_20261109_183749_config.tar.gz asa_20261109_183749.contagens (+ asa_20261109_183749.sha256)
+[2026-11-09 18:37:52] retenção de 7 dias: 0 arquivo(s) antigo(s) removido(s)
+/opt/asa/backups/asa_20261109_183749.dump
+
+==============================================================================
+## logrotate
+$ cat /etc/logrotate.d/asa
+------------------------------------------------------------------------------
+# ASA Turbo · logs do host (os dos containers giram no driver json-file do Docker)
+/opt/asa/backups/*.log /var/log/asa/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    su asa asa
+}
+
+==============================================================================
+## HTTPS: cabeçalhos
+$ curl -sS -I --max-time 10 https://54-207-148-68.sslip.io/
+------------------------------------------------------------------------------
+HTTP/2 200 
+accept-ranges: bytes
+alt-svc: h3=":443"; ma=2592000
+cache-control: no-cache
+content-security-policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+content-type: text/html; charset=utf-8
+cross-origin-opener-policy: same-origin
+etag: "dmr03vwipp8g142"
+last-modified: Mon, 09 Nov 2026 21:34:19 GMT
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+referrer-policy: strict-origin-when-cross-origin
+strict-transport-security: max-age=31536000; includeSubDomains
+vary: Accept-Encoding
+x-content-type-options: nosniff
+x-frame-options: DENY
+content-length: 1442
+date: Mon, 09 Nov 2026 21:37:57 GMT
+
+
+==============================================================================
+## Saúde da API
+$ curl -sS --max-time 10 https://54-207-148-68.sslip.io/api/health; echo
+------------------------------------------------------------------------------
+{"status":"degradado","versao":"0.9.0","versao_modelo_risco":"risco-2.0.0","dependencias":{"banco":{"status":"ok","latencia_ms":3},"embeddings":{"status":"falha","latencia_ms":null},"modelo_risco":{"status":"ok","latencia_ms":null}},"verificado_em":"2026-11-09T21:37:57.078040Z"}
+
+==============================================================================
+## /metrics não exposto (espera 404)
+$ curl -s -o /dev/null -w '%{http_code}\n' https://54-207-148-68.sslip.io/api/metrics
+------------------------------------------------------------------------------
+404
+
+==============================================================================
+## Monitoramento exige senha (espera 401)
+$ for p in /grafana/ /prometheus/; do printf '%s -> ' $p; curl -s -o /dev/null -w '%{http_code}\n' https://54-207-148-68.sslip.io$p; done
+------------------------------------------------------------------------------
+/grafana/ -> 401
+/prometheus/ -> 401
+
+==============================================================================
+## Certificado TLS
+$ echo | openssl s_client -servername 54-207-148-68.sslip.io -connect 54-207-148-68.sslip.io:443 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+------------------------------------------------------------------------------
+subject=CN = 54-207-148-68.sslip.io
+issuer=C = US, O = Let's Encrypt, CN = YE2
+notBefore=Nov  9 20:38:19 2026 GMT
+notAfter=Feb  7 20:38:18 2027 GMT
+
+==============================================================================
+## Logs JSON do backend (últimas 3)
+$ cd /opt/asa && sudo -u asa docker compose exec -T backend tail -n 3 /var/log/asa/backend.log
+------------------------------------------------------------------------------
+{"ts": "2026-11-09T21:37:11.467+00:00", "nivel": "INFO", "logger": "asa.acesso", "msg": "requisicao", "request_id": "5a72a926-281c-4f16-8238-11825d8a8051", "usuario_id": "d0000000-0000-4000-8000-000000000002", "papel": "atendente", "rota": "/casos", "caminho": "/casos", "metodo": "GET", "status": 200, "latencia_ms": 47.5}
+{"ts": "2026-11-09T21:37:11.540+00:00", "nivel": "WARNING", "logger": "asa.acesso", "msg": "requisicao", "request_id": "189bf631-8904-4549-b351-40583c1ea158", "usuario_id": "d0000000-0000-4000-8000-000000000001", "papel": "estudante", "rota": "/casos", "caminho": "/casos", "metodo": "GET", "status": 403, "latencia_ms": 1.0}
+{"ts": "2026-11-09T21:37:11.766+00:00", "nivel": "INFO", "logger": "asa.acesso", "msg": "requisicao", "request_id": "16670972-c6ff-4790-9dc5-2236df4687c4", "usuario_id": "d0000000-0000-4000-8000-000000000003", "papel": "administrador", "rota": "/admin/dashboard", "caminho": "/admin/dashboard", "metodo": "GET", "status": 200, "latencia_ms": 197.9}

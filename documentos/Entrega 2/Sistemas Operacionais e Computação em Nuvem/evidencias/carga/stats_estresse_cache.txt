@@ -1,0 +1,143 @@
+18:01:38
+asa-turbo-backend-1 0.14% 170.3MiB / 1GiB
+asa-turbo-prometheus-1 0.10% 45.85MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.289MiB / 128MiB
+asa-turbo-web-1 4.81% 29.45MiB / 256MiB
+asa-turbo-supabase-gw-1 2.81% 16.49MiB / 128MiB
+asa-turbo-gotrue-1 52.17% 9.879MiB / 256MiB
+asa-turbo-grafana-1 0.12% 57.3MiB / 384MiB
+asa-turbo-postgrest-1 0.06% 27.17MiB / 256MiB
+asa-turbo-db-1 10.57% 131MiB / 1GiB
+asa-turbo-cadvisor-1 0.15% 21.57MiB / 256MiB
+18:01:55
+asa-turbo-backend-1 22.91% 173.1MiB / 1GiB
+asa-turbo-prometheus-1 0.01% 45.85MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.359MiB / 128MiB
+asa-turbo-web-1 3.22% 35.74MiB / 256MiB
+asa-turbo-supabase-gw-1 4.36% 17.08MiB / 128MiB
+asa-turbo-gotrue-1 2.76% 9.859MiB / 256MiB
+asa-turbo-grafana-1 0.05% 57.3MiB / 384MiB
+asa-turbo-postgrest-1 7.86% 26.83MiB / 256MiB
+asa-turbo-db-1 12.71% 148.5MiB / 1GiB
+asa-turbo-cadvisor-1 0.10% 23.36MiB / 256MiB
+18:02:12
+asa-turbo-backend-1 32.65% 173.4MiB / 1GiB
+asa-turbo-prometheus-1 0.00% 45.85MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.621MiB / 128MiB
+asa-turbo-web-1 4.11% 39.03MiB / 256MiB
+asa-turbo-supabase-gw-1 6.51% 16.86MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.859MiB / 256MiB
+asa-turbo-grafana-1 0.06% 57.3MiB / 384MiB
+asa-turbo-postgrest-1 11.35% 26.44MiB / 256MiB
+asa-turbo-db-1 18.74% 149.1MiB / 1GiB
+asa-turbo-cadvisor-1 3.28% 22.64MiB / 256MiB
+18:02:29
+asa-turbo-backend-1 66.99% 182.5MiB / 1GiB
+asa-turbo-prometheus-1 0.15% 45.86MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.84MiB / 128MiB
+asa-turbo-web-1 8.60% 42.63MiB / 256MiB
+asa-turbo-supabase-gw-1 11.18% 17.84MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.859MiB / 256MiB
+asa-turbo-grafana-1 0.29% 57.3MiB / 384MiB
+asa-turbo-postgrest-1 21.08% 28.54MiB / 256MiB
+asa-turbo-db-1 58.71% 309.8MiB / 1GiB
+asa-turbo-cadvisor-1 0.05% 23.56MiB / 256MiB
+18:02:46
+asa-turbo-backend-1 79.62% 198.8MiB / 1GiB
+asa-turbo-prometheus-1 0.54% 45.86MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.73MiB / 128MiB
+asa-turbo-web-1 6.27% 48.41MiB / 256MiB
+asa-turbo-supabase-gw-1 11.38% 20.94MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.859MiB / 256MiB
+asa-turbo-grafana-1 0.04% 57.3MiB / 384MiB
+asa-turbo-postgrest-1 32.38% 28.25MiB / 256MiB
+asa-turbo-db-1 53.48% 324.8MiB / 1GiB
+asa-turbo-cadvisor-1 0.09% 22.07MiB / 256MiB
+18:03:04
+asa-turbo-backend-1 81.67% 198.2MiB / 1GiB
+asa-turbo-prometheus-1 0.00% 45.87MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.738MiB / 128MiB
+asa-turbo-web-1 6.71% 59.59MiB / 256MiB
+asa-turbo-supabase-gw-1 12.38% 20.3MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.859MiB / 256MiB
+asa-turbo-grafana-1 0.04% 57.3MiB / 384MiB
+asa-turbo-postgrest-1 25.44% 28.18MiB / 256MiB
+asa-turbo-db-1 52.77% 327MiB / 1GiB
+asa-turbo-cadvisor-1 1.06% 23.11MiB / 256MiB
+18:03:21
+asa-turbo-backend-1 80.09% 207.1MiB / 1GiB
+asa-turbo-prometheus-1 0.01% 45.87MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.371MiB / 128MiB
+asa-turbo-web-1 7.78% 78.67MiB / 256MiB
+asa-turbo-supabase-gw-1 11.54% 20.47MiB / 128MiB
+asa-turbo-gotrue-1 1.88% 13.44MiB / 256MiB
+asa-turbo-grafana-1 0.04% 57.11MiB / 384MiB
+asa-turbo-postgrest-1 32.25% 28.36MiB / 256MiB
+asa-turbo-db-1 64.85% 339.8MiB / 1GiB
+asa-turbo-cadvisor-1 0.00% 23.82MiB / 256MiB
+18:03:39
+asa-turbo-backend-1 80.03% 213.7MiB / 1GiB
+asa-turbo-prometheus-1 0.04% 45.88MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.645MiB / 128MiB
+asa-turbo-web-1 6.49% 111.5MiB / 256MiB
+asa-turbo-supabase-gw-1 12.28% 21.6MiB / 128MiB
+asa-turbo-gotrue-1 0.31% 9.176MiB / 256MiB
+asa-turbo-grafana-1 0.11% 57.11MiB / 384MiB
+asa-turbo-postgrest-1 37.26% 28.34MiB / 256MiB
+asa-turbo-db-1 60.71% 353.3MiB / 1GiB
+asa-turbo-cadvisor-1 0.04% 24.98MiB / 256MiB
+18:03:55
+asa-turbo-backend-1 78.38% 215.5MiB / 1GiB
+asa-turbo-prometheus-1 0.59% 45.91MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.383MiB / 128MiB
+asa-turbo-web-1 4.75% 123.9MiB / 256MiB
+asa-turbo-supabase-gw-1 13.89% 19.91MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.176MiB / 256MiB
+asa-turbo-grafana-1 0.03% 57.1MiB / 384MiB
+asa-turbo-postgrest-1 36.87% 28.62MiB / 256MiB
+asa-turbo-db-1 55.20% 328MiB / 1GiB
+asa-turbo-cadvisor-1 3.35% 27.6MiB / 256MiB
+18:04:12
+asa-turbo-backend-1 80.12% 216.4MiB / 1GiB
+asa-turbo-prometheus-1 0.00% 45.89MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.363MiB / 128MiB
+asa-turbo-web-1 4.73% 128.1MiB / 256MiB
+asa-turbo-supabase-gw-1 14.95% 21.01MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.176MiB / 256MiB
+asa-turbo-grafana-1 0.05% 57.11MiB / 384MiB
+asa-turbo-postgrest-1 36.62% 28.67MiB / 256MiB
+asa-turbo-db-1 50.97% 331MiB / 1GiB
+asa-turbo-cadvisor-1 0.16% 28.07MiB / 256MiB
+18:04:29
+asa-turbo-backend-1 83.13% 217.4MiB / 1GiB
+asa-turbo-prometheus-1 0.00% 45.9MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.105MiB / 128MiB
+asa-turbo-web-1 1.83% 130MiB / 256MiB
+asa-turbo-supabase-gw-1 13.41% 20.49MiB / 128MiB
+asa-turbo-gotrue-1 2.35% 13.07MiB / 256MiB
+asa-turbo-grafana-1 0.10% 57.11MiB / 384MiB
+asa-turbo-postgrest-1 29.07% 28.55MiB / 256MiB
+asa-turbo-db-1 55.22% 338.4MiB / 1GiB
+asa-turbo-cadvisor-1 0.11% 24.18MiB / 256MiB
+18:04:45
+asa-turbo-backend-1 67.64% 217.1MiB / 1GiB
+asa-turbo-prometheus-1 0.60% 45.91MiB / 512MiB
+asa-turbo-node-exporter-1 1.88% 9.211MiB / 128MiB
+asa-turbo-web-1 3.21% 132.8MiB / 256MiB
+asa-turbo-supabase-gw-1 14.28% 19.92MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.176MiB / 256MiB
+asa-turbo-grafana-1 0.03% 57.1MiB / 384MiB
+asa-turbo-postgrest-1 31.22% 28.45MiB / 256MiB
+asa-turbo-db-1 65.28% 332.9MiB / 1GiB
+asa-turbo-cadvisor-1 0.05% 21.38MiB / 256MiB
+18:05:03
+asa-turbo-backend-1 76.24% 218.3MiB / 1GiB
+asa-turbo-prometheus-1 0.00% 45.9MiB / 512MiB
+asa-turbo-node-exporter-1 0.00% 9.531MiB / 128MiB
+asa-turbo-web-1 8.00% 136.8MiB / 256MiB
+asa-turbo-supabase-gw-1 12.65% 20.23MiB / 128MiB
+asa-turbo-gotrue-1 0.00% 9.176MiB / 256MiB
+asa-turbo-grafana-1 0.03% 57.1MiB / 384MiB
+asa-turbo-postgrest-1 30.33% 28.48MiB / 256MiB
+asa-turbo-db-1 60.10% 341.9MiB / 1GiB
+asa-turbo-cadvisor-1 0.98% 22.07MiB / 256MiB
