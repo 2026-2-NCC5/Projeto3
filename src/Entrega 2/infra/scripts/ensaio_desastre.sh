@@ -28,9 +28,14 @@ marca() { T_NOMES+=("$1"); T_VALS+=("$(dur "$2" "$(seg)")"); echo "    -> $1: ${
 
 echo "# Ensaio de desastre (VM perdida) · $(date '+%F %T %Z') · $URL"
 
-etapa "0. preparação: backup fresco na VM + cópia externa (RPO deste ensaio ~ 0)"
-ssh "$HOST" 'sudo systemctl start asa-backup && sudo tail -n 2 /opt/asa/backups/backup.log'
-"$RAIZ/infra/scripts/puxar_backups.sh"
+etapa "0. preparação: cópia externa dos backups"
+if ssh "$HOST" 'systemctl is-active --quiet asa'; then
+  echo "    serviço no ar: backup fresco + cópia (RPO deste ensaio ~ 0)"
+  ssh "$HOST" 'sudo systemctl start asa-backup && sudo tail -n 2 /opt/asa/backups/backup.log'
+  "$RAIZ/infra/scripts/puxar_backups.sh"
+else
+  echo "    serviço FORA do ar: usando a última cópia externa já existente (como num desastre real)"
+fi
 B="$(ls -t "$COPIA"/asa_*.dump | head -1)"; B="${B%.dump}"; N="$(basename "$B")"
 echo "    backup escolhido: $N"
 cat "$B.contagens" | tr '\n' ' '; echo
