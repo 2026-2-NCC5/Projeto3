@@ -28,13 +28,16 @@ begin
     select schemaname, tablename, policyname, qual, with_check
       from pg_policies
      where schemaname = 'public'
-       and (coalesce(qual, '') ~ padrao or coalesce(with_check, '') ~ padrao)
+       -- conforme o search_path de quem roda, o Postgres mostra uid() ou auth.uid()
+       and (replace(coalesce(qual, ''), 'auth.uid()', 'uid()') ~ padrao
+            or replace(coalesce(with_check, ''), 'auth.uid()', 'uid()') ~ padrao)
        -- já reescrita (o Postgres mostra "( SELECT eh_equipe_asa() AS eh_equipe_asa)")
        and coalesce(qual, '') || coalesce(with_check, '')
            !~* 'select\s+((public|auth)\.)?(eh_equipe_asa|eh_admin|meu_estudante_id|uid)\(\)'
+       -- (uma policy só com auth.uid() ainda não envolvida continua elegível)
   loop
-    novo_using := regexp_replace(p.qual, padrao, '(select \1())', 'g');
-    novo_check := regexp_replace(p.with_check, padrao, '(select \1())', 'g');
+    novo_using := regexp_replace(replace(p.qual, 'auth.uid()', 'uid()'), padrao, '(select \1())', 'g');
+    novo_check := regexp_replace(replace(p.with_check, 'auth.uid()', 'uid()'), padrao, '(select \1())', 'g');
     -- uid() resolve para auth.uid(); as demais vivem em public
     novo_using := replace(novo_using, '(select uid())', '(select auth.uid())');
     novo_check := replace(novo_check, '(select uid())', '(select auth.uid())');
