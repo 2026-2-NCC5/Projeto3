@@ -10,8 +10,8 @@ navegador ──HTTPS──> VM :443  [web: Caddy] ──/api/*──> [backend:
 
 | Arquivo | Para quê |
 |---|---|
-| `provisionar.sh` | Prepara a VM (idempotente): Docker oficial, ufw (22/80/443), usuário `asa`, `/opt/asa-turbo`, systemd |
-| `asa-turbo.service` | Unidade systemd: sobe o compose no boot e para no shutdown |
+| `provision.sh` | Prepara a VM (idempotente): Docker oficial, ufw (22/80/443), usuário `asa`, `/opt/asa`, systemd |
+| `asa.service` | Unidade systemd: sobe o compose no boot e para no shutdown |
 | `.env.producao.example` | Modelo do `.env` de produção (sem valores reais) |
 | `../scripts/backup.sh`, `restore.sh` | Backup diário e restauração do banco |
 | `../scripts/evidencias.sh` | Coleta evidências (htop/ps, journalctl, df, permissões, ufw, HTTPS) em `docs/evidencias/` |
@@ -36,8 +36,8 @@ dig +short asa.seudominio.com.br     # deve devolver o IP da VM
 ssh ubuntu@IP-DA-VM
 sudo apt-get update && sudo apt-get install -y git
 sudo git clone https://github.com/<org>/<repo>.git /tmp/asa
-sudo bash "/tmp/asa/src/Entrega 2/infra/deploy/provisionar.sh" --dry-run   # confere o que vai fazer
-sudo bash "/tmp/asa/src/Entrega 2/infra/deploy/provisionar.sh" --fail2ban
+sudo bash "/tmp/asa/src/Entrega 2/infra/deploy/provision.sh" --dry-run   # confere o que vai fazer
+sudo bash "/tmp/asa/src/Entrega 2/infra/deploy/provision.sh"
 ```
 
 Pode rodar de novo quantas vezes quiser: cada passo verifica antes de agir.
@@ -45,11 +45,11 @@ Pode rodar de novo quantas vezes quiser: cada passo verifica antes de agir.
 ## 4. Código e `.env`
 
 ```bash
-# O conteúdo de "src/Entrega 2" vira /opt/asa-turbo (raiz do compose)
-sudo rsync -a --delete --exclude data/ --exclude .env "/tmp/asa/src/Entrega 2/" /opt/asa-turbo/
-sudo cp /opt/asa-turbo/infra/deploy/.env.producao.example /opt/asa-turbo/.env
-sudo nano /opt/asa-turbo/.env                      # preencha domínio, chaves do Supabase, Cloudflare...
-sudo chown -R asa:asa /opt/asa-turbo && sudo chmod 600 /opt/asa-turbo/.env
+# O conteúdo de "src/Entrega 2" vira /opt/asa (raiz do compose)
+sudo rsync -a --delete --exclude data/ --exclude .env "/tmp/asa/src/Entrega 2/" /opt/asa/
+sudo cp /opt/asa/infra/deploy/.env.producao.example /opt/asa/.env
+sudo nano /opt/asa/.env                      # preencha domínio, chaves do Supabase, Cloudflare...
+sudo chown -R asa:asa /opt/asa && sudo chmod 600 /opt/asa/.env
 ```
 
 Pontos de atenção no `.env`:
@@ -72,7 +72,7 @@ No SQL Editor do projeto Supabase, na ordem de `seeds/README.md`:
 Depois, na VM, crie os usuários de demonstração e os dados fictícios:
 
 ```bash
-cd /opt/asa-turbo
+cd /opt/asa
 sudo -u asa docker run --rm -v "$PWD:/w" -w /w --env-file .env python:3.12-slim \
   sh -c "pip -q install requests && python seeds/criar_usuarios_demo.py"
 # SQL Editor: rode seeds/seed_demo.sql
@@ -84,9 +84,9 @@ sudo -u asa docker run --rm -v "$PWD:/w" -w /w --env-file .env python:3.12-slim 
 ## 6. Subir
 
 ```bash
-sudo systemctl start asa-turbo          # = docker compose up -d (build na 1ª vez, alguns minutos)
-sudo systemctl status asa-turbo
-sudo -u asa docker compose -f /opt/asa-turbo/docker-compose.yml ps
+sudo systemctl start asa          # = docker compose up -d (build na 1ª vez, alguns minutos)
+sudo systemctl status asa
+sudo -u asa docker compose -f /opt/asa/docker-compose.yml ps
 ```
 
 Os containers têm `restart: unless-stopped`, e o systemd sobe o compose a cada boot.
@@ -99,7 +99,7 @@ curl -s https://asa.seudominio.com.br/api/health      # "banco": "ok", "embeddin
 curl -s -o /dev/null -w '%{http_code}\n' https://asa.seudominio.com.br/api/metrics   # 404 (não exposto)
 echo | openssl s_client -connect asa.seudominio.com.br:443 -servername asa.seudominio.com.br 2>/dev/null \
   | openssl x509 -noout -issuer -dates              # emissor Let's Encrypt
-cd /opt/asa-turbo && sudo -u asa infra/scripts/evidencias.sh https://asa.seudominio.com.br
+cd /opt/asa && sudo -u asa infra/scripts/evidencias.sh https://asa.seudominio.com.br
 ```
 
 Se o certificado não sair, veja `docker compose logs web`. As causas mais comuns são DNS ainda não propagado ou a porta 80 fechada no provedor (o desafio HTTP-01 do Let's Encrypt usa a 80).
@@ -109,7 +109,7 @@ Se o certificado não sair, veja `docker compose logs web`. As causas mais comun
 ```bash
 sudo -u asa crontab -e
 # Backup às 03:15; retenção = BACKUP_RETENCAO_DIAS (padrão 7)
-15 3 * * * cd /opt/asa-turbo && infra/scripts/backup.sh >> backups/backup.log 2>&1
+15 3 * * * cd /opt/asa && infra/scripts/backup.sh >> backups/backup.log 2>&1
 ```
 
 - `backup.sh` usa `DATABASE_URL` (Supabase) com um container `postgres:17.2-alpine`. Se o projeto Supabase estiver em Postgres 15, rode com `IMAGEM_PG_CLIENTE=postgres:15-alpine`.
@@ -122,7 +122,7 @@ sudo -u asa crontab -e
 
 ```bash
 # no .env: COMPOSE_PROFILES=monitoring  (e GRAFANA_ADMIN_PASSWORD)
-sudo systemctl reload asa-turbo
+sudo systemctl reload asa
 # Grafana só escuta em 127.0.0.1. Do seu computador:
 ssh -L 3000:127.0.0.1:3000 ubuntu@IP-DA-VM     # abra http://localhost:3000 (usuário admin)
 ```
@@ -139,10 +139,10 @@ O painel "ASA Turbo · Operação" já vem provisionado, com:
 
 ```bash
 cd /tmp/asa && sudo git fetch --tags && sudo git checkout v0.9.1        # a nova tag
-sudo rsync -a --delete --exclude data/ --exclude .env --exclude backups/ "/tmp/asa/src/Entrega 2/" /opt/asa-turbo/
-sudo chown -R asa:asa /opt/asa-turbo
-cd /opt/asa-turbo && sudo -u asa infra/scripts/backup.sh               # backup antes de mudar
-sudo -u asa docker compose build && sudo systemctl reload asa-turbo     # recria só o que mudou
+sudo rsync -a --delete --exclude data/ --exclude .env --exclude backups/ "/tmp/asa/src/Entrega 2/" /opt/asa/
+sudo chown -R asa:asa /opt/asa
+cd /opt/asa && sudo -u asa infra/scripts/backup.sh               # backup antes de mudar
+sudo -u asa docker compose build && sudo systemctl reload asa     # recria só o que mudou
 ```
 
 Se a versão nova tiver uma migration (`infra/sql/00N_*.sql`), aplique-a no Supabase **antes** do `reload`. As migrations são aditivas e idempotentes.
@@ -151,9 +151,9 @@ Se a versão nova tiver uma migration (`infra/sql/00N_*.sql`), aplique-a no Supa
 
 ```bash
 cd /tmp/asa && sudo git checkout v0.9.0
-sudo rsync -a --delete --exclude data/ --exclude .env --exclude backups/ "/tmp/asa/src/Entrega 2/" /opt/asa-turbo/
-sudo chown -R asa:asa /opt/asa-turbo
-cd /opt/asa-turbo && sudo -u asa docker compose build && sudo systemctl reload asa-turbo
+sudo rsync -a --delete --exclude data/ --exclude .env --exclude backups/ "/tmp/asa/src/Entrega 2/" /opt/asa/
+sudo chown -R asa:asa /opt/asa
+cd /opt/asa && sudo -u asa docker compose build && sudo systemctl reload asa
 # Só se a versão nova tiver estragado dados:
 sudo -u asa infra/scripts/restore.sh backups/asa_<data-anterior>.dump
 ```
@@ -163,8 +163,8 @@ Mantenha as imagens anteriores (`docker image ls asa-turbo-*`) até confirmar a 
 ## Comandos úteis
 
 ```bash
-journalctl -u asa-turbo -f                                    # systemd
-sudo -u asa docker compose -f /opt/asa-turbo/docker-compose.yml logs -f backend   # logs JSON
-sudo -u asa docker compose -f /opt/asa-turbo/docker-compose.yml exec backend tail -f /var/log/asa/backend.log
-htop ; df -h ; sudo ufw status verbose ; ls -l /opt/asa-turbo/.env   # esperado: -rw------- asa asa
+journalctl -u asa -f                                    # systemd
+sudo -u asa docker compose -f /opt/asa/docker-compose.yml logs -f backend   # logs JSON
+sudo -u asa docker compose -f /opt/asa/docker-compose.yml exec backend tail -f /var/log/asa/backend.log
+htop ; df -h ; sudo ufw status verbose ; ls -l /opt/asa/.env   # esperado: -rw------- asa asa
 ```
