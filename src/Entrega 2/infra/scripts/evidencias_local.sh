@@ -2,8 +2,8 @@
 # =============================================================================
 # ASA Turbo · coleta de evidências de operação Linux
 #
-#   infra/scripts/evidencias.sh                        # usa SITE_ADDRESS/PUBLIC_URL do .env
-#   infra/scripts/evidencias.sh https://asa.dominio    # URL pública a testar
+#   infra/scripts/evidencias_local.sh                        # usa SITE_ADDRESS/PUBLIC_URL do .env
+#   infra/scripts/evidencias_local.sh https://asa.dominio    # URL pública a testar
 #
 # Salva tudo em docs/evidencias/linux_<AAAAMMDD_HHMMSS>.txt. Comandos que não
 # existem no ambiente (ex.: ufw ou journalctl fora da VM) aparecem como
@@ -57,13 +57,13 @@ sh_cmd() { # sh_cmd "título" "pipeline"
   sh_cmd "Usuário de cada container (nenhum serviço da aplicação como root)" "cd '$RAIZ' && for s in backend web; do c=\$(docker compose ps -q \$s); [ -n \"\$c\" ] && echo \"\$s: uid=\$(docker exec \$c id -u) (\$(docker exec \$c id -un 2>/dev/null))\"; done"
   sh_cmd "Healthchecks" "docker ps --filter name=asa-turbo --format '{{.Names}}: {{.Status}}'"
 
-  if command -v journalctl >/dev/null 2>&1 && systemctl list-unit-files asa-turbo.service >/dev/null 2>&1 \
-     && systemctl list-unit-files asa-turbo.service | grep -q asa-turbo; then
-    sh_cmd "Serviço systemd" "systemctl status asa-turbo --no-pager | head -n 15"
-    LINHAS=100 sh_cmd "Journal do serviço (últimas 100)" "journalctl -u asa-turbo --no-pager -n 100"
+  if command -v journalctl >/dev/null 2>&1 && systemctl list-unit-files asa.service >/dev/null 2>&1 \
+     && systemctl list-unit-files asa.service | grep -q asa-turbo; then
+    sh_cmd "Serviço systemd" "systemctl status asa --no-pager | head -n 15"
+    LINHAS=100 sh_cmd "Journal do serviço (últimas 100)" "journalctl -u asa --no-pager -n 100"
   else
-    secao "Serviço systemd" "systemctl status asa-turbo"
-    echo "(unidade asa-turbo.service não instalada neste host; na VM ela é instalada por infra/deploy/provisionar.sh)"
+    secao "Serviço systemd" "systemctl status asa"
+    echo "(unidade asa.service não instalada neste host; na VM ela é instalada por infra/deploy/provision.sh)"
   fi
 
   sh_cmd "Permissões do .env (conteúdo nunca é exibido)" "ls -l '$ARQ_ENV' && stat -c 'modo=%a dono=%U grupo=%G' '$ARQ_ENV'"
@@ -73,7 +73,7 @@ sh_cmd() { # sh_cmd "título" "pipeline"
     sh_cmd "Firewall (ufw)" "ufw status verbose 2>&1 || sudo -n ufw status verbose 2>&1 || echo 'ufw requer sudo'"
   else
     secao "Firewall (ufw)" "ufw status verbose"
-    echo "(ufw não instalado neste host; na VM, provisionar.sh libera só 22/80/443)"
+    echo "(ufw não instalado neste host; na VM, provision.sh libera só 22/80/443)"
   fi
   sh_cmd "Portas em escuta" "ss -tlnp 2>/dev/null | grep -Ev '127.0.0.53' || netstat -tlnp"
 
