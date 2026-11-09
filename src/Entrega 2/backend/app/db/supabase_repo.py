@@ -8,6 +8,7 @@ de escrita (migration 003) são executáveis só pelo service_role.
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import Callable
 from datetime import date
 from typing import Any, TypeVar
@@ -48,8 +49,12 @@ def criar_cliente(settings: Settings) -> Client:
 
 
 class SupabaseRepositorio:
-    def __init__(self, cliente: Client) -> None:
+    def __init__(self, cliente: Client, cache_contagem_s: float = 0.0) -> None:
         self.c = cliente
+        # Contagem por categoria da fila (resumo do topo da tela): 3 consultas por GET /casos.
+        # Cache curto por combinação de filtros; zerado a cada validação/atualização de caso.
+        self._cache_contagem_s = cache_contagem_s
+        self._cache_contagem: dict[tuple[Any, ...], tuple[float, dict[str, int]]] = {}
 
     # ------------------------------------------------------------------ util
     @staticmethod
@@ -292,13 +297,28 @@ class SupabaseRepositorio:
             q = q.order(col, desc=desc, nullsfirst=nf)
         q = q.order("estudante_id")  # desempate estável para a paginação
         res = self._exec(lambda: q.range(ini, fim).execute())
+        return PaginaFila(itens=res.data or [], total=res.count or 0, contagem=self._contagem_fila(filtros))
+
+    def _contagem_fila(self, filtros: FiltrosFila) -> dict[str, int]:
+        chave = (
+            tuple(filtros.prioridades), tuple(filtros.status), filtros.responsavel,
+            filtros.usuario_id if filtros.responsavel == "eu" else None, filtros.busca,
+        )
+        agora = time.monotonic()
+        guardado = self._cache_contagem.get(chave)
+        if guardado and agora - guardado[0] < self._cache_contagem_s:
+            return dict(guardado[1])
         contagem = {}
         for cat in ("verde", "amarelo", "vermelho"):
             qc = self._filtrar_fila(
                 self.c.table("vw_fila_risco_busca").select("estudante_id", count="exact", head=True), filtros, False
             )
             contagem[cat] = self._exec(lambda qc=qc, cat=cat: qc.eq("categoria", cat).execute()).count or 0
-        return PaginaFila(itens=res.data or [], total=res.count or 0, contagem=contagem)
+        if self._cache_contagem_s > 0:
+            if len(self._cache_contagem) > 500:
+                self._cache_contagem.clear()
+            self._cache_contagem[chave] = (agora, contagem)
+        return dict(contagem)
 
     def obter_item_fila(self, estudante_id: str) -> dict[str, Any] | None:
         return self._um(self.c.table("vw_fila_risco").select("*").eq("estudante_id", estudante_id))
@@ -326,6 +346,7 @@ class SupabaseRepositorio:
         )
 
     def registrar_validacao(self, dados: dict[str, Any]) -> dict[str, Any]:
+        self._cache_contagem.clear()
         return self._rpc("registrar_validacao_caso", {"p": dados})
 
     def eventos_historico(self, estudante_id: str) -> dict[str, list[dict[str, Any]]]:
@@ -358,6 +379,7 @@ class SupabaseRepositorio:
         )
 
     def registrar_score(self, dados: dict[str, Any]) -> str:
+        self._cache_contagem.clear()
         return str(self._rpc("registrar_score_risco", {"p": dados}))
 
     # ------------------------------------------------------------------ admin

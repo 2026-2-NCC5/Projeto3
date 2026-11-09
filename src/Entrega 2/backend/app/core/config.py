@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     jwt_audience: str = "authenticated"
     supabase_timeout_s: float = 10.0
     perfil_cache_ttl_s: float = 30.0
+    fila_contagem_cache_s: float = Field(10.0, ge=0)  # contagem por categoria da fila; 0 desliga
 
     # --- embeddings (mesmo espaço vetorial: bge-m3, 1024d)
     cloudflare_account_id: str = ""
