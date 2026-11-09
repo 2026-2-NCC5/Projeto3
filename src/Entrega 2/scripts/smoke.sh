@@ -2,8 +2,10 @@
 # Smoke test do ASA Turbo contra qualquer URL (local ou nuvem). Só precisa de curl e python3.
 #   scripts/smoke.sh https://asa-turbo.onrender.com
 #   scripts/smoke.sh http://localhost:8080
-# Em DEMO_MODE entra pelos perfis de demo (/api/demo/entrar). Fora dele, informe um token:
+# Em DEMO_MODE entra pelos perfis de demo (/api/demo/entrar). Fora dele, de duas formas:
 #   TOKEN_ESTUDANTE=... TOKEN_ATENDENTE=... TOKEN_ADMIN=... scripts/smoke.sh <URL>
+#   SMOKE_SENHA=<senha dos usuários *.demo@example.com> ANON_KEY=<chave anon> scripts/smoke.sh <URL>
+#     (login de verdade no Supabase Auth/GoTrue em <URL>/auth/v1)
 set -uo pipefail
 URL="${1:?uso: scripts/smoke.sh <URL>}"; URL="${URL%/}"
 API="${API_PREFIXO:-/api}"
@@ -21,7 +23,7 @@ req() { # método caminho [token] [json] -> corpo em $CORPO, status em $STATUS
 
 echo "ASA Turbo · smoke em $URL"
 
-req GET /health
+req GET "$API/health"
 if [ "$STATUS" = 200 ]; then ok "/health ($(echo "$CORPO" | campo "d['status'] + ' · modelo ' + str(d['versao_modelo_risco'])"))"; else falha "/health" "HTTP $STATUS"; fi
 
 req GET /
@@ -30,11 +32,20 @@ if [ "$STATUS" = 200 ] && grep -qi "<title" <<<"$CORPO"; then ok "página inicia
 token() { # papel
   local var="TOKEN_$(echo "$1" | tr a-z A-Z)"; [ "$1" = administrador ] && var=TOKEN_ADMIN
   if [ -n "${!var:-}" ]; then echo "${!var}"; return; fi
+  if [ -n "${SMOKE_SENHA:-}" ]; then
+    local email="$1.demo@example.com"; [ "$1" = administrador ] && email=admin.demo@example.com
+    STATUS=$(curl -s -m 30 -o /tmp/smoke.$$ -w '%{http_code}' -X POST "$URL/auth/v1/token?grant_type=password" \
+      -H "apikey: ${ANON_KEY:-}" -H 'Content-Type: application/json' \
+      --data "$(python3 -c 'import json,sys; print(json.dumps({"email": sys.argv[1], "password": sys.argv[2]}))' "$email" "$SMOKE_SENHA")")
+    CORPO=$(cat /tmp/smoke.$$ 2>/dev/null); rm -f /tmp/smoke.$$
+    [ "$STATUS" = 200 ] && echo "$CORPO" | campo "d['access_token']"
+    return
+  fi
   req POST "$API/demo/entrar" "" "{\"papel\":\"$1\"}"
   [ "$STATUS" = 200 ] && echo "$CORPO" | campo "d['access_token']"
 }
 TE=$(token estudante); TA=$(token atendente); TD=$(token administrador)
-if [ -n "$TE" ] && [ -n "$TA" ] && [ -n "$TD" ]; then ok "login dos 3 perfis de demonstração"; else falha "login de demonstração" "sem token (DEMO_MODE desligado? use TOKEN_*)"; fi
+if [ -n "$TE" ] && [ -n "$TA" ] && [ -n "$TD" ]; then ok "login dos 3 perfis (estudante, atendente, administrador)"; else falha "login" "sem token (DEMO_MODE desligado? use SMOKE_SENHA ou TOKEN_*)"; fi
 
 req POST "$API/chat" "$TE" '{"mensagem":"Como faço para trancar a matrícula?"}'
 if [ "$STATUS" = 200 ] && [ "$(echo "$CORPO" | campo "len(d['fontes'])>0 and not d['abstencao']")" = True ]; then
