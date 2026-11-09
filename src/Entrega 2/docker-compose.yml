@@ -217,6 +217,8 @@ services:
       - prometheus-data:/prometheus
       # só leitura, para o docker_sd nomear os containers (rede interna, sem porta publicada)
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # node-exporter (rede do host)
     user: "0:0"
     expose:
       - "9090"
@@ -239,11 +241,12 @@ services:
     command:
       - --path.rootfs=/host
       - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/snap/.+)($$|/)
+    # Rede e PID do host: senão as métricas de rede seriam as do próprio container.
+    # Escuta em :9100 do host; o ufw só libera essa porta para as redes do Docker.
+    network_mode: host
     pid: host
     volumes:
       - /:/host:ro,rslave
-    expose:
-      - "9100"
     restart: unless-stopped
     <<: [*logs, *seguranca, *lim-pequeno]
 

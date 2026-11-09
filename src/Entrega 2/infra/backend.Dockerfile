@@ -47,5 +47,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD ["python", "-c", "import os,sys,urllib.request as u; sys.exit(0 if u.urlopen(f\"http://127.0.0.1:{os.environ.get('PORT','8000')}/health\", timeout=4).status == 200 else 1)"]
 
-# 1 processo por container (o limite de mensagens do chat é em memória); escale com réplicas.
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*' --no-server-header"]
+# UVICORN_WORKERS (padrão 1). Com mais de 1, as métricas vão para PROMETHEUS_MULTIPROC_DIR
+# (tmpfs /tmp) e o limite de mensagens do chat, que é em memória, passa a valer por worker.
+CMD ["sh", "-c", "W=${UVICORN_WORKERS:-1}; if [ \"$W\" -gt 1 ]; then export PROMETHEUS_MULTIPROC_DIR=/tmp/prom; rm -rf $PROMETHEUS_MULTIPROC_DIR; mkdir -p $PROMETHEUS_MULTIPROC_DIR; fi; exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers $W --proxy-headers --forwarded-allow-ips='*' --no-server-header"]

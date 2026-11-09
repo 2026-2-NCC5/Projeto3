@@ -3,6 +3,7 @@
 # Roda rampa.js da SUA máquina contra a VM e coleta docker stats da VM a cada 15 s.
 #   infra/loadtest/rodar_rampa.sh antes
 #   infra/loadtest/rodar_rampa.sh depois
+#   ROTEIRO=estresse.js infra/loadtest/rodar_rampa.sh estresse_antes
 # Saída: $SAIDA/k6_<rotulo>.json, k6_<rotulo>.txt, stats_<rotulo>.txt
 # A senha dos usuários de carga e a chave anon vêm da VM por SSH, só em variáveis de ambiente.
 # =============================================================================
@@ -27,5 +28,5 @@ echo "início: $(date '+%F %T')  config da VM: $(ssh "$HOST" "sudo grep -E '^(UV
   | tee "$SAIDA/k6_${ROTULO}.txt"
 docker run --rm -v "$RAIZ/infra/loadtest:/t:ro" -v "$SAIDA:/out" \
   -e BASE_URL="$URL" -e DEMO_PASSWORD -e ANON_KEY -e ROTULO="$ROTULO" -e FATOR_TEMPO="${FATOR_TEMPO:-1}" \
-  grafana/k6:0.54.0 run --quiet /t/rampa.js 2>&1 | tee -a "$SAIDA/k6_${ROTULO}.txt"
+  grafana/k6:0.54.0 run --quiet "/t/${ROTEIRO:-rampa.js}" 2>&1 | tee -a "$SAIDA/k6_${ROTULO}.txt"
 echo "fim: $(date '+%F %T')" | tee -a "$SAIDA/k6_${ROTULO}.txt"

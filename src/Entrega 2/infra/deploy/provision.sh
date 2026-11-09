@@ -101,6 +101,8 @@ run ufw default allow outgoing
 run ufw allow 22/tcp
 run ufw allow 80/tcp
 run ufw allow 443/tcp
+# node-exporter roda na rede do host (:9100); só o Prometheus (redes do Docker) o alcança
+run ufw allow from 172.16.0.0/12 to any port 9100 proto tcp comment 'node-exporter (Docker)'
 run ufw --force enable
 # Portas publicadas pelo Docker não passam pelo ufw (iptables próprio). Por isso o
 # compose publica só 80/443 (Caddy); Grafana/Prometheus ficam em 127.0.0.1 ou atrás do Caddy.

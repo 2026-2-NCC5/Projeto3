@@ -13,6 +13,10 @@
 # 3. Compara as contagens por tabela com asa_<ts>.contagens (gravado no backup).
 # 4. Mede o tempo de cada etapa, imprime o relatório e derruba o projeto de teste.
 # Saída (stdout) pronta para virar evidência.
+#
+# Modo RECUPERAÇÃO (VM nova, runbook de desastre): PROJETO=asa-turbo MANTER=1
+#   restaura no projeto principal SEM derrubá-lo depois. Recusa se o schema public
+#   já tiver tabelas (nunca sobrescreve um banco em uso; para isso há o restore.sh).
 # =============================================================================
 set -euo pipefail
 # shellcheck source=infra/scripts/_comum.sh
@@ -23,13 +27,14 @@ case "$dir" in /*) ;; *) dir="$RAIZ/${dir#./}" ;; esac
 dump="${1:-$(ls -1t "$dir"/asa_*.dump 2>/dev/null | head -n1)}"
 [ -f "$dump" ] || { log "nenhum dump encontrado em $dir"; exit 2; }
 base="${dump%.dump}"; ts="${base##*/asa_}"
-PROJ=asa-restore
+PROJ="${PROJETO:-asa-restore}"
+MANTER="${MANTER:-0}"
 DC=(docker compose -p "$PROJ" --project-directory "$RAIZ" --profile local)
 agora() { date +%s.%N; }
 dur() { awk -v a="$1" -v b="$2" 'BEGIN{printf "%.1f", b-a}'; }
 psql_t() { "${DC[@]}" exec -T -e PGOPTIONS="-c client_min_messages=warning" -e PGPASSWORD="$(ler_env POSTGRES_PASSWORD)" db psql -X -v ON_ERROR_STOP=1 -q -h localhost -U supabase_admin -d postgres "$@"; }
 
-limpar() { "${DC[@]}" down -v --remove-orphans >/dev/null 2>&1 || true; }
+limpar() { [ "$MANTER" = 1 ] || "${DC[@]}" down -v --remove-orphans >/dev/null 2>&1 || true; }
 trap limpar EXIT
 
 echo "# Teste de restauração · ASA Turbo · $(date '+%Y-%m-%d %H:%M:%S %Z') · host $(hostname)"
@@ -50,7 +55,9 @@ t1=$(agora)
 until psql_t -tAc "select 1 from information_schema.columns where table_schema='auth' and table_name='identities' and column_name='provider_id'" 2>/dev/null | grep -q 1; do sleep 1; done
 t2=$(agora)
 echo "1. Postgres limpo no ar (db + GoTrue, schema auth vazio): $(dur "$t1" "$t2") s"
-echo "   tabelas em public antes: $(psql_t -tAc "select count(*) from pg_tables where schemaname='public'")"
+antes="$(psql_t -tAc "select count(*) from pg_tables where schemaname='public'")"
+echo "   tabelas em public antes: $antes"
+if [ "$antes" != 0 ]; then log "public não está vazio no projeto $PROJ: abortando (use restore.sh)"; exit 3; fi
 
 # --- 2. extensões + auth + public
 psql_t -c 'create extension if not exists "uuid-ossp" with schema extensions; create extension if not exists vector with schema extensions; create extension if not exists pg_trgm with schema extensions; create extension if not exists unaccent with schema extensions; create extension if not exists pgcrypto with schema extensions;'
@@ -68,6 +75,10 @@ chmod 644 "$lista"
 "${DC[@]}" exec -T -e PGPASSWORD="$(ler_env POSTGRES_PASSWORD)" db \
   pg_restore -h localhost -U postgres -d postgres --no-owner --single-transaction --exit-on-error \
   --use-list=/tmp/asa_restore.list < "$dump"
+# O backup não leva public._asa_migracoes (controle do init-db): sem isso, o db-init
+# reaplicaria 001..00N em cima dos dados restaurados.
+vals="$(for f in "$RAIZ"/infra/sql/0*.sql; do printf "('%s')," "$(basename "$f")"; done)"
+psql_t -c "create table if not exists public._asa_migracoes (arquivo text primary key, aplicado_em timestamptz default now()); grant select on public._asa_migracoes to postgres; insert into public._asa_migracoes(arquivo) values ${vals%,} on conflict do nothing;"
 t4=$(agora)
 echo "2. restauração (auth + public): $(dur "$t2" "$t4") s (pg_restore do public: $(dur "$t3" "$t4") s)"
 
