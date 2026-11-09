@@ -1,0 +1,4 @@
+# Simulação de falha: container · 2026-11-09 18:21:31 -03 · https://54-207-148-68.sslip.io
+[18:21:31.100] estado inicial: asa-turbo-backend-1 Up 11 minutes (healthy) · /api/health=200
+[18:21:31.658] docker kill -s KILL no backend (simula crash do processo)
+[18:21:32.034] /api/health=502 (fora do ar)

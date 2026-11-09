@@ -1,0 +1,58 @@
+# ASA Turbo · alertas do Prometheus (avaliados a cada 15 s).
+# Ver em https://<host>/prometheus/alerts (basic auth) ou no painel do Grafana.
+# Não há Alertmanager: o alerta fica visível (firing) no Prometheus/Grafana, sem e-mail.
+groups:
+  - name: asa-turbo
+    rules:
+      - alert: TaxaDeErroAlta
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(http_requests_total{rota!="/health",rota!="/metrics"}[5m])), 1e-9) > 0.05
+        for: 2m
+        labels: { severidade: critica }
+        annotations:
+          resumo: "Mais de 5% das requisições da API com erro 5xx"
+          valor: "{{ $value | humanizePercentage }}"
+
+      - alert: LatenciaP95Alta
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{rota!="/health",rota!="/metrics"}[5m]))) > 2
+        for: 5m
+        labels: { severidade: aviso }
+        annotations:
+          resumo: "p95 da API acima de 2 s"
+          valor: "{{ $value | humanizeDuration }}"
+
+      - alert: DiscoQuaseCheio
+        expr: |
+          100 * (1 - node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}
+                     / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"}) > 85
+        for: 1m
+        labels: { severidade: critica }
+        annotations:
+          resumo: "Disco raiz da VM acima de 85%"
+          valor: "{{ $value | printf \"%.1f\" }}%"
+
+      - alert: MemoriaDoHostAlta
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 90
+        for: 5m
+        labels: { severidade: aviso }
+        annotations:
+          resumo: "Memória da VM acima de 90%"
+
+      - alert: BackendFora
+        expr: up{job="backend"} == 0
+        for: 1m
+        labels: { severidade: critica }
+        annotations:
+          resumo: "Prometheus não consegue raspar o backend (container fora do ar)"
+
+      - alert: ContainerFora
+        # Some a série de CPU de um serviço do compose que existia há 10 min
+        expr: |
+          count by (servico) (up{job="docker-nomes"} offset 10m)
+            unless count by (servico) (up{job="docker-nomes"})
+        for: 1m
+        labels: { severidade: critica }
+        annotations:
+          resumo: "Serviço {{ $labels.servico }} sumiu da lista de containers em execução"

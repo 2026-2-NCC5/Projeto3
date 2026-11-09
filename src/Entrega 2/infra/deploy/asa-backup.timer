@@ -1,0 +1,12 @@
+# ASA Turbo · todo dia às 03:15 (horário da VM). Persistent: se a VM estava
+# desligada no horário, roda assim que ligar.
+[Unit]
+Description=ASA Turbo: backup diário
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=5m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

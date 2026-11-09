@@ -1,5 +1,21 @@
 # infra/loadtest/ · teste de carga (k6)
 
+## Entrega 2 de Nuvem (VM AWS): rampa 10 → 50 → 100 e estresse
+
+| Arquivo | Para quê |
+|---|---|
+| `criar_usuarios_rampa.sh` | 100 estudantes + 10 atendentes fictícios (`carga.e001@...`, `carga.a01@...`), idempotente |
+| `rampa.js` | login + `/health` + `/chat` + `/casos`, rampa de 10 → 50 → 100 VUs (~9,5 min) |
+| `estresse.js` | modelo aberto: `/casos` de 10 → 120 req/s + `/chat` a 15 req/s, para achar a saturação |
+| `rodar_rampa.sh` | roda o k6 da sua máquina contra a VM e coleta `docker stats` da VM (`ROTEIRO=estresse.js` para o estresse) |
+| `exportar_series.sh` | exporta do Prometheus da VM as séries de req/s, p50/p95/p99 e CPU em CSV |
+| `tabela_comparativa.py` | gera as tabelas antes × depois a partir dos JSON/CSV (números nunca digitados) |
+| `prints.mjs` | prints do Grafana/Prometheus/app com Playwright |
+
+Os resultados e a análise do gargalo estão em `documentos/Entrega 2/Sistemas Operacionais e Computação em Nuvem/`.
+
+## Entrega anterior (stack local, 50 VUs)
+
 `carga.js` simula **50 usuários simultâneos** por 2m45s:
 - **40 estudantes** no `/chat`, com 10 perguntas que se repetem e uma pausa de 4 a 8 s entre elas, ritmo de quem lê a resposta e abaixo do limite de 20 mensagens por minuto;
 - **10 atendentes** na fila (`/casos`, com e sem filtro de categoria), abrindo um caso a cada 2 a 5 s.

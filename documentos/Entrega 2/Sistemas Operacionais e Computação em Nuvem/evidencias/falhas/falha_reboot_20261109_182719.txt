@@ -1,0 +1,26 @@
+# Simulação de falha: reboot · 2026-11-09 18:27:19 -03 · https://54-207-148-68.sslip.io
+[18:27:19.720] uptime antes: 2026-11-09 16:54:12 · /api/health=200
+[18:27:19.953] sudo reboot
+[18:27:28.311] fora do ar
+[18:27:51.035] SSH de volta após 30.8 s
+[18:28:16.647] /api/health=200 após 56.5 s (sem intervenção manual)
+2026-11-09 18:27:42
+enabled
+activating
+backend: Up 12 seconds (healthy)
+cadvisor: Up 25 seconds (health: starting)
+db: Up 24 seconds (healthy)
+gotrue: Up 19 seconds (healthy)
+grafana: Up 24 seconds (health: starting)
+node-exporter: Up 25 seconds
+postgrest: Up 18 seconds
+prometheus: Up 25 seconds (health: starting)
+supabase-gw: Up 18 seconds
+web: Up 1 second (health: starting)
+Nov 09 18:28:16 ip-172-31-17-67 docker[1332]:  Container asa-turbo-postgrest-1 Healthy
+Nov 09 18:28:16 ip-172-31-17-67 docker[1332]:  Container asa-turbo-gotrue-1 Healthy
+Nov 09 18:28:16 ip-172-31-17-67 docker[1332]:  Container asa-turbo-backend-1 Healthy
+Nov 09 18:28:16 ip-172-31-17-67 docker[1332]:  Container asa-turbo-db-1 Healthy
+Nov 09 18:28:16 ip-172-31-17-67 docker[1332]:  Container asa-turbo-supabase-gw-1 Healthy
+Nov 09 18:28:16 ip-172-31-17-67 docker[1332]:  Container asa-turbo-node-exporter-1 Healthy
+# evidência: falha_reboot_20261109_182719.txt

@@ -82,7 +82,7 @@ def _repo_padrao(s: Settings, modelo: object = None) -> Repositorio:
         return RepositorioIndisponivel()  # type: ignore[return-value]
     from app.db.supabase_repo import SupabaseRepositorio, criar_cliente
 
-    return SupabaseRepositorio(criar_cliente(s))
+    return SupabaseRepositorio(criar_cliente(s), cache_contagem_s=s.fila_contagem_cache_s)
 
 
 @asynccontextmanager

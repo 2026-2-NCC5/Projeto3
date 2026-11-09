@@ -1,0 +1,29 @@
+início: 2026-11-09 18:06:13  config da VM: UVICORN_WORKERS=2 
+time="2026-11-09T21:06:22Z" level=warning msg="Request Failed" error="Post \"https://54-207-148-68.sslip.io/api/chat\": read tcp 172.17.0.2:59810->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:22Z" level=warning msg="Request Failed" error="Post \"https://54-207-148-68.sslip.io/api/chat\": read tcp 172.17.0.2:59866->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:29Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:59828->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:29Z" level=warning msg="Request Failed" error="Post \"https://54-207-148-68.sslip.io/api/chat\": read tcp 172.17.0.2:60472->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:29Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:59908->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:30Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:59928->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:30Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:59936->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:30Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:59974->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:31Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60020->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:32Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60142->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:32Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60160->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:33Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60218->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:33Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60228->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:34Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60358->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:34Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60386->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:35Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60412->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:35Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60424->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:35Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60440->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:35Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60464->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:06:36Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25\": read tcp 172.17.0.2:60486->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:07:56Z" level=warning msg="Insufficient VUs, reached 400 active VUs and cannot initialize more" executor=ramping-arrival-rate scenario=fila
+
+=== k6 · estresse_workers2 · https://54-207-148-68.sslip.io ===
+requisições: 15343 (70.25/s) · falhas: 0.13% · 5xx/timeout: 0.13% · iterações descartadas: 7857
+lat_chat  n=3086  p50=5227.9 ms  p95=8354.7 ms  p99=9209.6 ms  max=10557.1 ms
+lat_fila  n=6082  p50=5488.1 ms  p95=7543.5 ms  p99=8279.2 ms  max=9694.9 ms
+lat_caso  n=6065  p50=5695.4 ms  p95=7762.4 ms  p99=8549.5 ms  max=10785.4 ms
+fim: 2026-11-09 18:09:53

@@ -1,0 +1,44 @@
+flowchart LR
+  subgraph Internet
+    U[Navegador<br/>estudante · atendente · admin]
+    P[Professor<br/>leitura]
+    A[Equipe<br/>SSH com chave]
+  end
+  subgraph AWS["AWS sa-east-1 · m7i-flex.large · Ubuntu 24.04 · 2 vCPU · 8 GB"]
+    direction LR
+    SG{{"Security group + ufw<br/>80/443 abertas · 22 só IP da equipe"}}
+    subgraph DC["docker compose · systemd asa.service · usuário asa"]
+      direction TB
+      CAD["web: Caddy<br/>HTTPS Let's Encrypt · headers · CSP<br/>React build"]
+      BE["backend: FastAPI/uvicorn<br/>RAG TF-IDF · modelo XGBoost<br/>logs JSON · /metrics"]
+      subgraph SB["Supabase self-hosted (profile local)"]
+        GW[supabase-gw]
+        GT[GoTrue<br/>login JWT]
+        PR[PostgREST]
+        DB[("Postgres 15<br/>+ pgvector · RLS")]
+      end
+      subgraph MON["profile monitoring"]
+        PROM[Prometheus<br/>+ alertas]
+        GRAF[Grafana]
+        NE[node-exporter]
+        CA[cAdvisor]
+      end
+    end
+    BK[["asa-backup.timer 03:15<br/>pg_dump + auth + config + modelo<br/>/opt/asa/backups (700) · 7 dias"]]
+  end
+  LOC[(Máquina da equipe<br/>~/asa-backups-vm)]
+
+  U -- HTTPS 443 --> SG --> CAD
+  P -- "HTTPS + basic auth (bcrypt)<br/>/grafana · /prometheus" --> SG
+  A -- "SSH 22 · túnel 3000/9090" --> SG
+  CAD -- "/api/*" --> BE
+  CAD -- "/auth/v1/*" --> GW
+  CAD -- "basic auth" --> GRAF
+  CAD -- "basic auth" --> PROM
+  BE -- "service_role (só no servidor)" --> GW
+  GW --> GT & PR
+  GT & PR --> DB
+  PROM -- scrape --> BE & NE & CA
+  GRAF --> PROM
+  DB -.-> BK
+  BK -. "rsync por SSH (puxar_backups.sh)" .-> LOC

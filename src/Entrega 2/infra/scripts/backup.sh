@@ -6,12 +6,17 @@
 #   infra/scripts/backup.sh --local    # serviço db do compose (stack local)
 #   infra/scripts/backup.sh --url      # DATABASE_URL do .env (Supabase gerenciado)
 #
-# Gera BACKUP_DIR/asa_<AAAAMMDD_HHMMSS>.dump (pg_dump formato custom) + .sha256,
-# confere o arquivo (pg_restore --list) e apaga backups com mais de
-# BACKUP_RETENCAO_DIAS dias. Usuários do Auth (schema auth) ficam a cargo do
-# backup do próprio Supabase; aqui vai tudo o que a aplicação grava.
-# Cron diário (03:15), como usuário asa na VM:
-#   15 3 * * * cd /opt/asa-turbo && infra/scripts/backup.sh >> backups/backup.log 2>&1
+# Gera em BACKUP_DIR, com o mesmo carimbo <AAAAMMDD_HHMMSS>:
+#   asa_<ts>.dump              pg_dump -Fc do schema public (dados da aplicação)
+#   asa_<ts>_auth.sql.gz       só no modo local (Postgres na VM): dados de auth.users e
+#                              auth.identities (no Supabase gerenciado, o próprio Supabase guarda)
+#   asa_<ts>_config.tar.gz     compose, .env (segredos!), Caddyfile, monitoring, deploy e
+#                              artefatos do modelo (ml/artifacts)
+#   asa_<ts>.contagens         linhas por tabela no momento do backup (conferência do restore)
+#   asa_<ts>.sha256            sha256 de todos os arquivos acima
+# Confere o dump (pg_restore --list) e apaga o que tiver mais de BACKUP_RETENCAO_DIAS dias.
+# BACKUP_DIR é 700 e os arquivos 600: o tar contém o .env.
+# Na VM roda todo dia às 03:15 pelo asa-backup.timer (infra/deploy/).
 # =============================================================================
 set -euo pipefail
 # shellcheck source=infra/scripts/_comum.sh
@@ -34,7 +39,9 @@ mkdir -p "$dir"
 chmod 700 "$dir"
 umask 077
 
-arquivo="$dir/asa_$(date '+%Y%m%d_%H%M%S').dump"
+ts="$(date '+%Y%m%d_%H%M%S')"
+arquivo="$dir/asa_${ts}.dump"
+inicio=$(date +%s)
 log "backup (modo $modo) -> $arquivo"
 
 excluir=()
@@ -53,10 +60,30 @@ if [ "${itens:-0}" -lt 10 ]; then
   exit 1
 fi
 
-(cd "$dir" && sha256sum "$(basename "$arquivo")" > "$(basename "$arquivo").sha256")
-tamanho="$(du -h "$arquivo" | cut -f1)"
-log "ok: $tamanho, $itens itens no sumário, sha256 em $(basename "$arquivo").sha256"
+log "dump ok: $(du -h "$arquivo" | cut -f1), $itens itens no sumário"
+arquivos=("asa_${ts}.dump")
 
-apagados="$(find "$dir" -maxdepth 1 -name 'asa_*.dump*' -type f -mtime +"$retencao" -print -delete | wc -l)"
+# Usuários do Auth (só quando o Postgres é nosso, na VM)
+if [ "$modo" = local ]; then
+  pg_exec local pg_dump --data-only --column-inserts --on-conflict-do-nothing \
+      -t auth.users -t auth.identities | gzip -6 > "$dir/asa_${ts}_auth.sql.gz"
+  arquivos+=("asa_${ts}_auth.sql.gz")
+  log "auth ok: $(du -h "$dir/asa_${ts}_auth.sql.gz" | cut -f1)"
+fi
+
+# Configuração e artefatos do modelo
+( cd "$RAIZ" && tar -czf "$dir/asa_${ts}_config.tar.gz" --ignore-failed-read \
+    docker-compose.yml .env infra/caddy infra/monitoring infra/deploy infra/sql ml/artifacts 2>/dev/null ) \
+  || { log "FALHA ao empacotar a configuração"; exit 1; }
+arquivos+=("asa_${ts}_config.tar.gz")
+log "config ok: $(du -h "$dir/asa_${ts}_config.tar.gz" | cut -f1)"
+
+contagens "$modo" > "$dir/asa_${ts}.contagens" || true
+arquivos+=("asa_${ts}.contagens")
+
+(cd "$dir" && sha256sum "${arquivos[@]}" > "asa_${ts}.sha256")
+log "ok em $(( $(date +%s) - inicio )) s: ${arquivos[*]} (+ asa_${ts}.sha256)"
+
+apagados="$(find "$dir" -maxdepth 1 -name 'asa_*' -type f -mtime +"$retencao" -print -delete | wc -l)"
 log "retenção de $retencao dias: $apagados arquivo(s) antigo(s) removido(s)"
 printf '%s\n' "$arquivo"

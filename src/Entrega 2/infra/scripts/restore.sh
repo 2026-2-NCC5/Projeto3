@@ -32,10 +32,11 @@ if [ -z "$arquivo" ] || [ ! -f "$arquivo" ]; then
   exit 2
 fi
 
-if [ -f "$arquivo.sha256" ]; then
-  (cd "$(dirname "$arquivo")" && sha256sum -c "$(basename "$arquivo").sha256" >/dev/null) \
+soma="${arquivo%.dump}.sha256"; [ -f "$soma" ] || soma="$arquivo.sha256"   # formato novo | antigo
+if [ -f "$soma" ]; then
+  (cd "$(dirname "$arquivo")" && sha256sum -c --ignore-missing "$(basename "$soma")" >/dev/null) \
     || { log "FALHA: sha256 não confere, arquivo corrompido"; exit 1; }
-  log "sha256 conferido"
+  log "sha256 conferido ($(basename "$soma"))"
 else
   log "aviso: sem $arquivo.sha256, integridade não conferida"
 fi

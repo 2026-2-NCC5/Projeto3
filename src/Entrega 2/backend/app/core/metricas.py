@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+import os
+
+from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, Counter, Histogram, generate_latest, multiprocess
 
 http_requests_total = Counter("http_requests_total", "Requisições HTTP", ["rota", "metodo", "status"])
 http_request_duration_seconds = Histogram(
@@ -29,4 +31,10 @@ validacoes_total = Counter("validacoes_total", "Validações humanas de casos", 
 
 
 def exportar() -> tuple[bytes, str]:
+    # Com UVICORN_WORKERS > 1, cada processo grava em PROMETHEUS_MULTIPROC_DIR e o
+    # /metrics soma todos (senão cada raspagem veria só o worker que atendeu).
+    if os.environ.get("PROMETHEUS_MULTIPROC_DIR"):
+        registro = CollectorRegistry()
+        multiprocess.MultiProcessCollector(registro)  # type: ignore[no-untyped-call]
+        return generate_latest(registro), CONTENT_TYPE_LATEST
     return generate_latest(), CONTENT_TYPE_LATEST

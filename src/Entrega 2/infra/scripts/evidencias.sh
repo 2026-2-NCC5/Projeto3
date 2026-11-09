@@ -1,95 +1,66 @@
 #!/usr/bin/env bash
 # =============================================================================
-# ASA Turbo · coleta de evidências de operação Linux
+# ASA Turbo · coleta de evidências da VM VIA SSH (roda na SUA máquina)
 #
-#   infra/scripts/evidencias.sh                        # usa SITE_ADDRESS/PUBLIC_URL do .env
-#   infra/scripts/evidencias.sh https://asa.dominio    # URL pública a testar
+#   infra/scripts/evidencias.sh                      # host asa-vm, URL do sslip.io
+#   infra/scripts/evidencias.sh asa-vm https://54-207-148-68.sslip.io [rotulo]
 #
-# Salva tudo em docs/evidencias/linux_<AAAAMMDD_HHMMSS>.txt. Comandos que não
-# existem no ambiente (ex.: ufw ou journalctl fora da VM) aparecem como
-# "indisponível" em vez de quebrar a coleta.
-# NUNCA imprime o conteúdo do .env (só dono e permissões).
+# Salva em EVIDENCIAS_DIR (padrão: documentos/Entrega 2/Sistemas Operacionais e
+# Computação em Nuvem/evidencias/) o arquivo vm_<AAAAMMDD_HHMMSS>[_rotulo].txt com:
+# uname, lsb_release, id do usuário de serviço, permissões do .env, ufw, ss -tlnp,
+# docker ps, docker stats, systemctl status, journalctl, df, free, top/ps,
+# fail2ban, sshd efetivo, timers e HTTPS. NUNCA lê o conteúdo do .env.
+# O IP de quem conecta por SSH (o seu) é mascarado como <ip-admin>.
+# Para a VM local (sem SSH), use infra/scripts/evidencias_local.sh.
 # =============================================================================
 set -uo pipefail
-# shellcheck source=infra/scripts/_comum.sh
-source "$(dirname "${BASH_SOURCE[0]}")/_comum.sh"
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+HOST="${1:-asa-vm}"
+URL="${2:-https://54-207-148-68.sslip.io}"; URL="${URL%/}"
+ROTULO="${3:-}"
+DESTINO="${EVIDENCIAS_DIR:-$RAIZ/../../documentos/Entrega 2/Sistemas Operacionais e Computação em Nuvem/evidencias}"
+mkdir -p "$DESTINO"
+arq="$DESTINO/vm_$(date '+%Y%m%d_%H%M%S')${ROTULO:+_$ROTULO}.txt"
 
-url="${1:-}"
-if [ -z "$url" ]; then
-  url="$(ler_env PUBLIC_URL)"
-  [ -z "$url" ] && url="http://localhost:$(ler_env WEB_PORT 8080)"
-fi
+# shellcheck disable=SC2087  # expansão local de $URL é proposital
+ssh -o BatchMode=yes "$HOST" "sudo bash -s" <<REMOTO > "$arq" 2>&1
+URL='$URL'
+APP=/opt/asa
+s() { printf '\n==============================================================================\n## %s\n\$ %s\n------------------------------------------------------------------------------\n' "\$1" "\$2"; bash -c "\$2" 2>&1 | head -n "\${3:-60}"; }
+echo "# Evidências da VM · ASA Turbo"
+echo "# Coletado em: \$(date '+%Y-%m-%d %H:%M:%S %Z') · host: \$(hostname) · via SSH por \$(logname 2>/dev/null || echo ubuntu)"
+s "Sistema operacional" "uname -a"
+s "Distribuição" "lsb_release -a"
+s "Tempo ligado e carga" "uptime"
+s "Usuário de serviço (sem senha, sem sudo, shell nologin)" "id asa; getent passwd asa; passwd -S asa; sudo -l -U asa | tail -n 2"
+s "Diretório da aplicação e permissões" "ls -ld \$APP \$APP/backups; ls -l \$APP/.env; stat -c 'modo=%a dono=%U grupo=%G %n' \$APP/.env"
+s "Firewall (ufw)" "ufw status verbose"
+s "Portas em escuta" "ss -tlnp"
+s "SSH efetivo (só chave, sem root)" "sshd -T | grep -Ei '^(permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication|maxauthtries) '"
+s "fail2ban" "fail2ban-client status; fail2ban-client status sshd"
+s "Atualizações automáticas" "systemctl is-enabled unattended-upgrades; cat /etc/apt/apt.conf.d/20auto-upgrades"
+s "Containers" "docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'"
+s "Uso de recursos por container" "docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.PIDs}}'"
+s "Limites de CPU/memória por container" "for c in \\\$(docker ps -q); do docker inspect --format '{{.Name}} cpus={{.HostConfig.NanoCpus}} mem={{.HostConfig.Memory}} restart={{.HostConfig.RestartPolicy.Name}} user={{.Config.User}}' \\\$c; done"
+s "Serviço systemd" "systemctl status asa --no-pager" 20
+s "Timer de backup" "systemctl list-timers asa-backup.timer --no-pager; systemctl status asa-backup.service --no-pager | head -n 8"
+s "Journal do serviço (últimas 40)" "journalctl -u asa --no-pager -n 40" 45
+s "Disco" "df -h -x tmpfs -x devtmpfs -x overlay"
+s "Memória" "free -h"
+s "top (instantâneo)" "top -b -n 1 | head -n 25"
+s "Processos por memória" "ps aux --sort=-%mem | head -n 15"
+s "Backups (sem conteúdo)" "ls -l \$APP/backups | tail -n 12; tail -n 8 \$APP/backups/backup.log"
+s "logrotate" "cat /etc/logrotate.d/asa"
+s "HTTPS: cabeçalhos" "curl -sS -I --max-time 10 \$URL/"
+s "Saúde da API" "curl -sS --max-time 10 \$URL/api/health; echo"
+s "/metrics não exposto (espera 404)" "curl -s -o /dev/null -w '%{http_code}\n' \$URL/api/metrics"
+s "Monitoramento exige senha (espera 401)" "for p in /grafana/ /prometheus/; do printf '%s -> ' \\\$p; curl -s -o /dev/null -w '%{http_code}\n' \$URL\\\$p; done"
+s "Certificado TLS" "echo | openssl s_client -servername \${URL#https://} -connect \${URL#https://}:443 2>/dev/null | openssl x509 -noout -subject -issuer -dates"
+s "Logs JSON do backend (últimas 3)" "cd \$APP && sudo -u asa docker compose exec -T backend tail -n 3 /var/log/asa/backend.log" 10
+REMOTO
 
-destino_dir="$RAIZ/docs/evidencias"
-mkdir -p "$destino_dir"
-saida="$destino_dir/linux_$(date '+%Y%m%d_%H%M%S').txt"
-
-secao() { printf '\n==============================================================================\n## %s\n$ %s\n------------------------------------------------------------------------------\n' "$1" "$2"; }
-cmd() { # cmd "título" comando...
-  local titulo="$1"; shift
-  secao "$titulo" "$*"
-  if command -v "$1" >/dev/null 2>&1; then
-    "$@" 2>&1 | head -n "${LINHAS:-60}"
-  else
-    echo "(indisponível neste ambiente: '$1' não instalado)"
-  fi
-}
-sh_cmd() { # sh_cmd "título" "pipeline"
-  secao "$1" "$2"
-  bash -c "$2" 2>&1 | head -n "${LINHAS:-60}"
-}
-
-{
-  echo "# Evidências de operação · ASA Turbo"
-  echo "# Coletado em: $(date '+%Y-%m-%d %H:%M:%S %Z') · host: $(hostname) · usuário: $(id -un)"
-  echo "# Diretório: $RAIZ · URL testada: $url"
-
-  cmd "Sistema operacional" uname -a
-  sh_cmd "Distribuição" "grep -E '^(PRETTY_NAME|VERSION)=' /etc/os-release"
-  cmd "Tempo ligado e carga" uptime
-  cmd "Memória" free -h
-  cmd "Disco" df -h -x tmpfs -x devtmpfs -x overlay
-  LINHAS=15 sh_cmd "Processos por CPU (top 15)" "ps aux --sort=-%cpu | head -n 15"
-  LINHAS=25 sh_cmd "top (instantâneo)" "top -b -n 1 | head -n 25"
-
-  sh_cmd "Containers do ASA Turbo" "cd '$RAIZ' && docker compose ps --format 'table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'"
-  sh_cmd "Uso de recursos por container" "docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.PIDs}}'"
-  sh_cmd "Usuário de cada container (nenhum serviço da aplicação como root)" "cd '$RAIZ' && for s in backend web; do c=\$(docker compose ps -q \$s); [ -n \"\$c\" ] && echo \"\$s: uid=\$(docker exec \$c id -u) (\$(docker exec \$c id -un 2>/dev/null))\"; done"
-  sh_cmd "Healthchecks" "docker ps --filter name=asa-turbo --format '{{.Names}}: {{.Status}}'"
-
-  if command -v journalctl >/dev/null 2>&1 && systemctl list-unit-files asa-turbo.service >/dev/null 2>&1 \
-     && systemctl list-unit-files asa-turbo.service | grep -q asa-turbo; then
-    sh_cmd "Serviço systemd" "systemctl status asa-turbo --no-pager | head -n 15"
-    LINHAS=100 sh_cmd "Journal do serviço (últimas 100)" "journalctl -u asa-turbo --no-pager -n 100"
-  else
-    secao "Serviço systemd" "systemctl status asa-turbo"
-    echo "(unidade asa-turbo.service não instalada neste host; na VM ela é instalada por infra/deploy/provisionar.sh)"
-  fi
-
-  sh_cmd "Permissões do .env (conteúdo nunca é exibido)" "ls -l '$ARQ_ENV' && stat -c 'modo=%a dono=%U grupo=%G' '$ARQ_ENV'"
-  sh_cmd "Permissões dos backups" "ls -ld '$RAIZ/backups' 2>/dev/null && ls -l '$RAIZ/backups' 2>/dev/null | tail -n 5 || echo 'sem backups ainda'"
-
-  if command -v ufw >/dev/null 2>&1; then
-    sh_cmd "Firewall (ufw)" "ufw status verbose 2>&1 || sudo -n ufw status verbose 2>&1 || echo 'ufw requer sudo'"
-  else
-    secao "Firewall (ufw)" "ufw status verbose"
-    echo "(ufw não instalado neste host; na VM, provisionar.sh libera só 22/80/443)"
-  fi
-  sh_cmd "Portas em escuta" "ss -tlnp 2>/dev/null | grep -Ev '127.0.0.53' || netstat -tlnp"
-
-  sh_cmd "HTTP(S) público: cabeçalhos" "curl -sS -I --max-time 10 '$url'"
-  sh_cmd "Saúde da API" "curl -sS --max-time 10 '$url/api/health'; echo"
-  sh_cmd "/metrics NÃO exposto publicamente (espera 404)" "curl -s -o /dev/null -w '%{http_code}\n' --max-time 10 '$url/api/metrics'"
-  case "$url" in
-    https://*) sh_cmd "Certificado TLS" "echo | openssl s_client -servername '${url#https://}' -connect '${url#https://}:443' 2>/dev/null | openssl x509 -noout -subject -issuer -dates" ;;
-  esac
-
-  LINHAS=8 sh_cmd "Logs JSON do backend (últimas linhas, arquivo rotacionado)" "cd '$RAIZ' && docker compose exec -T backend sh -c 'ls -l /var/log/asa/ && tail -n 3 /var/log/asa/backend.log'"
-  LINHAS=6 sh_cmd "Logs de acesso do Caddy (JSON, rotacionado)" "cd '$RAIZ' && docker compose exec -T web sh -c 'ls -l /var/log/caddy/ && tail -n 2 /var/log/caddy/access.log'"
-  sh_cmd "Rotação de logs dos containers (driver)" "docker inspect --format '{{.Name}} {{.HostConfig.LogConfig.Type}} {{.HostConfig.LogConfig.Config}}' \$(docker ps -q --filter name=asa-turbo)"
-} > "$saida" 2>&1
-
-# Defesa extra: se algo parecido com segredo escapou, mascara antes de salvar
-sed -i -E 's/(eyJ[A-Za-z0-9_-]{10,})\.[A-Za-z0-9_.-]+/\1.<omitido>/g; s/(PASSWORD|SECRET|TOKEN|KEY)=[^ ]+/\1=<omitido>/g' "$saida"
-
-echo "evidências salvas em ${saida#"$RAIZ"/}"
+# mascara o IP de quem administra (o seu) e qualquer coisa parecida com segredo
+meu_ip="$(ssh -o BatchMode=yes "$HOST" 'echo ${SSH_CLIENT%% *}' 2>/dev/null)"
+[ -n "$meu_ip" ] && sed -i "s/${meu_ip//./\\.}/<ip-admin>/g" "$arq"
+sed -i -E 's/(eyJ[A-Za-z0-9_-]{10,})\.[A-Za-z0-9_.-]+/\1.<omitido>/g; s/(PASSWORD|SECRET|TOKEN|KEY|HASH)=[^ ]+/\1=<omitido>/g' "$arq"
+echo "evidências salvas em $arq"

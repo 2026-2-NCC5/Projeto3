@@ -1,0 +1,13 @@
+início: 2026-11-09 18:10:40  config da VM: UVICORN_WORKERS=1 
+time="2026-11-09T21:10:53Z" level=warning msg="Request Failed" error="Get \"https://54-207-148-68.sslip.io/api/casos?por_pagina=25&categoria=amarelo\": read tcp 172.17.0.2:55626->54.207.148.68:443: read: connection reset by peer"
+time="2026-11-09T21:11:12Z" level=warning msg="Request Failed" error="Post \"https://54-207-148-68.sslip.io/api/chat\": read tcp 172.17.0.2:60428->54.207.148.68:443: read: connection reset by peer"
+
+=== k6 · depois · https://54-207-148-68.sslip.io ===
+requisições: 13110 (22.88/s) · falhas: 0.34% · 5xx: 0.00%
+lat_health  n=2850  p50=8.6 ms  p95=14.0 ms  p99=23.3 ms  max=219.6 ms
+lat_login   n=100  p50=14.8 ms  p95=22.9 ms  p99=24.5 ms  max=40.5 ms
+lat_chat    n=5453  p50=17.2 ms  p95=31.6 ms  p99=60.5 ms  max=250.2 ms
+lat_fila    n=2354  p50=25.2 ms  p95=42.5 ms  p99=79.3 ms  max=239.7 ms
+lat_caso    n=2353  p50=19.4 ms  p95=34.7 ms  p99=57.4 ms  max=233.0 ms
+abstenção: 9.7% · 429: 42
+fim: 2026-11-09 18:20:14

@@ -1,0 +1,13 @@
+# Simulação de falha: disco · 2026-11-09 18:25:06 -03 · https://54-207-148-68.sslip.io
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        29G   12G   17G  40% /
+[18:25:06.217] alertas: nenhum
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        29G   25G  3.4G  89% /
+[18:25:06.658] disco cheio; esperando o alerta (for: 1m + avaliação 15 s)
+[18:26:28.880] alertas: DiscoQuaseCheio=firing (após 82.2 s)
+[18:26:28.884] o app continua respondendo? /api/health=200
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/root        29G   12G   17G  40% /
+[18:27:14.129] depois da limpeza: nenhum
+# evidência: falha_disco_20261109_182506.txt
