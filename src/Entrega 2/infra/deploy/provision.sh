@@ -159,6 +159,9 @@ getent group docker >/dev/null && run usermod -aG docker "$USUARIO"
 log "7/9 $DIR_APP (750), backups (700), .env (600)"
 run install -d -m 0750 -o "$USUARIO" -g "$USUARIO" "$DIR_APP"
 run install -d -m 0700 -o "$USUARIO" -g "$USUARIO" "$DIR_APP/backups"
+# o systemd criaria o backup.log (append:) como root; o logrotate gira como asa
+[ -f "$DIR_APP/backups/backup.log" ] || run install -m 0600 -o "$USUARIO" -g "$USUARIO" /dev/null "$DIR_APP/backups/backup.log"
+run chown "$USUARIO:$USUARIO" "$DIR_APP/backups/backup.log"
 if [ -f "$DIR_APP/.env" ]; then
   run chown "$USUARIO:$USUARIO" "$DIR_APP/.env"; run chmod 600 "$DIR_APP/.env"
   echo "  .env: $(stat -c '%A %U:%G' "$DIR_APP/.env")"

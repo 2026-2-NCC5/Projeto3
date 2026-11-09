@@ -28,14 +28,17 @@ echo "# Simulação de falha: $TIPO · $(date '+%F %T %Z') · $URL"
 case "$TIPO" in
 container)
   echo "[$(t)] estado inicial: $(ssh "$HOST" "$D ps backend --format '{{.Name}} {{.Status}}'") · /api/health=$(saude)"
-  echo "[$(t)] docker kill -s KILL no backend (simula crash do processo)"
-  ssh "$HOST" "sudo docker kill -s KILL asa-turbo-backend-1" >/dev/null
+  # kill -9 no PID principal, pelo host: o Docker vê uma saída inesperada e aplica o restart.
+  # (docker kill/stop contam como parada MANUAL e o "unless-stopped" não reinicia; testado.)
+  echo "[$(t)] kill -9 no processo principal do backend (simula crash: OOM, segfault...)"
+  ssh "$HOST" 'sudo kill -9 $(sudo docker inspect -f "{{.State.Pid}}" asa-turbo-backend-1)' >/dev/null
   t0=$(seg); primeira_falha=""
   while :; do
     c=$(saude); agora=$(seg)
     [ "$c" != 200 ] && [ -z "$primeira_falha" ] && primeira_falha=$c && echo "[$(t)] /api/health=$c (fora do ar)"
     if [ "$c" = 200 ] && [ -n "$primeira_falha" ]; then break; fi
     if [ "$c" = 200 ] && [ "$(dur "$t0" "$agora" | cut -d. -f1)" -gt 5 ]; then break; fi
+    if [ "$(dur "$t0" "$agora" | cut -d. -f1)" -gt 120 ]; then echo "[$(t)] NÃO voltou em 120 s"; break; fi
     sleep 0.5
   done
   echo "[$(t)] /api/health=200 de novo após $(dur "$t0" "$(seg)") s"
