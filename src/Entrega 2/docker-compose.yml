@@ -8,9 +8,10 @@
 #
 #   Produção (Supabase gerenciado): .env sem o profile "local". Ver infra/deploy/README.md.
 #
-# Profiles:
-#   local       Postgres (imagem Supabase) + PostgREST + GoTrue + gateway + job de init
-#   monitoring  Prometheus + Grafana + cAdvisor (painel pronto)
+# Profiles (o padrão, sem profile, sobe app = backend + web/Caddy):
+#   local       Postgres 15 + pgvector (imagem Supabase) + PostgREST + GoTrue + gateway + init
+#   monitoring  Prometheus + Grafana + node-exporter + cAdvisor (painel e alertas prontos)
+# Cada serviço tem limite de CPU e memória (deploy.resources.limits); soma ~4 GB na VM de 8 GB.
 # =============================================================================
 name: asa-turbo
 
@@ -25,6 +26,12 @@ x-seguranca: &seguranca
   security_opt:
     - no-new-privileges:true
 
+# Limites por serviço (o compose aplica deploy.resources.limits sem Swarm)
+x-lim-pequeno: &lim-pequeno
+  deploy: { resources: { limits: { cpus: "0.25", memory: 128M } } }
+x-lim-medio: &lim-medio
+  deploy: { resources: { limits: { cpus: "0.50", memory: 256M } } }
+
 services:
   # ------------------------------------------------------------------ app
   backend:
@@ -35,6 +42,7 @@ services:
     env_file: .env
     environment:
       LOG_DIR: /var/log/asa
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
     volumes:
       - logs-backend:/var/log/asa
     expose:
@@ -47,6 +55,9 @@ services:
       db-init:
         condition: service_completed_successfully
         required: false
+    deploy:
+      resources:
+        limits: { cpus: "${BACKEND_CPUS:-1.5}", memory: 1G }
     <<: [*logs, *seguranca]
 
   web:
@@ -63,6 +74,8 @@ services:
       ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
       CSP_CONNECT_EXTRA: ${CSP_CONNECT_EXTRA:-}
       SUPABASE_GW: ${SUPABASE_GW:-supabase-gw:8000}
+      MONITOR_USER: ${MONITOR_USER:-monitor}
+      MONITOR_HASH: ${MONITOR_HASH:-}
     ports:
       - "${WEB_PORT:-8080}:80"
       - "${WEB_PORT_HTTPS:-8443}:443"
@@ -74,7 +87,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    <<: [*logs, *seguranca]
+    <<: [*logs, *seguranca, *lim-medio]
 
   # ------------------------------------------------------- Supabase local
   db:
@@ -97,6 +110,9 @@ services:
       timeout: 5s
       retries: 20
     restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1G }
     <<: *logs
 
   gotrue:
@@ -128,7 +144,7 @@ services:
       timeout: 5s
       retries: 20
     restart: unless-stopped
-    <<: *logs
+    <<: [*logs, *lim-medio]
 
   postgrest:
     profiles: [local]
@@ -141,12 +157,12 @@ services:
       PGRST_DB_USE_LEGACY_GUCS: "false"
       # igual ao Supabase gerenciado: uuid-ossp, vector e unaccent vivem no schema extensions
       PGRST_DB_EXTRA_SEARCH_PATH: public,extensions
-      PGRST_DB_POOL: 20
+      PGRST_DB_POOL: ${PGRST_DB_POOL:-20}
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
-    <<: *logs
+    <<: [*logs, *lim-medio]
 
   supabase-gw:
     profiles: [local]
@@ -159,7 +175,7 @@ services:
       - postgrest
       - gotrue
     restart: unless-stopped
-    <<: *logs
+    <<: [*logs, *lim-pequeno]
 
   db-init:
     profiles: [local]
@@ -179,10 +195,12 @@ services:
       gotrue:
         condition: service_healthy
     restart: "no"
+    <<: *lim-medio
 
   # ------------------------------------------------------- monitoramento
-  # docker compose --profile monitoring up -d   (ou COMPOSE_PROFILES=monitoring no .env)
-  # Grafana: http://127.0.0.1:3000 (na VM, por túnel SSH: ssh -L 3000:127.0.0.1:3000 ...)
+  # COMPOSE_PROFILES=...,monitoring no .env. Nada aqui publica porta para fora:
+  #   pelo Caddy, com basic auth:  https://<host>/grafana/  e  https://<host>/prometheus/
+  #   por túnel SSH:               ssh -L 3000:127.0.0.1:3000 asa-vm  ->  http://localhost:3000/grafana/
   prometheus:
     profiles: [monitoring]
     image: prom/prometheus:v2.55.1
@@ -190,16 +208,44 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=2GB
+      - --web.external-url=${PUBLIC_URL:-http://localhost:8080}/prometheus/
+      - --web.route-prefix=/
     volumes:
       - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/monitoring/alertas.yml:/etc/prometheus/alertas.yml:ro
       - prometheus-data:/prometheus
       # só leitura, para o docker_sd nomear os containers (rede interna, sem porta publicada)
       - /var/run/docker.sock:/var/run/docker.sock:ro
     user: "0:0"
     expose:
       - "9090"
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: "0.50", memory: 512M }
     <<: [*logs, *seguranca]
+
+  node-exporter:
+    profiles: [monitoring]
+    image: prom/node-exporter:v1.8.2
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/snap/.+)($$|/)
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    expose:
+      - "9100"
+    restart: unless-stopped
+    <<: [*logs, *seguranca, *lim-pequeno]
 
   cadvisor:
     profiles: [monitoring]
@@ -221,7 +267,7 @@ services:
     expose:
       - "8080"
     restart: unless-stopped
-    <<: *logs
+    <<: [*logs, *lim-medio]
 
   grafana:
     profiles: [monitoring]
@@ -229,6 +275,11 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?defina GRAFANA_ADMIN_PASSWORD no .env}
+      GF_SERVER_ROOT_URL: ${PUBLIC_URL:-http://localhost:8080}/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_SECURITY_COOKIE_SECURE: ${GRAFANA_COOKIE_SECURE:-false}
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_AUTH_BASIC_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
@@ -242,7 +293,15 @@ services:
       - "127.0.0.1:3000:3000"
     depends_on:
       - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
+    deploy:
+      resources:
+        limits: { cpus: "0.50", memory: 384M }
     <<: [*logs, *seguranca]
 
 volumes:
