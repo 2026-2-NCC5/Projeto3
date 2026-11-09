@@ -50,6 +50,10 @@ if [ "$DRY" = 0 ] && [ "$(id -u)" -ne 0 ]; then echo "Rode como root (sudo)." >&
 [ "${ID:-}" = ubuntu ] || echo "Aviso: testado em Ubuntu 24.04; este sistema é ${PRETTY_NAME:-desconhecido}." >&2
 CODENAME="${VERSION_CODENAME:-noble}"
 export DEBIAN_FRONTEND=noninteractive
+# Fuso de São Paulo: horário do timer de backup e das evidências
+if [ "$(timedatectl show -p Timezone --value 2>/dev/null)" != "America/Sao_Paulo" ]; then
+  run timedatectl set-timezone America/Sao_Paulo
+fi
 APT_OPTS=(-y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold)
 
 # ----------------------------------------------------------------- 1. pacotes
