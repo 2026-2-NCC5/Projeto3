@@ -44,7 +44,7 @@ ssh "$HOST" 'sudo systemctl disable --now asa.service asa-backup.timer >/dev/nul
     /etc/systemd/system/asa*.service /etc/systemd/system/asa*.timer /etc/logrotate.d/asa /etc/apt/sources.list.d/docker.list
   sudo systemctl daemon-reload
   echo "    docker: $(command -v docker || echo ausente) · /opt/asa: $(ls -d /opt/asa 2>/dev/null || echo ausente)"'
-curl -s -o /dev/null -m 5 -w "    site: HTTP %{http_code}\n" "$URL/" || echo "    site: fora do ar"
+echo "    site: HTTP $(curl -s -o /dev/null -m 5 -w '%{http_code}' "$URL/" || true) (000 = fora do ar)"
 
 T0=$(seg)
 etapa "2. provisionar (atualizar.sh + provision.sh, direto do GitHub)"
@@ -55,7 +55,7 @@ marca "provisionamento (Docker incluso)" "$t"
 etapa "3. devolver .env e backup a partir da cópia externa"
 t=$(seg)
 rsync -a --rsync-path="sudo rsync" "$B".* "${B}"_* "$HOST:/opt/asa/backups/"
-ssh "$HOST" "cd /opt/asa && sudo tar -xzf backups/${N}_config.tar.gz .env && sudo chown -R asa:asa /opt/asa && sudo chmod 600 .env && sudo ls -l .env"
+ssh "$HOST" "sudo tar -C /opt/asa -xzf /opt/asa/backups/${N}_config.tar.gz .env && sudo chown -R asa:asa /opt/asa && sudo chmod 600 /opt/asa/.env && sudo ls -l /opt/asa/.env"
 marca "cópia do .env e do backup" "$t"
 
 etapa "4. build das imagens + db e GoTrue (banco novo, vazio)"
