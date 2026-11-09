@@ -77,6 +77,7 @@ export function fila(d) {
 }
 
 export function handleSummary(data) {
+  delete data.setup_data // tokens de acesso dos usuários de carga: nunca no arquivo
   const m = data.metrics
   const v = (k, s) => (m[k] && m[k].values[s] !== undefined ? m[k].values[s] : NaN)
   const ms = (x) => (isNaN(x) ? '-' : `${x.toFixed(1)} ms`)

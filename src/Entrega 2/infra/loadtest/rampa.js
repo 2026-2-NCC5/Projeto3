@@ -136,6 +136,7 @@ export function health() {
 }
 
 export function handleSummary(data) {
+  delete data.setup_data // tokens de acesso dos usuários de carga: nunca no arquivo
   return {
     [`/out/k6_${ROTULO}.json`]: JSON.stringify(data, null, 2),
     stdout: textoResumo(data),
